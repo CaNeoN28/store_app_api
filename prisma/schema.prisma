@@ -13,7 +13,161 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Item {
+model Grupo {
   id   Int    @id @default(autoincrement())
   nome String
+
+  UsuariosGrupos UsuariosGrupos[]
+}
+
+model Usuario {
+  id              Int     @id @default(autoincrement())
+  nome_completo   String
+  nome_usuario    String
+  senha           String
+  foto_url        String?
+  numero_telefone String?
+  email           String?
+
+  UsuariosGrupos       UsuariosGrupos[]
+  Alteracao_Preco_Item Alteracao_Preco_Item[]
+  Alteracoes_item      Alteracoes_Item[]
+  Alteracao_Fornecedor Alteracao_Fornecedor[]
+  Alteracao_Cliente    Alteracao_Cliente[]
+}
+
+model Fornecedor {
+  id   Int    @id @default(autoincrement())
+  cnpj String @unique
+  nome String
+
+  Item   Item[]
+  Compra Compra[]
+}
+
+model Alteracao_Fornecedor {
+  id   Int      @id @default(autoincrement())
+  data DateTime @default(now())
+
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+}
+
+model Cliente {
+  id    Int     @id @default(autoincrement())
+  cnpj  String  @unique
+  nome  String
+  Venda Venda[]
+}
+
+model Alteracao_Cliente {
+  id   Int      @id @default(autoincrement())
+  data DateTime @default(now())
+
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+}
+
+model UsuariosGrupos {
+  grupo_id   Int
+  grupo      Grupo   @relation(fields: [grupo_id], references: [id])
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+
+  @@id([grupo_id, usuario_id])
+}
+
+model Unidade {
+  id   Int    @id @default(autoincrement())
+  nome String @unique
+
+  Item Item[]
+}
+
+model Item {
+  id                   Int       @id @default(autoincrement())
+  nome                 String
+  valor_atual          Decimal   @default(0.0)
+  desconto_porcentagem Decimal   @default(0.0)
+  validade_desconto    DateTime?
+
+  unidade_id Int
+  unidade    Unidade @relation(fields: [unidade_id], references: [id])
+
+  Alteracao_Preco_Item Alteracao_Preco_Item[]
+  Alteracoes_item      Alteracoes_Item[]
+  Compra_Items         Compra_Item[]
+  Venda_Item           Venda_Item[]
+  Fornecedor           Fornecedor?            @relation(fields: [fornecedorId], references: [id])
+  fornecedorId         Int?
+}
+
+model Alteracao_Preco_Item {
+  id                 Int       @id @default(autoincrement())
+  data               DateTime  @default(now())
+  valor_anterior     Decimal
+  valor_posterior    Decimal
+  desconto_anterior  Decimal
+  desconto_posterior Decimal
+  validade_desconto  DateTime?
+
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+  item_id    Int
+  item       Item    @relation(fields: [item_id], references: [id])
+}
+
+model Alteracoes_Item {
+  id   Int      @id @default(autoincrement())
+  data DateTime @default(now())
+
+  item_id    Int
+  item       Item    @relation(fields: [item_id], references: [id])
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+}
+
+model Compra {
+  id          Int      @id @default(autoincrement())
+  data        DateTime @default(now())
+  valor_total Decimal
+
+  fornecedor_id Int
+  fornecedor    Fornecedor @relation(fields: [fornecedor_id], references: [id])
+
+  Compra_Items Compra_Item[]
+}
+
+model Compra_Item {
+  compra_id Int
+  compra    Compra @relation(fields: [compra_id], references: [id])
+  item_id   Int
+  item      Item   @relation(fields: [item_id], references: [id])
+
+  valor_combinado Decimal
+  quantidade      Decimal
+
+  @@id([compra_id, item_id])
+}
+
+model Venda {
+  id          Int      @id @default(autoincrement())
+  data        DateTime @default(now())
+  valor_total Decimal
+
+  cliente_id Int?
+  cliente    Cliente?     @relation(fields: [cliente_id], references: [id])
+  Venda_Item Venda_Item[]
+}
+
+model Venda_Item {
+  venda_id Int
+  venda    Venda @relation(fields: [venda_id], references: [id])
+  item_id  Int
+  item     Item  @relation(fields: [item_id], references: [id])
+
+  valor_venda Decimal
+  quantidade  Decimal
+
+  @@id([venda_id, item_id])
 }
