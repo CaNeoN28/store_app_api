@@ -1,11 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import express from "express";
+import config_router from "./routes";
 
-const prisma = new PrismaClient();
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Hello world");
-});
+app.use(config_router())
 
-app.listen(3000, () => {});
+app.listen(3000, () => {
+  console.log("Servidor iniciado. Disponível para acesso em http://localhost:" + 3000)
+});
