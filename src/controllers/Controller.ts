@@ -1,5 +1,7 @@
-import { NextFunction, Request, RequestHandler, Response } from "express";
+import { RequestHandler } from "express";
 import prisma from "../db/prisma";
+import { Prisma } from "@prisma/client";
+import { DefaultArgs } from "@prisma/client/runtime/library";
 
 type TABELA = "item";
 
@@ -10,20 +12,21 @@ export default abstract class Controller {
     this.tabela = tabela;
   }
 
-  get: RequestHandler = async (req, res, senc) => {
-    res.send(this.findMany());
+  getMany: RequestHandler = async (req, res, senc) => {
+    res.send(this.find());
   };
 
-  findMany = async () => {
-    const itens = await prisma[this.tabela]
-      .findMany({})
+  find = async (query: Prisma.ItemFindManyArgs<DefaultArgs> = {}) => {
+    const pesquisa = prisma[this.tabela].findMany(query);
+
+    const itens = await pesquisa
       .then((res) => {
         return res;
       })
       .catch((err) => {
         console.log(err);
 
-        return {};
+        return [];
       });
 
     return itens;
