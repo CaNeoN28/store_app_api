@@ -67,7 +67,7 @@ export default abstract class Controller {
 
   set_selecionados(selecionados: Prisma.ItemSelect<DefaultArgs>) {
     this.selecionados = {
-      ...this.selecionados,
+      ...Controller.selecionar_todos_os_campos(this.tabela),
       ...selecionados,
     };
   }
@@ -104,5 +104,16 @@ export default abstract class Controller {
     } else {
       this.pagina_exibicao = numero;
     }
+  }
+
+  static selecionar_todos_os_campos(tabela: TABELA) {
+    const campos = Object.keys(prisma[tabela].fields);
+    const selecionados: any = {};
+
+    campos.map((c) => {
+      selecionados[c] = true;
+    });
+
+    return selecionados;
   }
 }
