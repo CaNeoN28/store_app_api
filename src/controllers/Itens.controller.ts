@@ -8,7 +8,7 @@ export default class Controller_Itens extends Controller {
   }
 
   list: RequestHandler = async (req, res, next) => {
-    const { nome, em_desconto, limite, pagina } = req.query;
+    const { nome, em_desconto, ordenar, limite, pagina } = req.query;
     const filtros: Prisma.ItemWhereInput = {};
 
     if (nome) {
@@ -28,6 +28,7 @@ export default class Controller_Itens extends Controller {
       };
     }
 
+    this.set_ordenacao(ordenar)
     this.set_filtros(filtros);
     this.set_limite(limite);
     this.set_pagina(pagina);

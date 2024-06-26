@@ -6,12 +6,14 @@ import { DefaultArgs } from "@prisma/client/runtime/library";
 type TABELA = "item";
 
 export default abstract class Controller {
+  static ORDENACAO_PADRAO = { id: "asc" };
   static PAGINA_EXIBICAO_PADRAO = 1;
   static LIMITE_EXIBICAO_PADRAO = 10;
 
   tabela: TABELA;
 
   protected filtros: Prisma.ItemWhereInput;
+  protected ordenacao: any;
   protected pagina_exibicao: number;
   protected limite_exibicao: number;
 
@@ -19,6 +21,7 @@ export default abstract class Controller {
     this.tabela = tabela;
 
     this.filtros = {};
+    this.ordenacao = Controller.ORDENACAO_PADRAO;
     this.pagina_exibicao = Controller.PAGINA_EXIBICAO_PADRAO;
     this.limite_exibicao = Controller.LIMITE_EXIBICAO_PADRAO;
   }
@@ -31,6 +34,7 @@ export default abstract class Controller {
     const itens = await prisma[this.tabela]
       .findMany({
         where: this.filtros,
+        orderBy: this.ordenacao,
         skip: (this.pagina_exibicao - 1) * this.limite_exibicao,
         take: this.limite_exibicao,
       })
@@ -50,6 +54,20 @@ export default abstract class Controller {
 
   set_filtros(filtros: Prisma.ItemWhereInput) {
     this.filtros = filtros;
+  }
+
+  set_ordenacao(campo: any) {
+    const formatado = String(campo).replace("-", "");
+    const descendente = String(campo).startsWith("-");
+    const campos = Object.keys(prisma[this.tabela].fields);
+
+    if (campos.find((c) => c == formatado)) {
+      this.ordenacao = {
+        [formatado]: descendente ? "desc" : "asc",
+      };
+    } else {
+      this.ordenacao = Controller.ORDENACAO_PADRAO;
+    }
   }
 
   set_limite(limite: any) {
