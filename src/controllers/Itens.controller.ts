@@ -9,7 +9,7 @@ export default class Controller_Itens extends Controller {
   }
 
   get_many: RequestHandler = async (req, res, next) => {
-    const { nome, em_desconto, ordenar } = req.query;
+    const { nome, em_desconto, ordenar, limite, pagina } = req.query;
 
     const where: Prisma.ItemWhereInput = {};
 
@@ -42,7 +42,7 @@ export default class Controller_Itens extends Controller {
 
     this.get_order_by = String(ordenar);
 
-    const itens = await this.find(where, select);
+    const itens = await this.find_many(where, select, Number(pagina), Number(limite));
 
     res.send(itens);
   };
