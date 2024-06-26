@@ -28,8 +28,19 @@ export default class Controller_Itens extends Controller {
       };
     }
 
-    this.set_ordenacao(ordenar);
+    const selecionados = {
+      unidade_id: false,
+      unidade: {
+        select: {
+          id: true,
+          nome: true,
+        },
+      },
+    };
+
     this.set_filtros(filtros);
+    this.set_selecionados(selecionados);
+    this.set_ordenacao(ordenar);
     this.set_limite(limite);
     this.set_pagina(pagina);
 

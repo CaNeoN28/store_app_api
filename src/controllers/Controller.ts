@@ -13,6 +13,7 @@ export default abstract class Controller {
   tabela: TABELA;
 
   protected filtros: Prisma.ItemWhereInput;
+  protected selecionados: any;
   protected ordenacao: any;
   protected pagina_exibicao: number;
   protected limite_exibicao: number;
@@ -20,10 +21,17 @@ export default abstract class Controller {
   constructor(tabela: TABELA) {
     this.tabela = tabela;
 
+    const campos = Object.keys(prisma[tabela].fields);
+
     this.filtros = {};
+    this.selecionados = {};
     this.ordenacao = Controller.ORDENACAO_PADRAO;
     this.pagina_exibicao = Controller.PAGINA_EXIBICAO_PADRAO;
     this.limite_exibicao = Controller.LIMITE_EXIBICAO_PADRAO;
+
+    campos.map((c) => {
+      this.selecionados[c] = true;
+    });
   }
 
   list: RequestHandler = async (req, res, senc) => {
@@ -35,6 +43,7 @@ export default abstract class Controller {
       .findMany({
         where: this.filtros,
         orderBy: this.ordenacao,
+        select: this.selecionados,
         skip: (this.pagina_exibicao - 1) * this.limite_exibicao,
         take: this.limite_exibicao,
       })
@@ -54,6 +63,13 @@ export default abstract class Controller {
 
   set_filtros(filtros: Prisma.ItemWhereInput) {
     this.filtros = filtros;
+  }
+
+  set_selecionados(selecionados: Prisma.ItemSelect<DefaultArgs>) {
+    this.selecionados = {
+      ...this.selecionados,
+      ...selecionados,
+    };
   }
 
   set_ordenacao(campo: any) {
