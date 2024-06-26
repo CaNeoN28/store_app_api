@@ -11,12 +11,14 @@ export default abstract class Controller {
 
   tabela: TABELA;
 
+  protected filtros: Prisma.ItemWhereInput;
   protected pagina_exibicao: number;
   protected limite_exibicao: number;
 
   constructor(tabela: TABELA) {
     this.tabela = tabela;
 
+    this.filtros = {};
     this.pagina_exibicao = Controller.PAGINA_EXIBICAO_PADRAO;
     this.limite_exibicao = Controller.LIMITE_EXIBICAO_PADRAO;
   }
@@ -28,6 +30,7 @@ export default abstract class Controller {
   find_many = async () => {
     const itens = await prisma[this.tabela]
       .findMany({
+        where: this.filtros,
         skip: (this.pagina_exibicao - 1) * this.limite_exibicao,
         take: this.limite_exibicao,
       })
@@ -44,6 +47,10 @@ export default abstract class Controller {
       limite: this.limite_exibicao,
     };
   };
+
+  set_filtros(filtros: Prisma.ItemWhereInput) {
+    this.filtros = filtros;
+  }
 
   set_limite(limite: any) {
     const numero = Number(limite);
