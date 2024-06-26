@@ -41,7 +41,6 @@ model Fornecedor {
   cnpj String @unique
   nome String
 
-  Item   Item[]
   Compra Compra[]
 }
 
@@ -98,8 +97,6 @@ model Item {
   Alteracoes_item      Alteracoes_Item[]
   Compra_Items         Compra_Item[]
   Venda_Item           Venda_Item[]
-  Fornecedor           Fornecedor?            @relation(fields: [fornecedorId], references: [id])
-  fornecedorId         Int?
 }
 
 model Alteracao_Preco_Item {

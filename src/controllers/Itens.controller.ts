@@ -9,10 +9,28 @@ export default class Controller_Itens extends Controller {
   }
 
   getMany: RequestHandler = async (req, res, next) => {
-    const itens = await this.find({
-      orderBy: {
-        id: "desc",
+    const { nome } = req.query;
+
+    const where: Prisma.ItemWhereInput = {};
+
+    if (nome) {
+      where.nome = {
+        contains: String(nome),
+        mode: "insensitive",
+      };
+    }
+
+    const include: Prisma.ItemInclude<DefaultArgs> = {
+      unidade: {
+        select: {
+          nome: true,
+        },
       },
+    };
+
+    const itens = await this.find({
+      where,
+      include,
     });
 
     res.send(itens);
