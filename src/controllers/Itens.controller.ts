@@ -8,42 +8,11 @@ export default class Controller_Itens extends Controller {
     super("item");
   }
 
-  get_many: RequestHandler = async (req, res, next) => {
-    const { nome, em_desconto, ordenar, limite, pagina } = req.query;
+  list: RequestHandler = async (req, res, next) => {
+    const { limite, pagina } = req.query;
 
-    const where: Prisma.ItemWhereInput = {};
+    this.set_limite(limite);
 
-    if (nome) {
-      where.nome = {
-        contains: String(nome),
-        mode: "insensitive",
-      };
-    }
-
-    if (em_desconto && em_desconto == "SIM") {
-      where.desconto_porcentagem = {
-        not: 0.0,
-      };
-
-      where.validade_desconto = {
-        gt: new Date(),
-      };
-    }
-
-    const select: Prisma.ItemSelect<DefaultArgs> = {
-      unidade_id: false,
-      unidade: {
-        select: {
-          nome: true,
-          id: true,
-        },
-      },
-    };
-
-    this.get_order_by = String(ordenar);
-
-    const itens = await this.find_many(where, select, Number(pagina), Number(limite));
-
-    res.send(itens);
+    res.send(await this.find_many());
   };
 }
