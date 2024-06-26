@@ -9,7 +9,7 @@ export default class Controller_Itens extends Controller {
   }
 
   getMany: RequestHandler = async (req, res, next) => {
-    const { nome } = req.query;
+    const { nome, em_desconto } = req.query;
 
     const where: Prisma.ItemWhereInput = {};
 
@@ -17,6 +17,16 @@ export default class Controller_Itens extends Controller {
       where.nome = {
         contains: String(nome),
         mode: "insensitive",
+      };
+    }
+
+    if (em_desconto && em_desconto == "SIM") {
+      where.desconto_porcentagem = {
+        not: 0.0,
+      };
+
+      where.validade_desconto = {
+        gt: new Date(),
       };
     }
 
