@@ -12,6 +12,7 @@ export default class Controller_Itens extends Controller {
     const { limite, pagina } = req.query;
 
     this.set_limite(limite);
+    this.set_pagina(pagina);
 
     res.send(await this.find_many());
   };
