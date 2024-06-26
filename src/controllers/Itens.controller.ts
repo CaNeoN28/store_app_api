@@ -28,11 +28,13 @@ export default class Controller_Itens extends Controller {
       };
     }
 
-    this.set_ordenacao(ordenar)
+    this.set_ordenacao(ordenar);
     this.set_filtros(filtros);
     this.set_limite(limite);
     this.set_pagina(pagina);
 
-    res.send(await this.find_many());
+    const resposta = await this.find_many();
+
+    res.send(resposta);
   };
 }
