@@ -30,20 +30,19 @@ export default class Controller_Itens extends Controller {
       };
     }
 
-    const include: Prisma.ItemInclude<DefaultArgs> = {
+    const select: Prisma.ItemSelect<DefaultArgs> = {
+      unidade_id: false,
       unidade: {
         select: {
           nome: true,
+          id: true,
         },
       },
     };
 
     this.get_order_by = String(ordenar);
 
-    const itens = await this.find({
-      where,
-      include,
-    });
+    const itens = await this.find(where, select);
 
     res.send(itens);
   };
