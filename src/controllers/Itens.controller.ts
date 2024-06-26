@@ -9,7 +9,7 @@ export default class Controller_Itens extends Controller {
   }
 
   getMany: RequestHandler = async (req, res, next) => {
-    const { nome, em_desconto } = req.query;
+    const { nome, em_desconto, ordenar } = req.query;
 
     const where: Prisma.ItemWhereInput = {};
 
@@ -38,9 +38,22 @@ export default class Controller_Itens extends Controller {
       },
     };
 
+    const order_by: any = {};
+
+    if (ordenar) {
+      const str_ordenar = String(ordenar);
+
+      if (str_ordenar.startsWith("-")) {
+        order_by[String(ordenar).substring(1)] = "desc";
+      } else {
+        order_by[String(ordenar)] = "asc";
+      }
+    }
+
     const itens = await this.find({
       where,
       include,
+      orderBy: order_by,
     });
 
     res.send(itens);
