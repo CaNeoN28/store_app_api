@@ -147,9 +147,14 @@ export default abstract class Controller {
         resposta.criado = res;
       })
       .catch((err) => {
+        let codigo = 500;
+
+        if(err.code == "P2002") codigo = 409
+        if(err.code == "P2003") codigo = 400
+
         resposta.erro = {
           mensagem: `Não foi possível salvar o ${this.tabela}`,
-          codigo: 400,
+          codigo,
           data: err,
         };
       });
