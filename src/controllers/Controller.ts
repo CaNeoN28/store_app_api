@@ -118,20 +118,41 @@ export default abstract class Controller {
   };
 
   protected insert_one = async (data: any) => {
+    const erros = this.validar_dados(data, true);
     const resposta: {
       criado?: any;
-      erro?: any;
-    } = await prisma[this.tabela]
+      erro?: {
+        mensagem: any;
+        codigo: number;
+        data: any;
+      };
+    } = {};
+
+    if (erros) {
+      resposta.erro = {
+        codigo: 400,
+        mensagem: `Erro de validação de ${this.tabela}`,
+        data: erros,
+      };
+    }
+
+    if (resposta.erro) return resposta;
+
+    await prisma[this.tabela]
       .create({
         data,
         select: this.selecionados,
       })
-      .then((res) => ({
-        criado: res,
-      }))
-      .catch((err) => ({
-        erro: err,
-      }));
+      .then((res) => {
+        resposta.criado = res;
+      })
+      .catch((err) => {
+        resposta.erro = {
+          mensagem: `Não foi possível salvar o ${this.tabela}`,
+          codigo: 400,
+          data: err,
+        };
+      });
 
     return resposta;
   };

@@ -67,24 +67,6 @@ export default class Controller_Itens extends Controller {
       ? new Date(req.body.validade_desconto)
       : undefined;
 
-    const erros = this.validar_dados(
-      {
-        nome,
-        unidade_id,
-        desconto_porcentagem,
-        id,
-        valor_atual,
-      },
-      true
-    );
-
-    if (erros) {
-      return res.status(400).send({
-        mensagem: "Erro de validação de item",
-        erros,
-      });
-    }
-
     const resposta = await this.insert_one({
       nome,
       unidade_id,
@@ -97,7 +79,11 @@ export default class Controller_Itens extends Controller {
     if (resposta.criado) {
       res.status(201).send(resposta.criado);
     } else if (resposta.erro) {
-      res.status(400).send(resposta.erro);
+      const { mensagem, codigo, data } = resposta.erro;
+      res.status(codigo).send({
+        mensagem,
+        data,
+      });
     }
   };
 
@@ -122,15 +108,17 @@ export default class Controller_Itens extends Controller {
 
     if (validar_obrigatorios && !unidade_id) {
       erros.unidade_id = "O id da unidade do item é obrigatório";
-    } else if (isNaN(Number(unidade_id))) {
+    } else if (isNaN(unidade_id)) {
       erros.unidade_id = "O id da unidade deve ser um número";
+    } else if (unidade_id < 0) {
+      erros.unidade_id = "O id da unidade deve ser positivo";
     }
 
     if (desconto_porcentagem) {
       if (isNaN(desconto_porcentagem)) {
         erros.desconto_porcentagem = "O desconto deve ser um número";
       } else if (desconto_porcentagem < 0) {
-        erros.desconto_porcentagem = "O desconto deve ser maior que zero";
+        erros.desconto_porcentagem = "O desconto deve ser positivo";
       } else if (desconto_porcentagem > 100) {
         erros.desconto_porcentagem = "O desconto não deve ser maior que 100%";
       }
@@ -140,7 +128,7 @@ export default class Controller_Itens extends Controller {
       if (isNaN(id)) {
         erros.id = "O id deve ser um número";
       } else if (id < 0) {
-        erros.id = "O id deve ser maior que zero";
+        erros.id = "O id deve ser positivo";
       }
     }
 
