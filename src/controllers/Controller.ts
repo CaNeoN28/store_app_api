@@ -136,6 +136,11 @@ export default abstract class Controller {
     return resposta;
   };
 
+  abstract validar_dados(
+    data: any,
+    validar_obrigatorios?: boolean
+  ): { [k: string]: string } | undefined;
+
   //Métodos set da classe
   set_filtros(filtros: Prisma.ItemWhereInput) {
     this.filtros = filtros;

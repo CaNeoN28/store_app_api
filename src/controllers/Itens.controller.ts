@@ -63,19 +63,64 @@ export default class Controller_Itens extends Controller {
     const { nome, unidade_id, desconto_porcentagem, id, valor_atual }: Item =
       req.body;
 
-    const validade_desconto: Date | undefined = new Date(
-      req.body.validade_desconto
+    const validade_desconto: Date | undefined = req.body.validade_desconto
+      ? new Date(req.body.validade_desconto)
+      : undefined;
+
+    const erros = this.validar_dados(
+      {
+        nome,
+        unidade_id,
+        desconto_porcentagem,
+        id,
+        valor_atual,
+      },
+      true
     );
 
+    if (erros) {
+      return res.status(400).send({
+        mensagem: "Erro de validação de item",
+        erros,
+      });
+    }
+
+    const resposta = await this.insert_one({
+      nome,
+      unidade_id,
+      desconto_porcentagem,
+      id,
+      validade_desconto,
+      valor_atual,
+    });
+
+    if (resposta.criado) {
+      res.status(201).send(resposta.criado);
+    } else if (resposta.erro) {
+      res.status(400).send(resposta.erro);
+    }
+  };
+
+  validar_dados = (
+    {
+      nome,
+      unidade_id,
+      desconto_porcentagem,
+      id,
+      validade_desconto,
+      valor_atual,
+    }: Item,
+    validar_obrigatorios?: boolean
+  ) => {
     const erros: {
       [k: string]: string;
     } = {};
 
-    if (!nome) {
+    if (validar_obrigatorios && !nome) {
       erros.nome = "O nome do item é obrigatório";
     }
 
-    if (!unidade_id) {
+    if (validar_obrigatorios && !unidade_id) {
       erros.unidade_id = "O id da unidade do item é obrigatório";
     } else if (isNaN(Number(unidade_id))) {
       erros.unidade_id = "O id da unidade deve ser um número";
@@ -115,25 +160,9 @@ export default class Controller_Itens extends Controller {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(400).send({
-        mensagem: "Erro de validação",
-        erros,
-      });
+      return erros;
     }
 
-    const resposta = await this.insert_one({
-      nome,
-      unidade_id,
-      desconto_porcentagem,
-      id,
-      validade_desconto,
-      valor_atual,
-    });
-
-    if (resposta.criado) {
-      res.status(201).send(resposta.criado);
-    } else if (resposta.erro) {
-      res.status(400).send(resposta.erro);
-    }
+    return undefined;
   };
 }
