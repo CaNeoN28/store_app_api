@@ -34,6 +34,42 @@ export default abstract class Controller {
     });
   }
 
+  get_id: RequestHandler = async (req, res, next) => {
+    const { id } = req.params;
+    const number_id = Number(id);
+
+    if (!isNaN(number_id)) {
+      this.filtros = {
+        id: number_id,
+      };
+      const item = await this.find_one();
+
+      if (item) {
+        return res.send(item);
+      } 
+
+      return res.status(404).send(`${this.tabela} não encontrado(a)`)
+    }
+
+    res.status(400).send("id inválido");
+  };
+
+  find_one = async () => {
+    const item = await prisma[this.tabela]
+      .findFirst({
+        where: this.filtros,
+        select: this.selecionados,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        console.log(err);
+
+        return undefined;
+      });
+
+    return item;
+  };
+
   list: RequestHandler = async (req, res, senc) => {
     res.send(this.find_many());
   };
