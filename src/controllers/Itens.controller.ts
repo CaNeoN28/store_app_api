@@ -62,6 +62,12 @@ export default class Controller_Itens extends Controller {
   create: RequestHandler = async (req, res, next) => {
     const data: Item = req.body;
 
-     res.send(await this.insert_one(data));
+    const resposta = await this.insert_one(data);
+
+    if (resposta.criado) {
+      res.status(201).send(resposta.criado);
+    } else if (resposta.erro) {
+      res.status(400).send(resposta.erro);
+    }
   };
 }

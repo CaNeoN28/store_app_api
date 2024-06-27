@@ -107,7 +107,10 @@ export default abstract class Controller {
   };
 
   protected insert_one = async (data: any) => {
-    const resposta = await prisma[this.tabela]
+    const resposta: {
+      criado?: any;
+      erro?: any;
+    } = await prisma[this.tabela]
       .create({
         data,
         select: this.selecionados,
