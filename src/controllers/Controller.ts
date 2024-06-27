@@ -76,6 +76,15 @@ export default abstract class Controller {
   };
 
   protected find_many = async () => {
+    const numero_elementos = await prisma[this.tabela].count({
+      where: this.filtros,
+    });
+
+    const maximo_paginas =
+      numero_elementos > 0
+        ? 1 + Math.floor(numero_elementos / this.limite_exibicao)
+        : 0;
+
     const itens = await prisma[this.tabela]
       .findMany({
         where: this.filtros,
@@ -94,6 +103,8 @@ export default abstract class Controller {
     return {
       resultado: itens,
       pagina: this.pagina_exibicao,
+      maximo_paginas,
+      numero_itens: numero_elementos,
       limite: this.limite_exibicao,
     };
   };
