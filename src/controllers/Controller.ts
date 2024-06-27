@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+import { RequestHandler, response } from "express";
 import prisma from "../db/prisma";
 import { Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
@@ -34,6 +34,7 @@ export default abstract class Controller {
     });
   }
 
+  //Métodos referentes às requests
   get_id: RequestHandler = async (req, res, next) => {
     const { id } = req.params;
     const number_id = Number(id);
@@ -46,15 +47,15 @@ export default abstract class Controller {
 
       if (item) {
         return res.send(item);
-      } 
+      }
 
-      return res.status(404).send(`${this.tabela} não encontrado(a)`)
+      return res.status(404).send(`${this.tabela} não encontrado(a)`);
     }
 
     res.status(400).send("id inválido");
   };
 
-  find_one = async () => {
+  protected find_one = async () => {
     const item = await prisma[this.tabela]
       .findFirst({
         where: this.filtros,
@@ -70,11 +71,11 @@ export default abstract class Controller {
     return item;
   };
 
-  list: RequestHandler = async (req, res, senc) => {
+  list: RequestHandler = async (req, res, next) => {
     res.send(this.find_many());
   };
 
-  find_many = async () => {
+  protected find_many = async () => {
     const itens = await prisma[this.tabela]
       .findMany({
         where: this.filtros,
@@ -97,6 +98,31 @@ export default abstract class Controller {
     };
   };
 
+  create: RequestHandler = async (req, res, next) => {
+    const data = req.body;
+
+    const resposta = await this.insert_one(data);
+
+    res.send(resposta);
+  };
+
+  protected insert_one = async (data: any) => {
+    const resposta = await prisma[this.tabela]
+      .create({
+        data,
+        select: this.selecionados,
+      })
+      .then((res) => ({
+        criado: res,
+      }))
+      .catch((err) => ({
+        erro: err,
+      }));
+
+    return resposta;
+  };
+
+  //Métodos set da classe
   set_filtros(filtros: Prisma.ItemWhereInput) {
     this.filtros = filtros;
   }

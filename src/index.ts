@@ -3,6 +3,7 @@ import config_router from "./routes";
 
 const app = express();
 
+app.use(express.json())
 app.use(config_router())
 
 app.listen(3000, () => {

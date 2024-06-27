@@ -2,6 +2,15 @@ import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
 
+interface Item {
+  id?: number;
+  nome: string;
+  valor_atual?: number;
+  desconto_porcentagem?: number;
+  validade_desconto?: Date;
+  unidade_id: number;
+}
+
 export default class Controller_Itens extends Controller {
   constructor() {
     super("item");
@@ -48,5 +57,11 @@ export default class Controller_Itens extends Controller {
     const resposta = await this.find_many();
 
     res.send(resposta);
+  };
+
+  create: RequestHandler = async (req, res, next) => {
+    const data: Item = req.body;
+
+     res.send(await this.insert_one(data));
   };
 }
