@@ -60,9 +60,75 @@ export default class Controller_Itens extends Controller {
   };
 
   create: RequestHandler = async (req, res, next) => {
-    const data: Item = req.body;
+    const { nome, unidade_id, desconto_porcentagem, id, valor_atual }: Item =
+      req.body;
 
-    const resposta = await this.insert_one(data);
+    const validade_desconto: Date | undefined = new Date(
+      req.body.validade_desconto
+    );
+
+    const erros: {
+      [k: string]: string;
+    } = {};
+
+    if (!nome) {
+      erros.nome = "O nome do item é obrigatório";
+    }
+
+    if (!unidade_id) {
+      erros.unidade_id = "O id da unidade do item é obrigatório";
+    } else if (isNaN(Number(unidade_id))) {
+      erros.unidade_id = "O id da unidade deve ser um número";
+    }
+
+    if (desconto_porcentagem) {
+      if (isNaN(desconto_porcentagem)) {
+        erros.desconto_porcentagem = "O desconto deve ser um número";
+      } else if (desconto_porcentagem < 0) {
+        erros.desconto_porcentagem = "O desconto deve ser maior que zero";
+      } else if (desconto_porcentagem > 100) {
+        erros.desconto_porcentagem = "O desconto não deve ser maior que 100%";
+      }
+    }
+
+    if (id) {
+      if (isNaN(id)) {
+        erros.id = "O id deve ser um número";
+      } else if (id < 0) {
+        erros.id = "O id deve ser maior que zero";
+      }
+    }
+
+    if (validade_desconto) {
+      if (isNaN(Number(validade_desconto))) {
+        erros.validade_desconto =
+          "A validade do desconto deve ser uma data válida";
+      }
+    }
+
+    if (valor_atual) {
+      if (isNaN(valor_atual)) {
+        erros.valor_atual = "O valor atual deve ser um número";
+      } else if (valor_atual < 0) {
+        erros.valor_atual = "O valor atual deve ser maior que zero";
+      }
+    }
+
+    if (Object.keys(erros).length > 0) {
+      return res.status(400).send({
+        mensagem: "Erro de validação",
+        erros,
+      });
+    }
+
+    const resposta = await this.insert_one({
+      nome,
+      unidade_id,
+      desconto_porcentagem,
+      id,
+      validade_desconto,
+      valor_atual,
+    });
 
     if (resposta.criado) {
       res.status(201).send(resposta.criado);
