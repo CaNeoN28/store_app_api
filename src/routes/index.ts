@@ -7,6 +7,7 @@ import router_grupos from "./grupos.router";
 import router_unidades from "./unidades.router";
 import router_usuarios from "./usuarios.router";
 import router_vendas from "./venda.router";
+import router_acessos from "./acessos.router";
 
 function config_router() {
   const router = Router();
@@ -16,8 +17,9 @@ function config_router() {
   });
 
   router.use(
+    router_acessos,
     router_grupos,
-    router_itens,
+    router_itens
     // router_clientes,
     // router_compras,
     // router_fornecedor,
