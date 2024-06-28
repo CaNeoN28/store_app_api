@@ -79,10 +79,50 @@ export default class Controller_Itens extends Controller {
     if (resposta.criado) {
       res.status(201).send(resposta.criado);
     } else if (resposta.erro) {
-      const { mensagem, codigo, data } = resposta.erro;
+      const { mensagem, codigo, erro } = resposta.erro;
       res.status(codigo).send({
         mensagem,
-        data,
+        erro,
+      });
+    }
+  };
+
+  update_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+    const metodo = req.method as "PATCH" | "PUT";
+    const {
+      nome,
+      unidade_id,
+      desconto_porcentagem,
+      id: new_id,
+      valor_atual,
+    }: Item = req.body;
+
+    const validade_desconto: Date | undefined = req.body.validade_desconto
+      ? new Date(req.body.validade_desconto)
+      : undefined;
+
+    const resposta = await this.upsert_one(
+      id,
+      {
+        nome,
+        unidade_id,
+        desconto_porcentagem,
+        validade_desconto,
+        id: new_id,
+        valor_atual,
+      },
+      metodo
+    );
+
+    if (resposta.dados) {
+      res.status(200).send(resposta.dados);
+    } else if (resposta.erro) {
+      const { codigo, erro, mensagem } = resposta.erro;
+
+      res.status(codigo).send({
+        mensagem,
+        erro,
       });
     }
   };
@@ -102,12 +142,13 @@ export default class Controller_Itens extends Controller {
       [k: string]: string;
     } = {};
 
-    if (validar_obrigatorios && !nome) {
-      erros.nome = "O nome do item é obrigatório";
+    if (!nome) {
+      if (validar_obrigatorios) erros.nome = "O nome do item é obrigatório";
     }
 
-    if (validar_obrigatorios && !unidade_id) {
-      erros.unidade_id = "O id da unidade do item é obrigatório";
+    if (!unidade_id) {
+      if (validar_obrigatorios)
+        erros.unidade_id = "O id da unidade do item é obrigatório";
     } else if (isNaN(unidade_id)) {
       erros.unidade_id = "O id da unidade deve ser um número";
     } else if (unidade_id < 0) {
