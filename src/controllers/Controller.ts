@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 
-type TABELA = "item" | "grupo";
+type TABELA = "acesso" | "item" | "grupo";
 
 interface Resposta {
   criado?: any;
@@ -69,7 +69,9 @@ export default abstract class Controller {
     const query = { where: this.filtros, select: this.selecionados };
     let promise: Promise<any> | undefined = undefined;
 
-    if (this.tabela == "grupo") {
+    if (this.tabela == "acesso") {
+      promise = prisma[this.tabela].findFirst(query);
+    } else if (this.tabela == "grupo") {
       promise = prisma[this.tabela].findFirst(query);
     } else if (this.tabela == "item") {
       promise = prisma[this.tabela].findFirst(query);
@@ -104,7 +106,10 @@ export default abstract class Controller {
     let promise_count: Promise<any> | undefined = undefined;
     let promise_itens: Promise<any> | undefined = undefined;
 
-    if (this.tabela == "grupo") {
+    if (this.tabela == "acesso") {
+      promise_count = prisma[this.tabela].count(count);
+      promise_itens = prisma[this.tabela].findMany(query);
+    } else if (this.tabela == "grupo") {
       promise_count = prisma[this.tabela].count(count);
       promise_itens = prisma[this.tabela].findMany(query);
     } else if (this.tabela == "item") {
@@ -163,7 +168,9 @@ export default abstract class Controller {
 
     let promise: Promise<any> | undefined = undefined;
 
-    if (this.tabela == "grupo") {
+    if (this.tabela == "acesso") {
+      promise = prisma[this.tabela].create(create);
+    } else if (this.tabela == "grupo") {
       promise = prisma[this.tabela].create(create);
     } else if (this.tabela == "item") {
       promise = prisma[this.tabela].create(create);
@@ -215,7 +222,9 @@ export default abstract class Controller {
     if (!erros) {
       let promise: Promise<any> | undefined = undefined;
 
-      if (this.tabela == "grupo") {
+      if (this.tabela == "acesso") {
+        promise = prisma[this.tabela].update(update);
+      } else if (this.tabela == "grupo") {
         promise = prisma[this.tabela].update(update);
       } else if (this.tabela == "item") {
         promise = prisma[this.tabela].update(update);
@@ -270,7 +279,9 @@ export default abstract class Controller {
     if (!erros) {
       let promise: Promise<any> | undefined = undefined;
 
-      if (this.tabela == "grupo") {
+      if (this.tabela == "acesso") {
+        promise = prisma[this.tabela].upsert(upsert);
+      } else if (this.tabela == "grupo") {
         promise = prisma[this.tabela].upsert(upsert);
       } else if (this.tabela == "item") {
         promise = prisma[this.tabela].upsert(upsert);
@@ -337,7 +348,9 @@ export default abstract class Controller {
 
       let promise: Promise<any> | undefined = undefined;
 
-      if (this.tabela == "grupo") {
+      if (this.tabela == "acesso") {
+        promise = prisma[this.tabela].delete(delete_query);
+      } else if (this.tabela == "grupo") {
         promise = prisma[this.tabela].delete(delete_query);
       } else if (this.tabela == "item") {
         promise = prisma[this.tabela].delete(delete_query);
