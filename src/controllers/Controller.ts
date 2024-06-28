@@ -361,24 +361,24 @@ export default abstract class Controller {
     return resposta;
   };
 
-  abstract validar_dados(
+  protected abstract validar_dados(
     data: any,
     validar_obrigatorios?: boolean
   ): { [k: string]: string } | undefined;
 
   //Métodos set da classe
-  set_filtros(filtros: Prisma.ItemWhereInput) {
+  protected set_filtros(filtros: any) {
     this.filtros = filtros;
   }
 
-  set_selecionados(selecionados: Prisma.ItemSelect<DefaultArgs>) {
+  protected set_selecionados(selecionados: any) {
     this.selecionados = {
       ...Controller.selecionar_todos_os_campos(this.tabela),
       ...selecionados,
     };
   }
 
-  set_ordenacao(campo: any) {
+  protected set_ordenacao(campo: any) {
     const formatado = String(campo).replace("-", "");
     const descendente = String(campo).startsWith("-");
     const campos = Object.keys(prisma[this.tabela].fields);
@@ -392,7 +392,7 @@ export default abstract class Controller {
     }
   }
 
-  set_limite(limite: any) {
+  protected set_limite(limite: any) {
     const numero = Number(limite);
 
     if (isNaN(numero)) {
@@ -402,7 +402,7 @@ export default abstract class Controller {
     }
   }
 
-  set_pagina(pagina: any) {
+  protected set_pagina(pagina: any) {
     const numero = Number(pagina);
 
     if (isNaN(numero)) {

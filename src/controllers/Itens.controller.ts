@@ -132,7 +132,7 @@ export default class Controller_Itens extends Controller {
     }
   };
 
-  validar_dados = (
+  protected validar_dados = (
     {
       nome,
       unidade_id,
@@ -199,4 +199,12 @@ export default class Controller_Itens extends Controller {
 
     return undefined;
   };
+
+  protected set_filtros(filtros: Prisma.ItemWhereInput): void {
+    super.set_filtros(filtros);
+  }
+
+  protected set_selecionados(selecionados: Prisma.ItemSelect): void {
+    super.set_selecionados(selecionados);
+  }
 }
