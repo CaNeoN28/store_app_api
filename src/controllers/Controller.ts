@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 
-type TABELA = "item";
+type TABELA = "item" | "grupo";
 
 interface Resposta {
   criado?: any;
@@ -23,17 +23,16 @@ export default abstract class Controller {
 
   tabela: TABELA;
 
-  protected filtros: Prisma.ItemWhereInput;
+  protected filtros: any;
   protected selecionados: any;
   protected ordenacao: any;
   protected pagina_exibicao: number;
   protected limite_exibicao: number;
 
   constructor(tabela: TABELA) {
-    this.tabela = tabela;
-
     const campos = Object.keys(prisma[tabela].fields);
 
+    this.tabela = tabela;
     this.filtros = {};
     this.selecionados = {};
     this.ordenacao = Controller.ORDENACAO_PADRAO;
@@ -67,17 +66,22 @@ export default abstract class Controller {
   };
 
   protected find_one = async () => {
-    const item = await prisma[this.tabela]
-      .findFirst({
-        where: this.filtros,
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        return undefined;
-      });
+    const query = { where: this.filtros, select: this.selecionados };
+    let promise: Promise<any> | undefined = undefined;
 
-    return item;
+    if (this.tabela == "grupo") {
+      promise = prisma[this.tabela].findFirst(query);
+    } else if (this.tabela == "item") {
+      promise = prisma[this.tabela].findFirst(query);
+    }
+
+    if (promise) {
+      return await promise
+        .then((res) => res)
+        .catch((err) => {
+          return undefined;
+        });
+    }
   };
 
   list: RequestHandler = async (req, res, next) => {
@@ -85,27 +89,41 @@ export default abstract class Controller {
   };
 
   protected find_many = async () => {
-    const numero_elementos = await prisma[this.tabela].count({
+    const query = {
       where: this.filtros,
-    });
+      orderBy: this.ordenacao,
+      select: this.selecionados,
+      skip: (this.pagina_exibicao - 1) * this.limite_exibicao,
+      take: this.limite_exibicao,
+    };
+
+    const count = {
+      where: this.filtros,
+    };
+
+    let promise_count: Promise<any> | undefined = undefined;
+    let promise_itens: Promise<any> | undefined = undefined;
+
+    if (this.tabela == "grupo") {
+      promise_count = prisma[this.tabela].count(count);
+      promise_itens = prisma[this.tabela].findMany(query);
+    } else if (this.tabela == "item") {
+      promise_count = prisma[this.tabela].count(count);
+      promise_itens = prisma[this.tabela].findMany(query);
+    }
+
+    const numero_elementos = (await promise_count) | 0;
 
     const maximo_paginas =
       numero_elementos > 0
         ? 1 + Math.floor(numero_elementos / this.limite_exibicao)
         : 0;
 
-    const itens = await prisma[this.tabela]
-      .findMany({
-        where: this.filtros,
-        orderBy: this.ordenacao,
-        select: this.selecionados,
-        skip: (this.pagina_exibicao - 1) * this.limite_exibicao,
-        take: this.limite_exibicao,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        return [];
-      });
+    let itens: any = [];
+
+    if (promise_itens) {
+      itens = await promise_itens.then((res) => res).catch((err) => []);
+    }
 
     return {
       resultado: itens,
@@ -138,23 +156,34 @@ export default abstract class Controller {
 
     if (resposta.erro) return resposta;
 
-    await prisma[this.tabela]
-      .create({
-        data,
-        select: this.selecionados,
-      })
-      .then((res) => {
-        resposta.criado = res;
-      })
-      .catch((err) => {
-        const { codigo, erro } = verificar_codigo_prisma(err);
+    const create = {
+      data,
+      select: this.selecionados,
+    };
 
-        resposta.erro = {
-          mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
-          codigo,
-          erro: erro,
-        };
-      });
+    let promise: Promise<any> | undefined = undefined;
+
+    if (this.tabela == "grupo") {
+      promise = prisma[this.tabela].create(create);
+    } else if (this.tabela == "item") {
+      promise = prisma[this.tabela].create(create);
+    }
+
+    if (promise) {
+      await promise
+        .then((res) => {
+          resposta.criado = res;
+        })
+        .catch((err) => {
+          const { codigo, erro } = verificar_codigo_prisma(err);
+
+          resposta.erro = {
+            mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
+            codigo,
+            erro: erro,
+          };
+        });
+    }
 
     return resposta;
   };
@@ -178,24 +207,35 @@ export default abstract class Controller {
 
     erros = this.validar_dados(data);
 
-    if (!erros) {
-      await prisma[this.tabela]
-        .update({
-          where: { id },
-          data,
-        })
-        .then((res) => {
-          resposta.dados = res;
-        })
-        .catch((err) => {
-          const { codigo, erro } = verificar_codigo_prisma(err);
+    const update = {
+      where: { id },
+      data,
+    };
 
-          resposta.erro = {
-            mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
-            codigo,
-            erro: erro,
-          };
-        });
+    if (!erros) {
+      let promise: Promise<any> | undefined = undefined;
+
+      if (this.tabela == "grupo") {
+        promise = prisma[this.tabela].update(update);
+      } else if (this.tabela == "item") {
+        promise = prisma[this.tabela].update(update);
+      }
+
+      if (promise) {
+        await promise
+          .then((res) => {
+            resposta.dados = res;
+          })
+          .catch((err) => {
+            const { codigo, erro } = verificar_codigo_prisma(err);
+
+            resposta.erro = {
+              mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
+              codigo,
+              erro: erro,
+            };
+          });
+      }
     } else {
       resposta.erro = {
         mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
@@ -221,26 +261,36 @@ export default abstract class Controller {
     }
 
     const erros = this.validar_dados(data, true);
+    const upsert = {
+      where: { id },
+      update: data,
+      create: data,
+    };
 
     if (!erros) {
-      await prisma[this.tabela]
-        .upsert({
-          where: { id },
-          update: data,
-          create: data,
-        })
-        .then((res) => {
-          resposta.dados = res;
-        })
-        .catch((err) => {
-          const { codigo, erro } = verificar_codigo_prisma(err);
+      let promise: Promise<any> | undefined = undefined;
 
-          resposta.erro = {
-            mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
-            codigo,
-            erro: erro,
-          };
-        });
+      if (this.tabela == "grupo") {
+        promise = prisma[this.tabela].upsert(upsert);
+      } else if (this.tabela == "item") {
+        promise = prisma[this.tabela].upsert(upsert);
+      }
+
+      if (promise) {
+        await promise
+          .then((res) => {
+            resposta.dados = res;
+          })
+          .catch((err) => {
+            const { codigo, erro } = verificar_codigo_prisma(err);
+
+            resposta.erro = {
+              mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
+              codigo,
+              erro: erro,
+            };
+          });
+      }
     } else {
       resposta.erro = {
         mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
@@ -279,22 +329,33 @@ export default abstract class Controller {
         mensagem: `Não foi possível remover o(a) ${this.tabela}`,
       };
     } else {
-      await prisma[this.tabela]
-        .delete({
-          where: {
-            id,
-          },
-        })
-        .then((res) => {})
-        .catch((err) => {
-          const {codigo, erro} = verificar_codigo_prisma(err)
+      const delete_query = {
+        where: {
+          id,
+        },
+      };
 
-          resposta.erro = {
-            mensagem: `Não foi possível remover o(a) ${this.tabela}`,
-            codigo,
-            erro
-          }
-        });
+      let promise: Promise<any> | undefined = undefined;
+
+      if (this.tabela == "grupo") {
+        promise = prisma[this.tabela].delete(delete_query);
+      } else if (this.tabela == "item") {
+        promise = prisma[this.tabela].delete(delete_query);
+      }
+
+      if (promise) {
+        await promise
+          .then((res) => {})
+          .catch((err) => {
+            const { codigo, erro } = verificar_codigo_prisma(err);
+
+            resposta.erro = {
+              mensagem: `Não foi possível remover o(a) ${this.tabela}`,
+              codigo,
+              erro,
+            };
+          });
+      }
     }
 
     return resposta;
