@@ -6,6 +6,16 @@ import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 
 type TABELA = "item";
 
+interface Resposta {
+  criado?: any;
+  dados?: any;
+  erro?: {
+    mensagem: any;
+    codigo: number;
+    erro: any;
+  };
+}
+
 export default abstract class Controller {
   static ORDENACAO_PADRAO = { id: "asc" };
   static PAGINA_EXIBICAO_PADRAO = 1;
@@ -120,14 +130,7 @@ export default abstract class Controller {
 
   protected insert_one = async (data: any) => {
     const erros = this.validar_dados(data, true);
-    const resposta: {
-      criado?: any;
-      erro?: {
-        mensagem: any;
-        codigo: number;
-        erro: any;
-      };
-    } = {};
+    const resposta: Resposta = {};
 
     if (erros) {
       resposta.erro = {
@@ -163,14 +166,7 @@ export default abstract class Controller {
   update_by_id: RequestHandler = async (req, res, next) => {};
 
   protected update_one = async (id: number, data: any) => {
-    const resposta: {
-      dados?: any;
-      erro?: {
-        mensagem: any;
-        codigo: number;
-        erro: any;
-      };
-    } = {};
+    const resposta: Resposta = {};
 
     let erros: any | undefined;
 
@@ -216,14 +212,7 @@ export default abstract class Controller {
   };
 
   protected upsert_one = async (id: number, data: any) => {
-    const resposta: {
-      dados?: any;
-      erro?: {
-        mensagem: any;
-        codigo: number;
-        erro: any;
-      };
-    } = {};
+    const resposta: Resposta = {};
 
     if (isNaN(id)) {
       resposta.erro = {
@@ -262,6 +251,56 @@ export default abstract class Controller {
         codigo: 400,
         erro: erros,
       };
+    }
+
+    return resposta;
+  };
+
+  remove_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    const resposta = await this.delete_one(id);
+
+    if (!resposta.erro) {
+      return res.status(204).send();
+    }
+
+    const { codigo, erro, mensagem } = resposta.erro;
+
+    res.status(codigo).send({
+      mensagem,
+      erro,
+    });
+  };
+
+  protected delete_one = async (id: number) => {
+    const resposta: Resposta = {};
+
+    if (isNaN(id)) {
+      resposta.erro = {
+        codigo: 400,
+        erro: "Id inválido",
+        mensagem: `Não foi possível remover o(a) ${this.tabela}`,
+      };
+    } else {
+      await prisma[this.tabela]
+        .delete({
+          where: {
+            id,
+          },
+        })
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          const {codigo, erro} = verificar_codigo_prisma(err)
+
+          resposta.erro = {
+            mensagem: `Não foi possível remover o(a) ${this.tabela}`,
+            codigo,
+            erro
+          }
+        });
     }
 
     return resposta;

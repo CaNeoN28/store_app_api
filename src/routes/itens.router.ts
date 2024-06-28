@@ -10,6 +10,7 @@ router_itens
   .route("/item/:id")
   .get(controller.get_id)
   .put(controller.update_by_id)
-  .patch(controller.update_by_id);
+  .patch(controller.update_by_id)
+  .delete(controller.remove_by_id)
 
 export default router_itens;
