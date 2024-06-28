@@ -102,28 +102,33 @@ export default class Controller_Itens extends Controller {
       ? new Date(req.body.validade_desconto)
       : undefined;
 
-    const resposta = await this.upsert_one(
-      id,
-      {
-        nome,
-        unidade_id,
-        desconto_porcentagem,
-        validade_desconto,
-        id: new_id,
-        valor_atual,
-      },
-      metodo
-    );
+    const data = {
+      nome,
+      unidade_id,
+      desconto_porcentagem,
+      validade_desconto,
+      id: new_id,
+      valor_atual,
+    };
 
-    if (resposta.dados) {
-      res.status(200).send(resposta.dados);
-    } else if (resposta.erro) {
-      const { codigo, erro, mensagem } = resposta.erro;
+    const resposta =
+      metodo == "PATCH"
+        ? await this.update_one(id, data)
+        : metodo == "PUT" && (await this.upsert_one(id, data));
 
-      res.status(codigo).send({
-        mensagem,
-        erro,
-      });
+    if (resposta) {
+      if (resposta.dados) {
+        res.status(200).send(resposta.dados);
+      } else if (resposta.erro) {
+        const { codigo, erro, mensagem } = resposta.erro;
+
+        res.status(codigo).send({
+          mensagem,
+          erro,
+        });
+      }
+    } else {
+      res.status(500).send("Não foi possível realizar a operação");
     }
   };
 

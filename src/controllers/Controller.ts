@@ -162,11 +162,7 @@ export default abstract class Controller {
 
   update_by_id: RequestHandler = async (req, res, next) => {};
 
-  protected upsert_one = async (
-    id: number,
-    data: any,
-    metodo: "PATCH" | "PUT"
-  ) => {
+  protected update_one = async (id: number, data: any) => {
     const resposta: {
       dados?: any;
       erro?: {
@@ -184,63 +180,88 @@ export default abstract class Controller {
         codigo: 400,
         erro: "O id informado é inválido",
       };
-    } else if (metodo == "PATCH") {
-      erros = this.validar_dados(data);
 
-      if (!erros) {
-        await prisma[this.tabela]
-          .update({
-            where: { id },
-            data,
-          })
-          .then((res) => {
-            resposta.dados = res;
-          })
-          .catch((err) => {
-            const { codigo, erro } = verificar_codigo_prisma(err);
+      return resposta;
+    }
 
-            resposta.erro = {
-              mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
-              codigo,
-              erro: erro,
-            };
-          });
-      } else {
-        resposta.erro = {
-          mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
-          codigo: 400,
-          erro: erros,
-        };
-      }
-    } else if (metodo == "PUT") {
-      erros = this.validar_dados(data, true);
+    erros = this.validar_dados(data);
 
-      if (!erros) {
-        await prisma[this.tabela]
-          .upsert({
-            where: { id },
-            update: data,
-            create: data,
-          })
-          .then((res) => {
-            resposta.dados = res;
-          })
-          .catch((err) => {
-            const { codigo, erro } = verificar_codigo_prisma(err);
+    if (!erros) {
+      await prisma[this.tabela]
+        .update({
+          where: { id },
+          data,
+        })
+        .then((res) => {
+          resposta.dados = res;
+        })
+        .catch((err) => {
+          const { codigo, erro } = verificar_codigo_prisma(err);
 
-            resposta.erro = {
-              mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
-              codigo,
-              erro: erro,
-            };
-          });
-      } else {
-        resposta.erro = {
-          mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
-          codigo: 400,
-          erro: erros,
-        };
-      }
+          resposta.erro = {
+            mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
+            codigo,
+            erro: erro,
+          };
+        });
+    } else {
+      resposta.erro = {
+        mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
+        codigo: 400,
+        erro: erros,
+      };
+    }
+
+    return resposta;
+  };
+
+  protected upsert_one = async (id: number, data: any) => {
+    const resposta: {
+      dados?: any;
+      erro?: {
+        mensagem: any;
+        codigo: number;
+        erro: any;
+      };
+    } = {};
+
+    if (isNaN(id)) {
+      resposta.erro = {
+        mensagem: `Não foi possível atualizar o(a) ${this.tabela}`,
+        codigo: 400,
+        erro: "O id informado é inválido",
+      };
+
+      return resposta;
+    }
+
+    const erros = this.validar_dados(data, true);
+
+    if (!erros) {
+      await prisma[this.tabela]
+        .upsert({
+          where: { id },
+          update: data,
+          create: data,
+        })
+        .then((res) => {
+          resposta.dados = res;
+        })
+        .catch((err) => {
+          const { codigo, erro } = verificar_codigo_prisma(err);
+
+          resposta.erro = {
+            mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
+            codigo,
+            erro: erro,
+          };
+        });
+    } else {
+      resposta.erro = {
+        mensagem: `Não foi possível salvar o(a) ${this.tabela}`,
+        codigo: 400,
+        erro: erros,
+      };
     }
 
     return resposta;
