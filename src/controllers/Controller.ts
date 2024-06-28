@@ -74,8 +74,6 @@ export default abstract class Controller {
       })
       .then((res) => res)
       .catch((err) => {
-        console.log(err);
-
         return undefined;
       });
 
@@ -106,8 +104,6 @@ export default abstract class Controller {
       })
       .then((res) => res)
       .catch((err) => {
-        console.log(err);
-
         return [];
       });
 
@@ -289,9 +285,7 @@ export default abstract class Controller {
             id,
           },
         })
-        .then((res) => {
-          console.log(res);
-        })
+        .then((res) => {})
         .catch((err) => {
           const {codigo, erro} = verificar_codigo_prisma(err)
 

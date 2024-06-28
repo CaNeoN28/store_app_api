@@ -2,8 +2,6 @@ export default function verificar_codigo_prisma(err: any) {
   let codigo = 500;
   let erro: any = {};
 
-  console.log(err);
-
   if (err.code == "P2002") {
     err.meta.target.map((e: string) => {
       erro[e] = "É único(a) e já foi utilizado(a)";
