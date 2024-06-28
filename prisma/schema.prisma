@@ -13,11 +13,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Tabela {
+  ITEM
+}
+
+enum Metodo {
+  GET
+  PUT
+  PATCH
+  DELETE
+}
+
+model Acesso {
+  id           Int            @id @default(autoincrement())
+  tabela       Tabela
+  metodo       Metodo
+  Acesso_Grupo Acesso_Grupo[]
+
+  @@unique([tabela, metodo])
+}
+
 model Grupo {
   id   Int    @id @default(autoincrement())
   nome String
 
-  UsuariosGrupos UsuariosGrupos[]
+  UsuariosGrupos Usuarios_Grupos[]
+  Acesso_Grupo   Acesso_Grupo[]
+}
+
+model Acesso_Grupo {
+  acesso_id Int
+  acesso    Acesso @relation(fields: [acesso_id], references: [id])
+  grupo_id  Int
+  grupo     Grupo  @relation(fields: [grupo_id], references: [id])
+
+  @@id([acesso_id, grupo_id])
 }
 
 model Usuario {
@@ -29,11 +59,20 @@ model Usuario {
   numero_telefone String?
   email           String?
 
-  UsuariosGrupos       UsuariosGrupos[]
+  UsuariosGrupos       Usuarios_Grupos[]
   Alteracao_Preco_Item Alteracao_Preco_Item[]
   Alteracoes_item      Alteracoes_Item[]
   Alteracao_Fornecedor Alteracao_Fornecedor[]
   Alteracao_Cliente    Alteracao_Cliente[]
+}
+
+model Usuarios_Grupos {
+  grupo_id   Int
+  grupo      Grupo   @relation(fields: [grupo_id], references: [id])
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+
+  @@id([grupo_id, usuario_id])
 }
 
 model Fornecedor {
@@ -67,15 +106,6 @@ model Alteracao_Cliente {
   usuario    Usuario @relation(fields: [usuario_id], references: [id])
 }
 
-model UsuariosGrupos {
-  grupo_id   Int
-  grupo      Grupo   @relation(fields: [grupo_id], references: [id])
-  usuario_id Int
-  usuario    Usuario @relation(fields: [usuario_id], references: [id])
-
-  @@id([grupo_id, usuario_id])
-}
-
 model Unidade {
   id   Int    @id @default(autoincrement())
   nome String @unique
@@ -89,6 +119,7 @@ model Item {
   valor_atual          Decimal   @default(0.0)
   desconto_porcentagem Decimal   @default(0.0)
   validade_desconto    DateTime?
+  imagem_url           String?
 
   unidade_id Int
   unidade    Unidade @relation(fields: [unidade_id], references: [id])
