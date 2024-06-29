@@ -1,22 +1,19 @@
-import { RequestHandler } from "express-serve-static-core";
+import { ParamsDictionary } from "express-serve-static-core";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
+import { RequestHandler } from "express";
+import { ParsedQs } from "qs";
+import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
+import { Erro } from "../types/resposta";
 
-enum Tabela {
-  ITEM,
-}
+type Tabela = "ITEM" | "GRUPO";
 
-enum Metodo {
-  GET,
-  PUT,
-  PATCH,
-  DELETE,
-}
+type Metodo = "GET" | "PUT" | "PATCH" | "DELETE";
 
 interface Grupo {
   id?: number;
-  nome?: string;
-  acesso?: [
+  nome: string;
+  acessos: [
     {
       tabela: Tabela;
       metodo: Metodo;
@@ -34,10 +31,10 @@ export default class Controller_Grupos extends Controller {
     this.tabela = Controller.delegar_tabela("grupo") as Prisma.GrupoDelegate;
     this.selecionados = {};
     this.selecionar_todos_os_campos();
-    this.selecionados.Acesso_Grupo = {
+    this.selecionados.acessos = {
       select: {
-        acesso: true,
-        grupo: true,
+        metodo: true,
+        tabela: true,
       },
     };
   }
@@ -68,7 +65,6 @@ export default class Controller_Grupos extends Controller {
       next(err);
     }
   };
-
   protected find_many = async (
     filtros: Prisma.GrupoWhereInput,
     ordenacao: Prisma.GrupoOrderByWithRelationInput,
@@ -96,6 +92,56 @@ export default class Controller_Grupos extends Controller {
       registros,
       limite,
     };
+  };
+
+  create: RequestHandler = async (req, res, next) => {
+    const { nome, acessos }: Grupo = req.body;
+
+    try {
+      const resposta = await this.insert_one({ acessos, nome });
+
+      res.status(201).send(resposta);
+    } catch (err) {
+      next(err);
+    }
+  };
+  protected insert_one = async (data: Grupo) => {
+    const { acessos, nome } = data;
+
+    try {
+      const grupo = await this.tabela
+        .create({
+          data: {
+            nome,
+            acessos: {
+              connectOrCreate: acessos.map((a) => ({
+                where: {
+                  tabela_metodo: {
+                    metodo: a.metodo,
+                    tabela: a.tabela
+                  }                  
+                },
+                create: {
+                  tabela: a.tabela,
+                  metodo: a.metodo,
+                },
+              })),
+            },
+          },
+          select: this.selecionados,
+        })
+        .then((res) => res);
+
+      return grupo;
+    } catch (err) {
+      const { codigo, erro } = verificar_codigo_prisma(err);
+
+      throw {
+        mensagem: "Não foi possível criar grupo",
+        codigo,
+        erro,
+      } as Erro;
+    }
   };
 
   protected validar_dados(data: Grupo, validar_obrigatorios?: boolean) {

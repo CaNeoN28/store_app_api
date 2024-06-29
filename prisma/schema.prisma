@@ -15,39 +15,32 @@ datasource db {
 
 enum Tabela {
   ITEM
+  GRUPO
 }
 
 enum Metodo {
   GET
+  POST
   PUT
   PATCH
   DELETE
 }
 
 model Acesso {
-  id           Int            @id @default(autoincrement())
-  tabela       Tabela
-  metodo       Metodo
-  Acesso_Grupo Acesso_Grupo[]
+  id     Int     @id @default(autoincrement())
+  tabela Tabela
+  metodo Metodo
+  grupos Grupo[]
 
   @@unique([tabela, metodo])
 }
 
 model Grupo {
-  id   Int    @id @default(autoincrement())
-  nome String
+  id      Int      @id @default(autoincrement())
+  nome    String
+  acessos Acesso[]
 
   UsuariosGrupos Usuarios_Grupos[]
-  Acesso_Grupo   Acesso_Grupo[]
-}
-
-model Acesso_Grupo {
-  acesso_id Int
-  acesso    Acesso @relation(fields: [acesso_id], references: [id])
-  grupo_id  Int
-  grupo     Grupo  @relation(fields: [grupo_id], references: [id])
-
-  @@id([acesso_id, grupo_id])
 }
 
 model Usuario {
