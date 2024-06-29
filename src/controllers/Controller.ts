@@ -27,10 +27,6 @@ export default abstract class Controller {
     this.tabela = prisma[tabela];
   }
 
-  static delegar_tabela(tabela: TABELA) {
-    return prisma[tabela];
-  }
-
   //Métodos referentes às requests
   get_id: RequestHandler = async (req, res, next) => {};
   protected find_one = async (filtros: any): Promise<any> => {};
@@ -81,6 +77,10 @@ export default abstract class Controller {
     });
 
     this.selecionados = selecionados;
+  }
+
+  static delegar_tabela(tabela: TABELA) {
+    return prisma[tabela];
   }
 
   static validar_id(id: number) {

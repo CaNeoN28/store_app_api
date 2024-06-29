@@ -1,9 +1,7 @@
 import e, { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
-import Resposta, { Erro } from "../types/resposta";
+import { Erro } from "../types/resposta";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 
