@@ -75,14 +75,14 @@ export default abstract class Controller {
     }
   }
 
-  protected selecionar_todos_os_campos(tabela: TABELA) {
-    const campos = Object.keys(prisma[tabela].fields);
+  protected selecionar_todos_os_campos() {
+    const campos = Object.keys(this.tabela.fields);
     const selecionados: any = {};
 
     campos.map((c) => {
       selecionados[c] = true;
     });
 
-    return selecionados;
+    this.selecionados = selecionados;
   }
 }

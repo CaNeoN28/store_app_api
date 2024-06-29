@@ -28,19 +28,15 @@ export default class Controller_Itens extends Controller {
       "item"
     ) as Prisma.ItemDelegate<DefaultArgs>;
 
-    this.selecionados = {
-      id: true,
-      nome: true,
-      valor_atual: true,
-      desconto_porcentagem: true,
-      validade_desconto: true,
-      unidade: {
-        select: {
-          id: true,
-          nome: true,
-        },
+    this.selecionados = {};
+    this.selecionar_todos_os_campos();
+    this.selecionados.unidade = {
+      select: {
+        id: true,
+        nome: true,
       },
     };
+    this.selecionados.unidade_id = false;
   }
 
   get_id: RequestHandler = async (req, res, next) => {
