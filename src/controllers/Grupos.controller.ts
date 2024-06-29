@@ -8,12 +8,11 @@ interface Grupo {
 }
 
 export default class Controller_Grupos extends Controller {
+  protected selecionados: Prisma.GrupoSelect;
   constructor() {
     super("grupo");
 
-    const selecionados: Prisma.GrupoSelect = {};
-
-    this.set_selecionados(selecionados);
+    this.selecionados = {};
   }
 
   list: RequestHandler = async (req, res, next) => {
@@ -26,15 +25,6 @@ export default class Controller_Grupos extends Controller {
         mode: "insensitive",
       };
     }
-
-    this.set_filtros(filtros);
-    this.set_ordenacao(ordenar);
-    this.set_limite(limite);
-    this.set_pagina(pagina);
-
-    const resposta = await this.find_many();
-
-    res.send(resposta);
   };
 
   protected validar_dados(data: Grupo, validar_obrigatorios?: boolean) {
@@ -43,13 +33,5 @@ export default class Controller_Grupos extends Controller {
     } = {};
 
     return erros;
-  }
-
-  protected set_filtros(filtros: Prisma.GrupoWhereInput): void {
-    super.set_filtros(filtros);
-  }
-
-  protected set_selecionados(selecionados: Prisma.GrupoSelect): void {
-    super.set_selecionados(selecionados);
   }
 }
