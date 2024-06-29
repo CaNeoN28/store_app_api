@@ -3,7 +3,7 @@ import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
-import Resposta from "../types/resposta";
+import Resposta, { Erro } from "../types/resposta";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 
@@ -43,39 +43,16 @@ export default class Controller_Itens extends Controller {
     const { id } = req.params;
     const number_id = Number(id);
 
-    const resposta: Resposta = {};
-
-    if (isNaN(number_id)) {
-      resposta.erro = {
-        codigo: 400,
-        erro: "O id informado é inválido",
-        mensagem: "Não foi possível recuperar o item",
-      };
-    } else {
+    try {
+      Controller.validar_id(number_id);
       const item = await this.find_one({
         id: number_id,
       });
 
-      if (item) resposta.dados = item;
-      else {
-        resposta.erro = {
-          codigo: 404,
-          erro: "O id informado não corresponde a nenhum item",
-          mensagem: "Não foi possível recuperar o item",
-        };
-      }
+      res.status(200).send(item);
+    } catch (err) {
+      next(err);
     }
-
-    if (resposta.erro) {
-      const { codigo, erro, mensagem } = resposta.erro;
-
-      return res.status(codigo).send({
-        mensagem,
-        erro,
-      });
-    }
-
-    res.status(200).send(resposta.dados);
   };
   protected find_one = async (filtros: Prisma.ItemWhereInput) => {
     const item = await this.tabela
@@ -84,7 +61,15 @@ export default class Controller_Itens extends Controller {
         select: this.selecionados,
       })
       .then((res) => res)
-      .catch((err) => undefined);
+      .catch(() => undefined);
+
+    if (!item) {
+      throw {
+        codigo: 404,
+        erro: "O id informado não corresponde a nenhum item",
+        mensagem: "Não foi possível recuperar o item",
+      } as Erro;
+    }
 
     return item;
   };
@@ -114,14 +99,18 @@ export default class Controller_Itens extends Controller {
       ordenar
     ) as Prisma.ItemOrderByWithRelationInput;
 
-    const resposta = await this.find_many(
-      filtros,
-      ordenacao,
-      Number(limite),
-      Number(pagina)
-    );
+    try {
+      const resposta = await this.find_many(
+        filtros,
+        ordenacao,
+        Number(limite),
+        Number(pagina)
+      );
 
-    res.send(resposta);
+      res.send(resposta);
+    } catch (err) {
+      next(err);
+    }
   };
   protected find_many = async (
     filtros: Prisma.ItemWhereInput,
@@ -129,20 +118,19 @@ export default class Controller_Itens extends Controller {
     limite: number,
     pagina: number
   ) => {
-    if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    const query = Controller.definir_query(
+      filtros,
+      ordenacao,
+      this.selecionados,
+      limite,
+      pagina
+    );
 
     const registros =
       (await this.tabela.count({
         where: filtros,
       })) | 0;
-    const resultado = await this.tabela.findMany({
-      where: filtros,
-      orderBy: ordenacao,
-      select: this.selecionados,
-      skip: (pagina - 1) * limite,
-      take: limite,
-    });
+    const resultado = await this.tabela.findMany(query);
 
     const maximo_paginas =
       registros > 0 ? 1 + Math.floor(registros / limite) : 0;
@@ -164,56 +152,35 @@ export default class Controller_Itens extends Controller {
       ? new Date(req.body.validade_desconto)
       : undefined;
 
-    const resposta = await this.insert_one({
-      nome,
-      unidade_id,
-      desconto_porcentagem,
-      id,
-      validade_desconto,
-      valor_atual,
-    });
-
-    if (resposta.erro) {
-      const { codigo, erro, mensagem } = resposta.erro;
-      return res.status(codigo).send({
-        mensagem,
-        erro,
+    try {
+      const item = await this.insert_one({
+        nome,
+        unidade_id,
+        desconto_porcentagem,
+        id,
+        validade_desconto,
+        valor_atual,
       });
-    }
 
-    res.status(200).send(resposta.dados);
+      res.status(201).send(item);
+    } catch (err) {
+      next(err);
+    }
   };
   protected insert_one = async (data: Item) => {
-    const erros = this.validar_dados(data, true);
-    const resposta: Resposta = {};
+    this.validar_dados(data, true);
 
-    if (erros) {
-      resposta.erro = {
-        codigo: 400,
-        mensagem: "Erro de validação de item",
-        erro: erros,
-      };
-    } else {
-      await this.tabela
-        .create({
-          data,
-          select: this.selecionados,
-        })
-        .then((res) => {
-          resposta.dados = res;
-        })
-        .catch((err) => {
-          const { codigo, erro } = verificar_codigo_prisma(err);
+    const item = await this.tabela
+      .create({
+        data,
+        select: this.selecionados,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        throw err;
+      });
 
-          resposta.erro = {
-            mensagem: "Não foi possível salvar o item",
-            codigo,
-            erro,
-          };
-        });
-    }
-
-    return resposta;
+    return item;
   };
 
   update_by_id: RequestHandler = async (req, res, next) => {
@@ -240,153 +207,101 @@ export default class Controller_Itens extends Controller {
       valor_atual,
     };
 
-    const resposta =
-      metodo == "PATCH"
-        ? await this.update_one(id, data)
-        : metodo == "PUT" && (await this.upsert_one(id, data));
+    try {
+      const resposta =
+        metodo == "PATCH"
+          ? await this.update_one(id, data)
+          : metodo == "PUT" && (await this.upsert_one(id, data));
 
-    if (resposta) {
-      if (resposta.dados) {
-        res.status(200).send(resposta.dados);
-      } else if (resposta.erro) {
-        const { codigo, erro, mensagem } = resposta.erro;
+      if (resposta) {
+        if (resposta.dados) {
+          res.status(200).send(resposta.dados);
+        } else if (resposta.erro) {
+          const { codigo, erro, mensagem } = resposta.erro;
 
-        res.status(codigo).send({
-          mensagem,
-          erro,
-        });
+          res.status(codigo).send({
+            mensagem,
+            erro,
+          });
+        }
       }
-    } else {
-      res.status(500).send("Não foi possível realizar a operação");
+    } catch (err) {
+      next(err);
     }
   };
   protected update_one = async (id: number, data: any): Promise<any> => {
-    const resposta: Resposta = {};
+    Controller.validar_id(id);
+    this.validar_dados(data);
 
-    if (isNaN(id)) {
-      resposta.erro = {
-        mensagem: "Não foi possível atualizar o item",
-        codigo: 400,
-        erro: "O id informado é inválido",
-      };
-    } else {
-      const erros = this.validar_dados(data);
+    const item = await this.tabela
+      .update({
+        where: { id },
+        data,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        const { codigo, erro } = verificar_codigo_prisma(err);
 
-      if (!erros) {
-        await this.tabela
-          .update({
-            where: { id },
-            data,
-          })
-          .then((res) => {
-            resposta.dados = res;
-          })
-          .catch((err) => {
-            const { codigo, erro } = verificar_codigo_prisma(err);
-
-            resposta.erro = {
-              mensagem: "Não foi possível salvar o item",
-              codigo,
-              erro,
-            };
-          });
-      } else {
-        resposta.erro = {
+        throw {
           mensagem: "Não foi possível salvar o item",
-          codigo: 400,
-          erro: erros,
-        };
-      }
-    }
+          codigo,
+          erro,
+        } as Erro;
+      });
 
-    return resposta;
+    return item;
   };
   protected upsert_one = async (id: number, data: any): Promise<any> => {
-    const resposta: Resposta = {};
+    Controller.validar_id(id);
+    this.validar_dados(data, true);
 
-    if (isNaN(id)) {
-      resposta.erro = {
-        mensagem: "Não foi possível atualizar o item",
-        codigo: 400,
-        erro: "O id informado é inválido",
-      };
-    } else {
-      const erros = this.validar_dados(data, true);
+    const item = await this.tabela
+      .upsert({
+        where: { id },
+        create: data,
+        update: data,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        const { codigo, erro } = verificar_codigo_prisma(err);
 
-      if (!erros) {
-        await this.tabela
-          .upsert({
-            where: { id },
-            create: data,
-            update: data,
-          })
-          .then((res) => {
-            resposta.dados = res;
-          })
-          .catch((err) => {
-            const { codigo, erro } = verificar_codigo_prisma(err);
-
-            resposta.erro = {
-              mensagem: "Não foi possível salvar o item",
-              codigo,
-              erro,
-            };
-          });
-      } else {
-        resposta.erro = {
+        throw {
           mensagem: "Não foi possível salvar o item",
-          codigo: 400,
-          erro: erros,
-        };
-      }
-    }
+          codigo,
+          erro,
+        } as Erro;
+      });
 
-    return resposta;
+    return item;
   };
 
   remove_by_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
 
-    const resposta = await this.delete_one(id);
+    try {
+      await this.delete_one(id);
 
-    if (resposta.erro) {
-      const { codigo, erro, mensagem } = resposta.erro;
-
-      return res.status(codigo).send({
-        mensagem,
-        erro,
-      });
+      res.status(204).send();
+    } catch (err) {
+      next(err);
     }
-
-    res.status(204).send();
   };
   protected delete_one = async (id: number): Promise<any> => {
-    const resposta: Resposta = {};
+    Controller.validar_id(id);
+    await this.tabela
+      .delete({
+        where: { id },
+      })
+      .then()
+      .catch((err) => {
+        const { codigo, erro } = verificar_codigo_prisma(err);
 
-    if (isNaN(id)) {
-      resposta.erro = {
-        codigo: 400,
-        erro: "Id inválido",
-        mensagem: "Não foi possível remover o item",
-      };
-    } else {
-      await this.tabela
-        .delete({
-          where: { id },
-        })
-        .then()
-        .catch((err) => {
-          const { codigo, erro } = verificar_codigo_prisma(err);
-
-          resposta.erro = {
-            mensagem: "Não foi possível removero item",
-            codigo,
-            erro,
-          };
-        });
-    }
-
-    return resposta;
+        throw {
+          mensagem: "Não foi possível remover o item",
+          codigo,
+          erro,
+        } as Erro;
+      });
   };
 
   protected validar_dados = (
@@ -451,7 +366,11 @@ export default class Controller_Itens extends Controller {
     }
 
     if (Object.keys(erros).length > 0) {
-      return erros;
+      throw {
+        codigo: 400,
+        erro: erros,
+        mensagem: "Erro de validação de item",
+      } as Erro;
     }
 
     return undefined;

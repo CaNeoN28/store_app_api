@@ -1,8 +1,5 @@
-import { RequestHandler, response } from "express";
+import { RequestHandler } from "express";
 import prisma from "../db/prisma";
-import { Prisma, Tabela } from "@prisma/client";
-import { DefaultArgs } from "@prisma/client/runtime/library";
-import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 import TABELA from "../types/tabela";
 
 interface Resposta {
@@ -84,5 +81,28 @@ export default abstract class Controller {
     });
 
     this.selecionados = selecionados;
+  }
+
+  static validar_id(id: number) {
+    if (isNaN(id)) {
+      throw {
+        codigo: 400,
+        erro: "O id informado é inválido",
+        mensagem: "Não foi possível recuperar o item",
+      };
+    }
+  }
+
+  static definir_query(filtros: any, ordenacao: any, selecionados: any, limite: number, pagina: number){
+    if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+
+    return {
+      where: filtros,
+      orderBy: ordenacao,
+      select: selecionados,
+      skip: (pagina - 1) * limite,
+      take: limite,
+    }
   }
 }

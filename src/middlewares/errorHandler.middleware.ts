@@ -9,8 +9,8 @@ const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
       mensagem,
       erro,
     });
-  } catch (err) {
-    res.status(500).send("Erro interno do servidor");
+  } catch (_) {
+    res.status(500).send({ mensagem: "Erro interno do servidor", erro: err });
   }
 };
 
