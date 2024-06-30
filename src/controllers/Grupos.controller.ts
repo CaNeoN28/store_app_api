@@ -137,18 +137,20 @@ export default class Controller_Grupos extends Controller {
           data: {
             nome,
             acessos: {
-              connectOrCreate: acessos.map((a) => ({
-                where: {
-                  tabela_metodo: {
-                    metodo: a.metodo,
-                    tabela: a.tabela,
+              connectOrCreate:
+                acessos &&
+                acessos.map((a) => ({
+                  where: {
+                    tabela_metodo: {
+                      metodo: a.metodo,
+                      tabela: a.tabela,
+                    },
                   },
-                },
-                create: {
-                  tabela: a.tabela,
-                  metodo: a.metodo,
-                },
-              })),
+                  create: {
+                    tabela: a.tabela,
+                    metodo: a.metodo,
+                  },
+                })),
             },
           },
           select: this.selecionados,
@@ -167,6 +169,145 @@ export default class Controller_Grupos extends Controller {
     }
   };
 
+  update_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+    const { acessos, nome }: Grupo = req.body;
+    const metodo = req.method as "PATCH" | "PUT";
+
+    const data = {
+      acessos,
+      nome,
+    };
+
+    try {
+      const resposta =
+        metodo == "PATCH"
+          ? await this.update_one(id, data)
+          : metodo == "PUT" && (await this.upsert_one(id, data));
+
+      res.status(200).send(resposta);
+    } catch (err) {
+      next(err);
+    }
+  };
+  protected update_one = async (id: number, data: Grupo) => {
+    Controller.validar_id(id);
+    this.validar_dados(data);
+
+    const { acessos, nome } = data;
+
+    const resposta = await this.tabela
+      .update({
+        where: { id },
+        data: {
+          nome: nome,
+          acessos: {
+            set: [],
+            connectOrCreate:
+              acessos &&
+              acessos.map((a) => ({
+                where: {
+                  tabela_metodo: {
+                    metodo: a.metodo,
+                    tabela: a.tabela,
+                  },
+                },
+                create: {
+                  metodo: a.metodo,
+                  tabela: a.tabela,
+                },
+              })),
+          },
+        },
+        select: this.selecionados,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        const { codigo, erro } = verificar_codigo_prisma(err);
+
+        throw {
+          codigo,
+          erro,
+          mensagem: "Não foi possível remover o item",
+        } as Erro;
+      });
+
+    if (acessos) {
+      await this.remover_acessos_nao_utilizados();
+    }
+
+    return resposta;
+  };
+
+  protected upsert_one = async (id: number, data: Grupo) => {
+    Controller.validar_id(id);
+    this.validar_dados(data, true);
+
+    const { acessos, nome } = data;
+
+    const resposta = await this.tabela
+      .upsert({
+        where: { id },
+        create: {
+          id,
+          nome,
+          acessos: {
+            connectOrCreate:
+              acessos &&
+              acessos.map((a) => ({
+                where: {
+                  tabela_metodo: {
+                    metodo: a.metodo,
+                    tabela: a.tabela,
+                  },
+                },
+                create: {
+                  metodo: a.metodo,
+                  tabela: a.tabela,
+                },
+              })),
+          },
+        },
+        update: {
+          nome,
+          acessos: {
+            set: [],
+            connectOrCreate:
+              acessos &&
+              acessos.map((a) => ({
+                where: {
+                  tabela_metodo: {
+                    metodo: a.metodo,
+                    tabela: a.tabela,
+                  },
+                },
+                create: {
+                  metodo: a.metodo,
+                  tabela: a.tabela,
+                },
+              })),
+          },
+        },
+        select: this.selecionados,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        const { codigo, erro } = verificar_codigo_prisma(err);
+
+        throw {
+          codigo,
+          erro,
+          mensagem: "Não foi possível remover o item",
+        } as Erro;
+      });
+
+    if (acessos) {
+      await this.remover_acessos_nao_utilizados();
+    }
+
+    return resposta;
+  };
+
   protected validar_dados(data: Grupo, validar_obrigatorios?: boolean) {
     const erros: {
       [k: string]: any;
@@ -183,29 +324,39 @@ export default class Controller_Grupos extends Controller {
     }
 
     if (acessos) {
-      const erros_acessos: {
-        [k: number]: {
-          tabela?: string;
-          metodo?: string;
-        };
-      } = {};
+      if (!Array.isArray(acessos)) {
+        erros.acessos = "Acessos inválidos, deve ser uma lista";
+      } else {
+        const erros_acessos: {
+          [k: number]: {
+            tabela?: string;
+            metodo?: string;
+          };
+        } = {};
 
-      for (let i = 0; i < acessos.length; i++) {
-        const acesso = acessos[i];
+        for (let i = 0; i < acessos.length; i++) {
+          const acesso = acessos[i];
 
-        if (!METODOS.find((m) => m == acesso.metodo)) {
-          erros_acessos[i] = {};
-          erros_acessos[i].metodo = "Método inválido";
+          if (!acesso.metodo) {
+            erros_acessos[i] = {};
+            erros_acessos[i].metodo = "Método é obrigatório";
+          } else if (!METODOS.find((m) => m == acesso.metodo)) {
+            erros_acessos[i] = {};
+            erros_acessos[i].metodo = "Método inválido";
+          }
+
+          if (!acesso.tabela) {
+            erros_acessos[i] = {};
+            erros_acessos[i].tabela = "Tabela é obrigatório";
+          } else if (!TABELAS.find((t) => t == acesso.tabela)) {
+            if (!erros_acessos[i]) erros_acessos[i] = {};
+            erros_acessos[i].tabela = "Tabela inválida";
+          }
         }
 
-        if (!TABELAS.find((t) => t == acesso.tabela)) {
-          if (!erros_acessos[i]) erros_acessos[i] = {};
-          erros_acessos[i].tabela = "Tabela inválida";
+        if (Object.keys(erros_acessos).length > 0) {
+          erros.acessos = erros_acessos;
         }
-      }
-
-      if (Object.keys(erros_acessos).length > 0) {
-        erros.acessos = erros_acessos;
       }
     }
 
@@ -216,5 +367,23 @@ export default class Controller_Grupos extends Controller {
         erro: erros,
       } as Erro;
     }
+  }
+
+  protected async remover_acessos_nao_utilizados() {
+    const tabela_acessos = Controller.delegar_tabela(
+      "acesso"
+    ) as Prisma.AcessoDelegate;
+
+    await tabela_acessos.deleteMany({
+      where: {
+        grupos: {
+          none: {
+            id: {
+              gt: 0,
+            },
+          },
+        },
+      },
+    });
   }
 }
