@@ -10,6 +10,7 @@ const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
       erro,
     });
   } catch (_) {
+    console.log(err)
     res.status(500).send({ mensagem: "Erro interno do servidor", erro: err });
   }
 };

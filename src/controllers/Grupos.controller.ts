@@ -6,9 +6,30 @@ import { ParsedQs } from "qs";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 import { Erro } from "../types/resposta";
 
-type Tabela = "ITEM" | "GRUPO";
+type Tabela =
+  | "ITEM"
+  | "GRUPO"
+  | "USUARIO"
+  | "FORNECEDOR"
+  | "CLIENTE"
+  | "UNIDADE"
+  | "COMPRA"
+  | "VENDA";
 
-type Metodo = "GET" | "PUT" | "PATCH" | "DELETE";
+type Metodo = "GET" | "PUT" | "PATCH" | "DELETE" | "POST";
+
+const METODOS: Metodo[] = ["DELETE", "GET", "PATCH", "PUT", "POST"];
+const TABELAS: Tabela[] = [
+  "CLIENTE",
+  "COMPRA",
+  "FORNECEDOR",
+  "GRUPO",
+  "ITEM",
+  "UNIDADE",
+  "UNIDADE",
+  "USUARIO",
+  "VENDA",
+];
 
 interface Grupo {
   id?: number;
@@ -108,6 +129,8 @@ export default class Controller_Grupos extends Controller {
   protected insert_one = async (data: Grupo) => {
     const { acessos, nome } = data;
 
+    this.validar_dados({ nome, acessos }, true);
+
     try {
       const grupo = await this.tabela
         .create({
@@ -118,8 +141,8 @@ export default class Controller_Grupos extends Controller {
                 where: {
                   tabela_metodo: {
                     metodo: a.metodo,
-                    tabela: a.tabela
-                  }                  
+                    tabela: a.tabela,
+                  },
                 },
                 create: {
                   tabela: a.tabela,
@@ -146,9 +169,52 @@ export default class Controller_Grupos extends Controller {
 
   protected validar_dados(data: Grupo, validar_obrigatorios?: boolean) {
     const erros: {
-      [k: string]: string;
+      [k: string]: any;
     } = {};
 
-    return erros;
+    const { nome, acessos, id } = data;
+
+    if (validar_obrigatorios && !nome) {
+      erros.nome = "Nome do grupo é obrigatório";
+    }
+
+    if (id && isNaN(id)) {
+      erros.id = "Id inválido";
+    }
+
+    if (acessos) {
+      const erros_acessos: {
+        [k: number]: {
+          tabela?: string;
+          metodo?: string;
+        };
+      } = {};
+
+      for (let i = 0; i < acessos.length; i++) {
+        const acesso = acessos[i];
+
+        if (!METODOS.find((m) => m == acesso.metodo)) {
+          erros_acessos[i] = {};
+          erros_acessos[i].metodo = "Método inválido";
+        }
+
+        if (!TABELAS.find((t) => t == acesso.tabela)) {
+          if (!erros_acessos[i]) erros_acessos[i] = {};
+          erros_acessos[i].tabela = "Tabela inválida";
+        }
+      }
+
+      if (Object.keys(erros_acessos).length > 0) {
+        erros.acessos = erros_acessos;
+      }
+    }
+
+    if (Object.keys(erros).length > 0) {
+      throw {
+        codigo: 400,
+        mensagem: "Erro de validação de grupo",
+        erro: erros,
+      } as Erro;
+    }
   }
 }

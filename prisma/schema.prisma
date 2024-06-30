@@ -16,6 +16,12 @@ datasource db {
 enum Tabela {
   ITEM
   GRUPO
+  USUARIO
+  FORNECEDOR
+  CLIENTE
+  UNIDADE
+  COMPRA
+  VENDA
 }
 
 enum Metodo {

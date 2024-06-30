@@ -52,7 +52,7 @@ export default abstract class Controller {
   protected abstract validar_dados(
     data: any,
     validar_obrigatorios?: boolean
-  ): { [k: string]: string } | undefined;
+  ): void;
 
   protected formatar_ordenacao(campo: any) {
     const formatado = String(campo).replace("-", "");

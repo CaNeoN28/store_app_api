@@ -370,7 +370,5 @@ export default class Controller_Itens extends Controller {
         mensagem: "Erro de validação de item",
       } as Erro;
     }
-
-    return undefined;
   };
 }
