@@ -35,7 +35,15 @@ export default class Controller_Usuarios extends Controller {
   }
 
   list: RequestHandler = async (req, res, next) => {
-    const { nome_completo, nome_usuario, email, nome_grupo } = req.query;
+    const {
+      nome_completo,
+      nome_usuario,
+      email,
+      nome_grupo,
+      ordenar,
+      limite,
+      pagina,
+    } = req.query;
     const filtros: Prisma.UsuarioWhereInput = {};
 
     if (nome_completo) {
@@ -70,8 +78,17 @@ export default class Controller_Usuarios extends Controller {
       };
     }
 
+    const ordenacao = this.formatar_ordenacao(
+      ordenar
+    ) as Prisma.UsuarioOrderByWithRelationInput;
+
     try {
-      const resposta = await this.find_many(filtros, {}, 10, 1);
+      const resposta = await this.find_many(
+        filtros,
+        ordenacao,
+        Number(limite),
+        Number(pagina)
+      );
 
       res.status(200).send(resposta);
     } catch (err) {
