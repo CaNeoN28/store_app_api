@@ -58,9 +58,9 @@ model Usuario {
   numero_telefone String?
   email           String?
 
-  UsuariosGrupos       Usuarios_Grupos[]
+  Usuarios_Grupos      Usuarios_Grupos[]
   Alteracao_Preco_Item Alteracao_Preco_Item[]
-  Alteracoes_item      Alteracoes_Item[]
+  Alteracoes_Item      Alteracoes_Item[]
   Alteracao_Fornecedor Alteracao_Fornecedor[]
   Alteracao_Cliente    Alteracao_Cliente[]
 }
