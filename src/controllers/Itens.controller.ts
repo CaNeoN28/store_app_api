@@ -143,7 +143,7 @@ export default class Controller_Itens extends Controller {
   };
 
   create: RequestHandler = async (req, res, next) => {
-    const { nome, unidade_id, desconto_porcentagem, id, valor_atual }: Item =
+    const { nome, unidade_id, desconto_porcentagem, valor_atual }: Item =
       req.body;
 
     const validade_desconto: Date | undefined = req.body.validade_desconto
@@ -155,7 +155,6 @@ export default class Controller_Itens extends Controller {
         nome,
         unidade_id,
         desconto_porcentagem,
-        id,
         validade_desconto,
         valor_atual,
       });
@@ -188,7 +187,6 @@ export default class Controller_Itens extends Controller {
       nome,
       unidade_id,
       desconto_porcentagem,
-      id: new_id,
       valor_atual,
     }: Item = req.body;
 
@@ -201,7 +199,6 @@ export default class Controller_Itens extends Controller {
       unidade_id,
       desconto_porcentagem,
       validade_desconto,
-      id: new_id,
       valor_atual,
     };
 
