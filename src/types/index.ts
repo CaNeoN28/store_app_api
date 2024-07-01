@@ -56,4 +56,19 @@ interface Usuario {
   grupos?: Grupo[];
 }
 
-export { Erro, Resposta, Tabela, Tabela_Prisma, Metodo, Grupo, Item, Usuario };
+interface Login {
+  nome_usuario: string;
+  senha: string;
+}
+
+export {
+  Erro,
+  Resposta,
+  Tabela,
+  Tabela_Prisma,
+  Metodo,
+  Grupo,
+  Item,
+  Usuario,
+  Login,
+};
