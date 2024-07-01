@@ -2,45 +2,10 @@ import { ParamsDictionary } from "express-serve-static-core";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
 import { RequestHandler } from "express";
-import { ParsedQs } from "qs";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 import { Erro } from "../types/resposta";
-
-type Tabela =
-  | "ITEM"
-  | "GRUPO"
-  | "USUARIO"
-  | "FORNECEDOR"
-  | "CLIENTE"
-  | "UNIDADE"
-  | "COMPRA"
-  | "VENDA";
-
-type Metodo = "GET" | "PUT" | "PATCH" | "DELETE" | "POST";
-
-const METODOS: Metodo[] = ["DELETE", "GET", "PATCH", "PUT", "POST"];
-const TABELAS: Tabela[] = [
-  "CLIENTE",
-  "COMPRA",
-  "FORNECEDOR",
-  "GRUPO",
-  "ITEM",
-  "UNIDADE",
-  "UNIDADE",
-  "USUARIO",
-  "VENDA",
-];
-
-interface Grupo {
-  id?: number;
-  nome: string;
-  acessos: [
-    {
-      tabela: Tabela;
-      metodo: Metodo;
-    }
-  ];
-}
+import { Grupo } from "../types";
+import { METODOS, TABELAS } from "../utils/const";
 
 export default class Controller_Grupos extends Controller {
   protected selecionados: Prisma.GrupoSelect;

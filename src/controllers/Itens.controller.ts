@@ -4,15 +4,7 @@ import { Prisma } from "@prisma/client";
 import { Erro } from "../types/resposta";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-
-interface Item {
-  id?: number;
-  nome: string;
-  valor_atual?: number;
-  desconto_porcentagem?: number;
-  validade_desconto?: Date;
-  unidade_id: number;
-}
+import { Item } from "../types";
 
 export default class Controller_Itens extends Controller {
   tabela: Prisma.ItemDelegate<DefaultArgs>;
