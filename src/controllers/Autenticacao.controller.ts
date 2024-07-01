@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import Controller from "./Controller";
 import { Erro, Login } from "../types";
 import { RequestHandler } from "express-serve-static-core";
+import { comparar_senha } from "../utils/senhas";
 
 export default class Controller_Autenticacao extends Controller {
   protected selecionados: Prisma.UsuarioSelect;
@@ -15,7 +16,7 @@ export default class Controller_Autenticacao extends Controller {
     ) as Prisma.UsuarioDelegate;
 
     this.selecionados = {};
-    this.selecionar_todos_os_campos;
+    this.selecionar_todos_os_campos();
     this.selecionados.senha = false;
     this.selecionados.grupos = {
       select: {
@@ -52,7 +53,22 @@ export default class Controller_Autenticacao extends Controller {
       },
     });
 
-    return usuario;
+    console.log(usuario)
+
+    if (usuario && (await comparar_senha(senha, usuario.senha))) {
+      return {
+        dados: {
+          ...usuario,
+          senha: undefined,
+        },
+      };
+    }
+
+    throw {
+      codigo: 401,
+      erro: "Os dados não correspondem",
+      mensagem: "Não foi possível realizar a autenticação",
+    } as Erro;
   }
 
   protected validar_dados(data: Login, validar_obrigatorios?: boolean): void {
