@@ -1,9 +1,10 @@
 import { Prisma } from "@prisma/client";
-import { Usuario } from "../types";
+import { Erro, Usuario } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
+import verificar_erro_prisma from "../utils/verificar_codigo_prisma";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -122,6 +123,66 @@ export default class Controller_Usuarios extends Controller {
       registros,
       limite,
     };
+  };
+
+  create: RequestHandler = async (req, res, next) => {
+    const {
+      email,
+      foto_url,
+      grupos,
+      nome_completo,
+      nome_usuario,
+      numero_telefone,
+      senha,
+    }: Usuario = req.body;
+
+    try {
+      const usuario = await this.insert_one({
+        email,
+        foto_url,
+        grupos,
+        nome_completo,
+        nome_usuario,
+        numero_telefone,
+        senha,
+      });
+
+      res.status(201).send(usuario);
+    } catch (err) {
+      next(err);
+    }
+  };
+  protected insert_one = async (data: Usuario) => {
+    this.validar_dados(data);
+    let { grupos, senha } = data;
+
+    const usuario = await this.tabela
+      .create({
+        data: {
+          ...data,
+          senha,
+          grupos: {
+            connect:
+              grupos &&
+              grupos.map((g) => ({
+                id: g.id,
+              })),
+          },
+        },
+        select: this.selecionados,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        const { codigo, erro } = verificar_erro_prisma(err);
+
+        throw {
+          codigo,
+          erro,
+          mensagem: "Não foi possível criar usuário",
+        } as Erro;
+      });
+
+    return usuario;
   };
 
   protected validar_dados(

@@ -1,7 +1,7 @@
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
 import { RequestHandler } from "express";
-import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
+import verificar_erro_prisma from "../utils/verificar_codigo_prisma";
 import { Grupo, Erro } from "../types";
 import { METODOS, TABELAS } from "../utils/const";
 
@@ -15,6 +15,16 @@ export default class Controller_Grupos extends Controller {
     this.tabela = Controller.delegar_tabela("grupo") as Prisma.GrupoDelegate;
     this.selecionados = {};
     this.selecionar_todos_os_campos();
+    this.selecionados.usuarios = {
+      select: {
+        id: true,
+        nome_completo: true,
+        nome_usuario: true,
+        email: true,
+        foto_url: true,
+        numero_telefone: true,
+      },
+    };
     this.selecionados.acessos = {
       select: {
         metodo: true,
@@ -122,7 +132,7 @@ export default class Controller_Grupos extends Controller {
 
       return grupo;
     } catch (err) {
-      const { codigo, erro } = verificar_codigo_prisma(err);
+      const { codigo, erro } = verificar_erro_prisma(err);
 
       throw {
         mensagem: "Não foi possível criar grupo",
@@ -186,7 +196,7 @@ export default class Controller_Grupos extends Controller {
       })
       .then((res) => res)
       .catch((err) => {
-        const { codigo, erro } = verificar_codigo_prisma(err);
+        const { codigo, erro } = verificar_erro_prisma(err);
 
         throw {
           codigo,
@@ -254,7 +264,7 @@ export default class Controller_Grupos extends Controller {
       })
       .then((res) => res)
       .catch((err) => {
-        const { codigo, erro } = verificar_codigo_prisma(err);
+        const { codigo, erro } = verificar_erro_prisma(err);
 
         throw {
           codigo,
@@ -292,9 +302,9 @@ export default class Controller_Grupos extends Controller {
         },
       });
 
-      await this.remover_acessos_nao_utilizados()
+      await this.remover_acessos_nao_utilizados();
     } catch (err) {
-      const { codigo, erro } = verificar_codigo_prisma(err);
+      const { codigo, erro } = verificar_erro_prisma(err);
 
       throw {
         codigo,

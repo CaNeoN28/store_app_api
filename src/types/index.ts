@@ -44,7 +44,7 @@ interface Item {
 }
 
 interface Usuario {
-  id: number;
+  id?: number;
   nome_completo: string;
   nome_usuario: string;
   senha: string;
@@ -52,12 +52,7 @@ interface Usuario {
   numero_telefone: string;
   email: string;
 
-  Usuarios_Grupos: {
-    grupo_id: number;
-    grupo: Grupo;
-    usuario_id?: number;
-    usuario?: Usuario;
-  }[];
+  grupos: Grupo[];
 }
 
 export { Erro, Resposta, Tabela, Tabela_Prisma, Metodo, Grupo, Item, Usuario };

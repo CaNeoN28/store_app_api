@@ -1,4 +1,4 @@
-export default function verificar_codigo_prisma(err: any) {
+export default function verificar_erro_prisma(err: any) {
   let codigo = 500;
   let erro: any = {};
 

@@ -56,7 +56,7 @@ model Usuario {
   senha           String
   foto_url        String?
   numero_telefone String?
-  email           String?
+  email           String? @unique
 
   grupos               Grupo[]
   Alteracao_Preco_Item Alteracao_Preco_Item[]

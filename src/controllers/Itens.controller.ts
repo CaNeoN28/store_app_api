@@ -1,7 +1,7 @@
 import e, { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
-import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
+import verificar_erro_prisma from "../utils/verificar_codigo_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { Item, Erro } from "../types";
 
@@ -226,7 +226,7 @@ export default class Controller_Itens extends Controller {
       })
       .then((res) => res)
       .catch((err) => {
-        const { codigo, erro } = verificar_codigo_prisma(err);
+        const { codigo, erro } = verificar_erro_prisma(err);
 
         throw {
           mensagem: "Não foi possível salvar o item",
@@ -249,7 +249,7 @@ export default class Controller_Itens extends Controller {
       })
       .then((res) => res)
       .catch((err) => {
-        const { codigo, erro } = verificar_codigo_prisma(err);
+        const { codigo, erro } = verificar_erro_prisma(err);
 
         throw {
           mensagem: "Não foi possível salvar o item",
@@ -280,7 +280,7 @@ export default class Controller_Itens extends Controller {
       })
       .then()
       .catch((err) => {
-        const { codigo, erro } = verificar_codigo_prisma(err);
+        const { codigo, erro } = verificar_erro_prisma(err);
 
         throw {
           mensagem: "Não foi possível remover o item",
