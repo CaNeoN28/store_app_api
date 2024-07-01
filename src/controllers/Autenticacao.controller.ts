@@ -3,6 +3,7 @@ import Controller from "./Controller";
 import { Erro, Login } from "../types";
 import { RequestHandler } from "express-serve-static-core";
 import { comparar_senha } from "../utils/senhas";
+import { gerar_token_usuario } from "../utils/jwt";
 
 export default class Controller_Autenticacao extends Controller {
   protected selecionados: Prisma.UsuarioSelect;
@@ -53,10 +54,11 @@ export default class Controller_Autenticacao extends Controller {
       },
     });
 
-    console.log(usuario)
-
     if (usuario && (await comparar_senha(senha, usuario.senha))) {
+      const { nome_usuario, id } = usuario;
+
       return {
+        token: gerar_token_usuario({ nome_usuario, id }),
         dados: {
           ...usuario,
           senha: undefined,
