@@ -46,7 +46,7 @@ model Grupo {
   nome    String
   acessos Acesso[]
 
-  UsuariosGrupos Usuarios_Grupos[]
+  usuarios Usuario[]
 }
 
 model Usuario {
@@ -58,20 +58,11 @@ model Usuario {
   numero_telefone String?
   email           String?
 
-  Usuarios_Grupos      Usuarios_Grupos[]
+  grupos               Grupo[]
   Alteracao_Preco_Item Alteracao_Preco_Item[]
   Alteracoes_Item      Alteracoes_Item[]
   Alteracao_Fornecedor Alteracao_Fornecedor[]
   Alteracao_Cliente    Alteracao_Cliente[]
-}
-
-model Usuarios_Grupos {
-  grupo_id   Int
-  grupo      Grupo   @relation(fields: [grupo_id], references: [id])
-  usuario_id Int
-  usuario    Usuario @relation(fields: [usuario_id], references: [id])
-
-  @@id([grupo_id, usuario_id])
 }
 
 model Fornecedor {

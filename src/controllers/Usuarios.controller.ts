@@ -19,6 +19,19 @@ export default class Controller_Usuarios extends Controller {
 
     this.selecionados = {};
     this.selecionar_todos_os_campos();
+    this.selecionados.senha = false;
+    this.selecionados.grupos = {
+      select: {
+        id: true,
+        nome: true,
+        acessos: {
+          select: {
+            metodo: true,
+            tabela: true,
+          },
+        },
+      },
+    };
   }
 
   list: RequestHandler = async (req, res, next) => {
