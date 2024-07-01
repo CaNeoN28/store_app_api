@@ -1,10 +1,8 @@
-import { ParamsDictionary } from "express-serve-static-core";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
 import { RequestHandler } from "express";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
-import { Erro } from "../types/resposta";
-import { Grupo } from "../types";
+import { Grupo, Erro } from "../types";
 import { METODOS, TABELAS } from "../utils/const";
 
 export default class Controller_Grupos extends Controller {

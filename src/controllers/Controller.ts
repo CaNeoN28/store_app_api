@@ -1,16 +1,6 @@
 import { RequestHandler } from "express";
 import prisma from "../db/prisma";
-import TABELA from "../types/tabela";
-
-interface Resposta {
-  criado?: any;
-  dados?: any;
-  erro?: {
-    mensagem: any;
-    codigo: number;
-    erro: any;
-  };
-}
+import { Tabela_Prisma } from "../types";
 
 export default abstract class Controller {
   static ORDENACAO_PADRAO = { id: "asc" };
@@ -22,7 +12,7 @@ export default abstract class Controller {
   protected abstract selecionados: any;
   protected ordenacao: any;
 
-  constructor(tabela: TABELA) {
+  constructor(tabela: Tabela_Prisma) {
     this.ordenacao = Controller.ORDENACAO_PADRAO;
     this.tabela = prisma[tabela];
   }
@@ -79,7 +69,7 @@ export default abstract class Controller {
     this.selecionados = selecionados;
   }
 
-  static delegar_tabela(tabela: TABELA) {
+  static delegar_tabela(tabela: Tabela_Prisma) {
     return prisma[tabela];
   }
 

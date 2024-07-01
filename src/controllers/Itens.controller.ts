@@ -1,10 +1,9 @@
 import e, { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
-import { Erro } from "../types/resposta";
 import verificar_codigo_prisma from "../utils/verificar_codigo_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { Item } from "../types";
+import { Item, Erro } from "../types";
 
 export default class Controller_Itens extends Controller {
   tabela: Prisma.ItemDelegate<DefaultArgs>;

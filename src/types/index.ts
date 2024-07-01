@@ -1,3 +1,5 @@
+import Resposta, {Erro} from "./resposta"
+
 type Tabela =
   | "ITEM"
   | "GRUPO"
@@ -7,6 +9,16 @@ type Tabela =
   | "UNIDADE"
   | "COMPRA"
   | "VENDA";
+
+type Tabela_Prisma = "item"
+| "acesso"
+| "grupo"
+| "usuario"
+| "fornecedor"
+| "cliente"
+| "unidade"
+| "compra"
+| "venda";
 
 type Metodo = "GET" | "PUT" | "PATCH" | "DELETE" | "POST";
 
@@ -30,4 +42,4 @@ interface Item {
   unidade_id: number;
 }
 
-export { Tabela, Metodo, Grupo, Item };
+export { Erro, Resposta, Tabela, Tabela_Prisma, Metodo, Grupo, Item };
