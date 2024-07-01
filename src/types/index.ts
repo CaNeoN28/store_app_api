@@ -32,6 +32,7 @@ interface Grupo {
       metodo: Metodo;
     }
   ];
+  usuarios?: Usuario[];
 }
 
 interface Item {
@@ -52,7 +53,7 @@ interface Usuario {
   numero_telefone: string;
   email: string;
 
-  grupos: Grupo[];
+  grupos?: Grupo[];
 }
 
 export { Erro, Resposta, Tabela, Tabela_Prisma, Metodo, Grupo, Item, Usuario };

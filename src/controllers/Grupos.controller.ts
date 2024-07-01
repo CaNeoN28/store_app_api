@@ -15,6 +15,12 @@ export default class Controller_Grupos extends Controller {
     this.tabela = Controller.delegar_tabela("grupo") as Prisma.GrupoDelegate;
     this.selecionados = {};
     this.selecionar_todos_os_campos();
+    this.selecionados.acessos = {
+      select: {
+        metodo: true,
+        tabela: true,
+      },
+    };
     this.selecionados.usuarios = {
       select: {
         id: true,
@@ -23,12 +29,6 @@ export default class Controller_Grupos extends Controller {
         email: true,
         foto_url: true,
         numero_telefone: true,
-      },
-    };
-    this.selecionados.acessos = {
-      select: {
-        metodo: true,
-        tabela: true,
       },
     };
   }
@@ -89,10 +89,10 @@ export default class Controller_Grupos extends Controller {
   };
 
   create: RequestHandler = async (req, res, next) => {
-    const { nome, acessos }: Grupo = req.body;
+    const { nome, acessos, usuarios }: Grupo = req.body;
 
     try {
-      const resposta = await this.insert_one({ acessos, nome });
+      const resposta = await this.insert_one({ acessos, nome, usuarios });
 
       res.status(201).send(resposta);
     } catch (err) {
@@ -100,9 +100,9 @@ export default class Controller_Grupos extends Controller {
     }
   };
   protected insert_one = async (data: Grupo) => {
-    const { acessos, nome } = data;
+    const { acessos, nome, usuarios } = data;
 
-    this.validar_dados({ nome, acessos }, true);
+    this.validar_dados({ nome, acessos, usuarios }, true);
 
     try {
       const grupo = await this.tabela
@@ -125,6 +125,13 @@ export default class Controller_Grupos extends Controller {
                   },
                 })),
             },
+            usuarios: {
+              connect:
+                usuarios &&
+                usuarios.map((u) => ({
+                  id: u.id,
+                })),
+            },
           },
           select: this.selecionados,
         })
@@ -144,12 +151,13 @@ export default class Controller_Grupos extends Controller {
 
   update_by_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
-    const { acessos, nome }: Grupo = req.body;
+    const { acessos, nome, usuarios }: Grupo = req.body;
     const metodo = req.method as "PATCH" | "PUT";
 
     const data = {
       acessos,
       nome,
+      usuarios,
     };
 
     try {
@@ -167,7 +175,7 @@ export default class Controller_Grupos extends Controller {
     Controller.validar_id(id);
     this.validar_dados(data);
 
-    const { acessos, nome } = data;
+    const { acessos, nome, usuarios } = data;
 
     const resposta = await this.tabela
       .update({
@@ -191,6 +199,14 @@ export default class Controller_Grupos extends Controller {
                 },
               })),
           },
+          usuarios: {
+            set: [],
+            connect:
+              usuarios &&
+              usuarios.map((u) => ({
+                id: u.id,
+              })),
+          },
         },
         select: this.selecionados,
       })
@@ -201,7 +217,7 @@ export default class Controller_Grupos extends Controller {
         throw {
           codigo,
           erro,
-          mensagem: "Não foi possível remover o item",
+          mensagem: "Não foi possível atualizar o grupo",
         } as Erro;
       });
 
@@ -215,7 +231,7 @@ export default class Controller_Grupos extends Controller {
     Controller.validar_id(id);
     this.validar_dados(data, true);
 
-    const { acessos, nome } = data;
+    const { acessos, nome, usuarios } = data;
 
     const resposta = await this.tabela
       .upsert({
@@ -239,6 +255,13 @@ export default class Controller_Grupos extends Controller {
                 },
               })),
           },
+          usuarios: {
+            connect:
+              usuarios &&
+              usuarios.map((u) => ({
+                id: u.id,
+              })),
+          },
         },
         update: {
           nome,
@@ -259,6 +282,14 @@ export default class Controller_Grupos extends Controller {
                 },
               })),
           },
+          usuarios: {
+            set: [],
+            connect:
+              usuarios &&
+              usuarios.map((u) => ({
+                id: u.id,
+              })),
+          },
         },
         select: this.selecionados,
       })
@@ -269,7 +300,7 @@ export default class Controller_Grupos extends Controller {
         throw {
           codigo,
           erro,
-          mensagem: "Não foi possível remover o item",
+          mensagem: "Não foi possível salvar o grupo",
         } as Erro;
       });
 
@@ -319,7 +350,7 @@ export default class Controller_Grupos extends Controller {
       [k: string]: any;
     } = {};
 
-    const { nome, acessos, id } = data;
+    const { nome, acessos, usuarios, id } = data;
 
     if (validar_obrigatorios && !nome) {
       erros.nome = "Nome do grupo é obrigatório";
@@ -366,6 +397,21 @@ export default class Controller_Grupos extends Controller {
       }
     }
 
+    if (usuarios) {
+      if (!Array.isArray(usuarios)) {
+        erros.usuarios = "Usuários deve ser uma lista";
+      } else if (usuarios.length > 0) {
+        usuarios.map((u, i) => {
+          if (!u.id) {
+            if (!erros.usuario) {
+              erros.usuario = {};
+            }
+
+            erros.usuario[i] = "O id de um usuário é necessário";
+          }
+        });
+      }
+    }
     if (Object.keys(erros).length > 0) {
       throw {
         codigo: 400,

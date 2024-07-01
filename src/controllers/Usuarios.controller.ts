@@ -195,8 +195,7 @@ export default class Controller_Usuarios extends Controller {
       nome_completo,
       nome_usuario,
       numero_telefone,
-      senha,
-      id,
+      senha
     } = data;
     const erros: { [k: string]: any } = {};
 
