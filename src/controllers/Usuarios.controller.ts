@@ -35,10 +35,43 @@ export default class Controller_Usuarios extends Controller {
   }
 
   list: RequestHandler = async (req, res, next) => {
-    const {} = req.body;
+    const { nome_completo, nome_usuario, email, nome_grupo } = req.query;
+    const filtros: Prisma.UsuarioWhereInput = {};
+
+    if (nome_completo) {
+      filtros.nome_completo = {
+        contains: String(nome_completo),
+        mode: "insensitive",
+      };
+    }
+
+    if (nome_usuario) {
+      filtros.nome_usuario = {
+        contains: String(nome_usuario),
+        mode: "insensitive",
+      };
+    }
+
+    if (email) {
+      filtros.email = {
+        contains: String(email),
+        mode: "insensitive",
+      };
+    }
+
+    if (nome_grupo) {
+      filtros.grupos = {
+        some: {
+          nome: {
+            contains: String(nome_grupo),
+            mode: "insensitive",
+          },
+        },
+      };
+    }
 
     try {
-      const resposta = await this.find_many({}, {}, 10, 1);
+      const resposta = await this.find_many(filtros, {}, 10, 1);
 
       res.status(200).send(resposta);
     } catch (err) {
