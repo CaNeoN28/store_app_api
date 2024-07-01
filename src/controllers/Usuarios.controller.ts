@@ -4,8 +4,7 @@ import Controller from "./Controller";
 import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { REGEX_EMAIL, REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
+import { criptografar_senha } from "../utils/senhas";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -155,7 +154,9 @@ export default class Controller_Usuarios extends Controller {
   };
   protected insert_one = async (data: Usuario) => {
     this.validar_dados(data, true);
+
     let { grupos, senha } = data;
+    senha = await criptografar_senha(senha);
 
     const usuario = await this.tabela
       .create({
@@ -225,6 +226,7 @@ export default class Controller_Usuarios extends Controller {
     this.validar_dados(data);
 
     let { grupos, senha } = data;
+    if (senha) senha = await criptografar_senha(senha);
 
     const usuario_novo = await this.tabela
       .update({
@@ -263,6 +265,7 @@ export default class Controller_Usuarios extends Controller {
     this.validar_dados(data, true);
 
     let { grupos, senha } = data;
+    senha = await criptografar_senha(senha);
 
     const usuario_novo = await this.tabela
       .upsert({
@@ -292,6 +295,7 @@ export default class Controller_Usuarios extends Controller {
               })),
           },
         },
+        select: this.selecionados,
       })
       .then((res) => res)
       .catch((err) => {
