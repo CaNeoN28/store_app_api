@@ -1,7 +1,7 @@
 import e, { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
-import verificar_erro_prisma from "../utils/verificar_codigo_prisma";
+import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { Item, Erro } from "../types";
 

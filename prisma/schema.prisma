@@ -52,7 +52,7 @@ model Grupo {
 model Usuario {
   id              Int     @id @default(autoincrement())
   nome_completo   String
-  nome_usuario    String
+  nome_usuario    String  @unique
   senha           String
   foto_url        String?
   numero_telefone String?

@@ -2,9 +2,8 @@ import { Prisma } from "@prisma/client";
 import { Erro, Usuario } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
-import verificar_erro_prisma from "../utils/verificar_codigo_prisma";
+import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import { REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -153,7 +152,7 @@ export default class Controller_Usuarios extends Controller {
     }
   };
   protected insert_one = async (data: Usuario) => {
-    this.validar_dados(data);
+    this.validar_dados(data, true);
     let { grupos, senha } = data;
 
     const usuario = await this.tabela
@@ -188,5 +187,57 @@ export default class Controller_Usuarios extends Controller {
   protected validar_dados(
     data: Usuario,
     validar_obrigatorios?: boolean | undefined
-  ) {}
+  ) {
+    const {
+      email,
+      foto_url,
+      grupos,
+      nome_completo,
+      nome_usuario,
+      numero_telefone,
+      senha,
+      id,
+    } = data;
+    const erros: { [k: string]: any } = {};
+
+    if (validar_obrigatorios && !nome_completo) {
+      erros.nome_completo = "Nome completo é obrigatório";
+    }
+
+    if (validar_obrigatorios && !nome_usuario) {
+      erros.nome_usuario = "Nome de usuário é obrigatório";
+    } else if (nome_usuario && !REGEX_NOME_USUARIO.test(nome_usuario)) {
+      erros.nome_usuario = "Nome de usuário inválido";
+    }
+
+    if (validar_obrigatorios && !senha) {
+      erros.senha = "Senha é obrigatório";
+    } else if (senha && !REGEX_SENHA.test(senha)) {
+      erros.senha = "Senha inválida";
+    }
+
+    if (grupos) {
+      if (!Array.isArray(grupos)) {
+        erros.grupos = "Deve ser uma lista";
+      } else if (grupos.length > 0) {
+        grupos.map((g, i) => {
+          if (!g.id) {
+            if (!erros.grupos) {
+              erros.grupos = {};
+            }
+
+            erros.grupos[i] = "O id de um grupo é necessário";
+          }
+        });
+      }
+    }
+
+    if (Object.keys(erros).length > 0) {
+      throw {
+        codigo: 400,
+        erro: erros,
+        mensagem: "Erro ao validar dados do usuário",
+      } as Erro;
+    }
+  }
 }

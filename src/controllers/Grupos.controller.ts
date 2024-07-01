@@ -1,9 +1,9 @@
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
 import { RequestHandler } from "express";
-import verificar_erro_prisma from "../utils/verificar_codigo_prisma";
+import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Grupo, Erro } from "../types";
-import { METODOS, TABELAS } from "../utils/const";
+import { METODOS, TABELAS } from "../utils/globals";
 
 export default class Controller_Grupos extends Controller {
   protected selecionados: Prisma.GrupoSelect;
