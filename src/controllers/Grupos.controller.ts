@@ -238,7 +238,6 @@ export default class Controller_Grupos extends Controller {
 
     return resposta;
   };
-
   protected upsert_one = async (id: number, data: Grupo) => {
     Controller.validar_id(id);
     this.validar_dados(data, true);
@@ -306,6 +305,40 @@ export default class Controller_Grupos extends Controller {
     }
 
     return resposta;
+  };
+
+  remove_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      await this.delete_one(id);
+
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  protected delete_one = async (id: number) => {
+    Controller.validar_id(id);
+
+    try {
+      await this.tabela.delete({
+        where: {
+          id,
+        },
+      });
+
+      await this.remover_acessos_nao_utilizados()
+    } catch (err) {
+      const { codigo, erro } = verificar_codigo_prisma(err);
+
+      throw {
+        codigo,
+        erro,
+        mensagem: "Não foi possível remover o grupo",
+      } as Erro;
+    }
   };
 
   protected validar_dados(data: Grupo, validar_obrigatorios?: boolean) {
