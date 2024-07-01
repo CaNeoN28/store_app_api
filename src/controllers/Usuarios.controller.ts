@@ -3,7 +3,7 @@ import { Erro, Usuario } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
-import { REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
+import { REGEX_EMAIL, REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -214,6 +214,10 @@ export default class Controller_Usuarios extends Controller {
       erros.senha = "Senha é obrigatório";
     } else if (senha && !REGEX_SENHA.test(senha)) {
       erros.senha = "Senha inválida";
+    }
+
+    if (email && !REGEX_EMAIL.test(email)) {
+      erros.email = "Email inválido";
     }
 
     if (grupos) {
