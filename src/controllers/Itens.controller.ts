@@ -174,12 +174,8 @@ export default class Controller_Itens extends Controller {
   update_by_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
     const metodo = req.method as "PATCH" | "PUT";
-    const {
-      nome,
-      unidade_id,
-      desconto_porcentagem,
-      valor_atual,
-    }: Item = req.body;
+    const { nome, unidade_id, desconto_porcentagem, valor_atual }: Item =
+      req.body;
 
     const validade_desconto: Date | undefined = req.body.validade_desconto
       ? new Date(req.body.validade_desconto)
@@ -199,18 +195,7 @@ export default class Controller_Itens extends Controller {
           ? await this.update_one(id, data)
           : metodo == "PUT" && (await this.upsert_one(id, data));
 
-      if (resposta) {
-        if (resposta.dados) {
-          res.status(200).send(resposta.dados);
-        } else if (resposta.erro) {
-          const { codigo, erro, mensagem } = resposta.erro;
-
-          res.status(codigo).send({
-            mensagem,
-            erro,
-          });
-        }
-      }
+      res.status(200).send(resposta);
     } catch (err) {
       next(err);
     }
@@ -229,7 +214,7 @@ export default class Controller_Itens extends Controller {
         const { codigo, erro } = verificar_erro_prisma(err);
 
         throw {
-          mensagem: "Não foi possível salvar o item",
+          mensagem: "Não foi possível atualizar o item",
           codigo,
           erro,
         } as Erro;

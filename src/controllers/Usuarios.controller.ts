@@ -4,6 +4,8 @@ import Controller from "./Controller";
 import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { REGEX_EMAIL, REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -184,6 +186,79 @@ export default class Controller_Usuarios extends Controller {
     return usuario;
   };
 
+  update_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+    const {
+      email,
+      foto_url,
+      nome_completo,
+      nome_usuario,
+      numero_telefone,
+      senha,
+      grupos,
+    }: Usuario = req.body;
+    const metodo = (req.method as "PATCH") || "PUT";
+
+    const data = {
+      email,
+      foto_url,
+      nome_completo,
+      nome_usuario,
+      numero_telefone,
+      senha,
+      grupos,
+    };
+
+    try {
+      const resposta =
+        metodo == "PATCH"
+          ? await this.update_one(id, data)
+          : metodo == "PUT" && (await this.upsert_one(id, data));
+
+      res.status(200).send(resposta);
+    } catch (err) {
+      next(err);
+    }
+  };
+  protected update_one = async (id: number, data: Usuario) => {
+    Controller.validar_id(id);
+    this.validar_dados(data);
+
+    let { grupos, senha } = data;
+
+    const usuario_novo = await this.tabela
+      .update({
+        where: {
+          id,
+        },
+        data: {
+          ...data,
+          grupos: {
+            set: [],
+            connect:
+              grupos &&
+              grupos.map((g) => ({
+                id: g.id,
+              })),
+          },
+          senha,
+        },
+        select: this.selecionados,
+      })
+      .then((res) => res)
+      .catch((err) => {
+        const { codigo, erro } = verificar_erro_prisma(err);
+
+        throw {
+          codigo,
+          erro,
+          mensagem: "Não foi possível atualizar o usuário",
+        } as Erro;
+      });
+
+    return usuario_novo;
+  };
+
   protected validar_dados(
     data: Usuario,
     validar_obrigatorios?: boolean | undefined
@@ -195,7 +270,7 @@ export default class Controller_Usuarios extends Controller {
       nome_completo,
       nome_usuario,
       numero_telefone,
-      senha
+      senha,
     } = data;
     const erros: { [k: string]: any } = {};
 
