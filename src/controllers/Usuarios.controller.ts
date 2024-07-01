@@ -258,6 +258,54 @@ export default class Controller_Usuarios extends Controller {
 
     return usuario_novo;
   };
+  protected upsert_one = async (id: number, data: Usuario) => {
+    Controller.validar_id(id);
+    this.validar_dados(data, true);
+
+    let { grupos, senha } = data;
+
+    const usuario_novo = await this.tabela
+      .upsert({
+        where: {
+          id,
+        },
+        create: {
+          id,
+          ...data,
+          senha,
+          grupos: {
+            connect:
+              grupos &&
+              grupos.map((g) => ({
+                id: g.id,
+              })),
+          },
+        },
+        update: {
+          ...data,
+          senha,
+          grupos: {
+            connect:
+              grupos &&
+              grupos.map((g) => ({
+                id: g.id,
+              })),
+          },
+        },
+      })
+      .then((res) => res)
+      .catch((err) => {
+        const { codigo, erro } = verificar_erro_prisma(err);
+
+        throw {
+          codigo,
+          erro,
+          mensagem: "Não foi possível salvar usuário",
+        } as Erro;
+      });
+
+    return usuario_novo;
+  };
 
   protected validar_dados(
     data: Usuario,
