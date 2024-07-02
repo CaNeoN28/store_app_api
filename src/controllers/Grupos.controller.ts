@@ -177,7 +177,7 @@ export default class Controller_Grupos extends Controller {
 
     const { acessos, nome, usuarios } = data;
 
-    const resposta = await this.tabela
+    const grupo_novo = await this.tabela
       .update({
         where: { id },
         data: {
@@ -200,7 +200,6 @@ export default class Controller_Grupos extends Controller {
               })),
           },
           usuarios: {
-            set: [],
             connect:
               usuarios &&
               usuarios.map((u) => ({
@@ -225,7 +224,7 @@ export default class Controller_Grupos extends Controller {
       await this.remover_acessos_nao_utilizados();
     }
 
-    return resposta;
+    return grupo_novo;
   };
   protected upsert_one = async (id: number, data: Grupo) => {
     Controller.validar_id(id);
@@ -233,7 +232,7 @@ export default class Controller_Grupos extends Controller {
 
     const { acessos, nome, usuarios } = data;
 
-    const resposta = await this.tabela
+    const grupo_novo = await this.tabela
       .upsert({
         where: { id },
         create: {
@@ -308,7 +307,7 @@ export default class Controller_Grupos extends Controller {
       await this.remover_acessos_nao_utilizados();
     }
 
-    return resposta;
+    return grupo_novo;
   };
 
   remove_by_id: RequestHandler = async (req, res, next) => {
