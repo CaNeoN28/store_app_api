@@ -1,6 +1,14 @@
 declare namespace Express {
   export interface Request {
-    user_id?: number;
-    user_name?: string;
+    user?: {
+      id: number;
+      nome_usuario: string;
+      grupos: {
+        acessos: {
+          metodo: string;
+          tabela: string;
+        }[];
+      }[];
+    };
   }
 }

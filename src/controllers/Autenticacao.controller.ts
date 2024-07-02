@@ -79,12 +79,9 @@ export default class Controller_Autenticacao extends Controller {
   }
 
   visualizar_perfil: RequestHandler = async (req, res, next) => {
-    const { user_id, user_name } = req;
+    const user = req.user!;
 
-    res.send({
-      user_id,
-      user_name,
-    });
+    res.send(user);
   };
 
   protected validar_dados(data: Login, validar_obrigatorios?: boolean): void {
