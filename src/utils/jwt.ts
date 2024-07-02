@@ -1,14 +1,13 @@
 import { Usuario } from "../types";
 import * as dotenv from "dotenv";
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 
-function gerar_token_usuario({
-  nome_usuario,
-  id,
-}: {
+interface Payload_Usuario {
   nome_usuario: string;
   id: number;
-}) {
+}
+
+function gerar_token_usuario({ id, nome_usuario }: Payload_Usuario) {
   dotenv.config();
   const { SECRET, EXPIRES_IN } = process.env;
 
@@ -26,4 +25,17 @@ function gerar_token_usuario({
   return token;
 }
 
-export { gerar_token_usuario };
+function verificar_token_usuario(token: string) {
+  dotenv.config();
+  const { SECRET } = process.env;
+
+  try {
+    const data = verify(token, SECRET || "") as Payload_Usuario;
+
+    return data;
+  } catch (err) {
+    return undefined;
+  }
+}
+
+export { gerar_token_usuario, verificar_token_usuario };

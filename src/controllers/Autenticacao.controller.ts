@@ -46,7 +46,6 @@ export default class Controller_Autenticacao extends Controller {
       next(err);
     }
   };
-
   protected async login_handler({ nome_usuario, senha }: Login) {
     this.validar_dados({ nome_usuario, senha });
 
@@ -78,6 +77,15 @@ export default class Controller_Autenticacao extends Controller {
       mensagem: "Não foi possível realizar a autenticação",
     } as Erro;
   }
+
+  visualizar_perfil: RequestHandler = async (req, res, next) => {
+    const { user_id, user_name } = req;
+
+    res.send({
+      user_id,
+      user_name,
+    });
+  };
 
   protected validar_dados(data: Login, validar_obrigatorios?: boolean): void {
     const { nome_usuario, senha } = data;
