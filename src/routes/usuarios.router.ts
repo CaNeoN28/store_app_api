@@ -1,17 +1,22 @@
 import { Router } from "express";
 import Controller_Usuarios from "../controllers/Usuarios.controller";
+import authentication_middleware from "../middlewares/authentication.middleware";
 
 const router_usuarios = Router();
 const controller = new Controller_Usuarios();
 
-router_usuarios.route("/usuarios").get(controller.list);
-router_usuarios.route("/usuario").post(controller.create);
+router_usuarios
+  .route("/usuarios")
+  .get(authentication_middleware("USUARIO"), controller.list);
+router_usuarios
+  .route("/usuario")
+  .post(authentication_middleware("USUARIO"), controller.create);
 
 router_usuarios
   .route("/usuario/:id")
-  .get(controller.get_id)
-  .patch(controller.update_by_id)
-  .put(controller.update_by_id)
-  .delete(controller.remove_by_id);
+  .get(authentication_middleware("USUARIO"), controller.get_id)
+  .patch(authentication_middleware("USUARIO"), controller.update_by_id)
+  .put(authentication_middleware("USUARIO"), controller.update_by_id)
+  .delete(authentication_middleware("USUARIO"), controller.remove_by_id);
 
 export default router_usuarios;

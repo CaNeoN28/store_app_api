@@ -58,10 +58,10 @@ model Usuario {
   numero_telefone String?
   email           String? @unique
 
-  grupos               Grupo[]
-  alteracoes_item      Alteracao_Item[]
-  Alteracao_Fornecedor Alteracao_Fornecedor[]
-  Alteracao_Cliente    Alteracao_Cliente[]
+  grupos                Grupo[]
+  alteracoes_item       Alteracao_Item[]
+  alteracoes_fornecedor Alteracao_Fornecedor[]
+  alteracoes_cliente    Alteracao_Cliente[]
 }
 
 model Fornecedor {
@@ -69,7 +69,7 @@ model Fornecedor {
   cnpj String @unique
   nome String
 
-  Compra Compra[]
+  compras Compra[]
 }
 
 model Alteracao_Fornecedor {
@@ -81,10 +81,11 @@ model Alteracao_Fornecedor {
 }
 
 model Cliente {
-  id    Int     @id @default(autoincrement())
-  cnpj  String  @unique
-  nome  String
-  Venda Venda[]
+  id   Int    @id @default(autoincrement())
+  cnpj String @unique
+  nome String
+
+  vendas Venda[]
 }
 
 model Alteracao_Cliente {
@@ -99,7 +100,7 @@ model Unidade {
   id   Int    @id @default(autoincrement())
   nome String @unique
 
-  Item Item[]
+  itens Item[]
 }
 
 model Item {
@@ -141,7 +142,7 @@ model Compra {
   fornecedor_id Int
   fornecedor    Fornecedor @relation(fields: [fornecedor_id], references: [id])
 
-  Compra_Items Compra_Item[]
+  compra_item Compra_Item[]
 }
 
 model Compra_Item {
@@ -163,7 +164,7 @@ model Venda {
 
   cliente_id Int?
   cliente    Cliente?     @relation(fields: [cliente_id], references: [id])
-  Venda_Item Venda_Item[]
+  venda_item Venda_Item[]
 }
 
 model Venda_Item {
