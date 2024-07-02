@@ -35,7 +35,13 @@ export default class Controller_Autenticacao extends Controller {
     try {
       const resposta = await this.login_handler({ nome_usuario, senha });
 
-      res.status(200).send(resposta);
+      res
+        .status(200)
+        .cookie("acess-token", resposta.token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        })
+        .send(resposta.dados);
     } catch (err) {
       next(err);
     }

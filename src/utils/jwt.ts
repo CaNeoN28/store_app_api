@@ -10,7 +10,7 @@ function gerar_token_usuario({
   id: number;
 }) {
   dotenv.config();
-  const { SECRET } = process.env;
+  const { SECRET, EXPIRES_IN } = process.env;
 
   const token = sign(
     {
@@ -18,7 +18,9 @@ function gerar_token_usuario({
       id,
     },
     SECRET || "",
-    {}
+    {
+      expiresIn: EXPIRES_IN || "12h",
+    }
   );
 
   return token;

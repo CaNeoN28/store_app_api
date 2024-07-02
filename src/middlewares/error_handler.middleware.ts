@@ -1,7 +1,7 @@
 import { ErrorRequestHandler } from "express";
 import { Erro } from "../types/resposta";
 
-const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
+const error_handler: ErrorRequestHandler = async (err, req, res, next) => {
   try {
     const { codigo, erro, mensagem } = err as Erro;
 
@@ -15,4 +15,4 @@ const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
   }
 };
 
-export default errorHandler;
+export default error_handler;

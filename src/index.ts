@@ -1,12 +1,14 @@
 import express from "express";
 import config_router from "./routes";
-import errorHandler from "./middlewares/errorHandler.middleware";
+import error_handler from "./middlewares/error_handler.middleware";
+import cookie_parser from "cookie-parser"
 
 const app = express();
 
 app.use(express.json());
+app.use(cookie_parser())
 app.use(config_router());
-app.use(errorHandler);
+app.use(error_handler);
 
 app.listen(3000, () => {
   console.log(
