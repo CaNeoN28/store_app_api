@@ -26,19 +26,6 @@ export default class Controller_Itens extends Controller {
       },
     };
     this.selecionados.unidade_id = false;
-    this.selecionados.alteracoes = {
-      select: {
-        data: true,
-        desconto_anterior: true,
-        desconto_posterior: true,
-        valor_anterior: true,
-        valor_posterior: true,
-        validade_desconto: true,
-      },
-      orderBy: {
-        data: "desc",
-      },
-    };
   }
 
   get_id: RequestHandler = async (req, res, next) => {
@@ -120,6 +107,13 @@ export default class Controller_Itens extends Controller {
     limite: number,
     pagina: number
   ) => {
+    if (isNaN(pagina)) {
+      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    }
+    if (isNaN(limite)) {
+      limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    }
+    
     const query = Controller.definir_query(
       filtros,
       ordenacao,

@@ -65,6 +65,13 @@ export default class Controller_Grupos extends Controller {
     limite: number,
     pagina: number
   ) => {
+    if (isNaN(pagina)) {
+      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    }
+    if (isNaN(limite)) {
+      limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    }
+    
     const query = Controller.definir_query(
       filtros,
       ordenacao,
