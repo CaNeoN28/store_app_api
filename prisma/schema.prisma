@@ -59,8 +59,7 @@ model Usuario {
   email           String? @unique
 
   grupos               Grupo[]
-  Alteracao_Preco_Item Alteracao_Preco_Item[]
-  Alteracoes_Item      Alteracoes_Item[]
+  alteracoes_item      Alteracao_Item[]
   Alteracao_Fornecedor Alteracao_Fornecedor[]
   Alteracao_Cliente    Alteracao_Cliente[]
 }
@@ -114,18 +113,17 @@ model Item {
   unidade_id Int
   unidade    Unidade @relation(fields: [unidade_id], references: [id])
 
-  Alteracao_Preco_Item Alteracao_Preco_Item[]
-  Alteracoes_item      Alteracoes_Item[]
-  Compra_Items         Compra_Item[]
-  Venda_Item           Venda_Item[]
+  alteracoes Alteracao_Item[]
+  compras    Compra_Item[]
+  vendas     Venda_Item[]
 }
 
-model Alteracao_Preco_Item {
+model Alteracao_Item {
   id                 Int       @id @default(autoincrement())
   data               DateTime  @default(now())
-  valor_anterior     Decimal
+  valor_anterior     Decimal?
   valor_posterior    Decimal
-  desconto_anterior  Decimal
+  desconto_anterior  Decimal?
   desconto_posterior Decimal
   validade_desconto  DateTime?
 
@@ -133,16 +131,6 @@ model Alteracao_Preco_Item {
   usuario    Usuario @relation(fields: [usuario_id], references: [id])
   item_id    Int
   item       Item    @relation(fields: [item_id], references: [id])
-}
-
-model Alteracoes_Item {
-  id   Int      @id @default(autoincrement())
-  data DateTime @default(now())
-
-  item_id    Int
-  item       Item    @relation(fields: [item_id], references: [id])
-  usuario_id Int
-  usuario    Usuario @relation(fields: [usuario_id], references: [id])
 }
 
 model Compra {

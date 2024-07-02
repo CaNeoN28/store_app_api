@@ -30,11 +30,11 @@ export default abstract class Controller {
   ): Promise<any> => {};
 
   create: RequestHandler = async (req, res, next) => {};
-  protected insert_one = async (data: any): Promise<any> => {};
+  protected insert_one = async (data: any, id_usuario?: number): Promise<any> => {};
 
   update_by_id: RequestHandler = async (req, res, next) => {};
-  protected update_one = async (id: number, data: any): Promise<any> => {};
-  protected upsert_one = async (id: number, data: any): Promise<any> => {};
+  protected update_one = async (id: number, data: any, id_usuario?: number): Promise<any> => {};
+  protected upsert_one = async (id: number, data: any, id_usuario?: number): Promise<any> => {};
 
   remove_by_id: RequestHandler = async (req, res, next) => {};
   protected delete_one = async (id: number): Promise<any> => {};

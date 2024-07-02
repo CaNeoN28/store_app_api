@@ -7,7 +7,7 @@ const controller = new Controller_Itens();
 
 router_itens
   .route("/itens")
-  .get(authentication_middleware("ITEM"), controller.list);
+  .get(controller.list);
 
 router_itens
   .route("/item")
@@ -16,8 +16,8 @@ router_itens
 router_itens
   .route("/item/:id")
   .get(controller.get_id)
-  .put(controller.update_by_id)
-  .patch(controller.update_by_id)
-  .delete(controller.remove_by_id);
+  .put(authentication_middleware("ITEM"), controller.update_by_id)
+  .patch(authentication_middleware("ITEM"), controller.update_by_id)
+  .delete(authentication_middleware("ITEM"), controller.remove_by_id);
 
 export default router_itens;

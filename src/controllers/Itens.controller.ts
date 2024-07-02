@@ -26,6 +26,19 @@ export default class Controller_Itens extends Controller {
       },
     };
     this.selecionados.unidade_id = false;
+    this.selecionados.alteracoes = {
+      select: {
+        data: true,
+        desconto_anterior: true,
+        desconto_posterior: true,
+        valor_anterior: true,
+        valor_posterior: true,
+        validade_desconto: true,
+      },
+      orderBy: {
+        data: "desc",
+      },
+    };
   }
 
   get_id: RequestHandler = async (req, res, next) => {
@@ -134,6 +147,8 @@ export default class Controller_Itens extends Controller {
   };
 
   create: RequestHandler = async (req, res, next) => {
+    const usuario = req.user!;
+
     const { nome, unidade_id, desconto_porcentagem, valor_atual }: Item =
       req.body;
 
@@ -142,36 +157,57 @@ export default class Controller_Itens extends Controller {
       : undefined;
 
     try {
-      const item = await this.insert_one({
-        nome,
-        unidade_id,
-        desconto_porcentagem,
-        validade_desconto,
-        valor_atual,
-      });
+      const item = await this.insert_one(
+        {
+          nome,
+          unidade_id,
+          desconto_porcentagem,
+          validade_desconto,
+          valor_atual,
+        },
+        usuario.id
+      );
 
       res.status(201).send(item);
     } catch (err) {
       next(err);
     }
   };
-  protected insert_one = async (data: Item) => {
+  protected insert_one = async (data: Item, id_usuario?: number) => {
     this.validar_dados(data, true);
 
     const item = await this.tabela
       .create({
-        data,
+        data: {
+          ...data,
+          alteracoes: {
+            create: {
+              valor_posterior: data.valor_atual || 0,
+              desconto_posterior: 0,
+              usuario_id: id_usuario!,
+              data: new Date(),
+            },
+          },
+        },
         select: this.selecionados,
       })
       .then((res) => res)
       .catch((err) => {
-        throw err;
+        const { codigo, erro } = verificar_erro_prisma(err);
+
+        throw {
+          codigo,
+          erro,
+          mensagem: "Não foi possível salvar o item",
+        } as Erro;
       });
 
     return item;
   };
 
   update_by_id: RequestHandler = async (req, res, next) => {
+    const usuario = req.user!;
+
     const id = Number(req.params.id);
     const metodo = req.method as "PATCH" | "PUT";
     const { nome, unidade_id, desconto_porcentagem, valor_atual }: Item =
@@ -192,22 +228,45 @@ export default class Controller_Itens extends Controller {
     try {
       const resposta =
         metodo == "PATCH"
-          ? await this.update_one(id, data)
-          : metodo == "PUT" && (await this.upsert_one(id, data));
+          ? await this.update_one(id, data, usuario.id)
+          : metodo == "PUT" && (await this.upsert_one(id, data, usuario.id));
 
       res.status(200).send(resposta);
     } catch (err) {
       next(err);
     }
   };
-  protected update_one = async (id: number, data: any): Promise<any> => {
+  protected update_one = async (
+    id: number,
+    data: Item,
+    id_usuario?: number
+  ): Promise<any> => {
     Controller.validar_id(id);
     this.validar_dados(data);
+
+    const item_antigo = await this.tabela.findFirst({
+      where: { id },
+    });
 
     const item = await this.tabela
       .update({
         where: { id },
-        data,
+        data: {
+          ...data,
+          alteracoes: {
+            create: {
+              desconto_anterior: item_antigo?.desconto_porcentagem,
+              desconto_posterior: data.desconto_porcentagem || 0,
+              validade_desconto: data.validade_desconto,
+              valor_anterior: item_antigo?.valor_atual,
+              valor_posterior:
+                data.valor_atual || item_antigo?.valor_atual || 0,
+              data: new Date(),
+              usuario_id: id_usuario!,
+            },
+          },
+        },
+        select: this.selecionados,
       })
       .then((res) => res)
       .catch((err) => {
@@ -222,15 +281,47 @@ export default class Controller_Itens extends Controller {
 
     return item;
   };
-  protected upsert_one = async (id: number, data: any): Promise<any> => {
+  protected upsert_one = async (
+    id: number,
+    data: Item,
+    id_usuario?: number
+  ): Promise<any> => {
     Controller.validar_id(id);
     this.validar_dados(data, true);
+
+    const item_antigo = await this.tabela.findFirst({
+      where: { id },
+    });
 
     const item = await this.tabela
       .upsert({
         where: { id },
-        create: data,
-        update: data,
+        create: {
+          ...data,
+          alteracoes: {
+            create: {
+              valor_posterior: data.valor_atual || 0,
+              data: new Date(),
+              desconto_posterior: data.desconto_porcentagem || 0,
+              usuario_id: id_usuario!,
+            },
+          },
+        },
+        update: {
+          ...data,
+          alteracoes: {
+            create: {
+              desconto_anterior: item_antigo?.desconto_porcentagem,
+              desconto_posterior: data.desconto_porcentagem || 0,
+              validade_desconto: data.validade_desconto,
+              valor_anterior: item_antigo?.valor_atual,
+              valor_posterior:
+                data.valor_atual || item_antigo?.valor_atual || 0,
+              data: new Date(),
+              usuario_id: id_usuario!,
+            },
+          },
+        },
       })
       .then((res) => res)
       .catch((err) => {

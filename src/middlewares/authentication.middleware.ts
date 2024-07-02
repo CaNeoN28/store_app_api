@@ -14,7 +14,7 @@ export default function authentication_middleware(tabela?: Tabela) {
     const dados_usuario = verificar_token_usuario(token);
 
     if (dados_usuario) {
-      const metodo = req.method as Metodo
+      const metodo = req.method as Metodo;
       const { id } = dados_usuario;
 
       const usuario = await prisma.usuario.findFirst({
@@ -24,29 +24,42 @@ export default function authentication_middleware(tabela?: Tabela) {
           nome_usuario: true,
           grupos: {
             select: {
+              id: true,
               acessos: {
                 select: {
                   metodo: true,
                   tabela: true,
                 },
-                where: tabela ? {
-                  metodo,
-                  tabela
-                }: {}
+                where: tabela
+                  ? {
+                      metodo,
+                      tabela,
+                    }
+                  : {},
               },
             },
             where: {
-              acessos: tabela ? {some: {
-                metodo,
-                tabela
-              }} : {}
-            }
+              acessos: tabela
+                ? {
+                    some: {
+                      metodo,
+                      tabela,
+                    },
+                  }
+                : {},
+            },
           },
         },
       });
 
       if (usuario) {
         req.user = usuario;
+
+        if (tabela && usuario.grupos.length == 0) {
+          return res
+            .status(403)
+            .send("Você não tem permissão para usar esta rota");
+        }
 
         return next();
       }
