@@ -4,6 +4,8 @@ import Controller from "./Controller";
 import { RequestHandler } from "express";
 import validar_cnpj from "../utils/validacao/validar_cnpj";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 export default class Controller_Fornecedor extends Controller {
   protected selecionados: Prisma.FornecedorSelect;
@@ -37,6 +39,33 @@ export default class Controller_Fornecedor extends Controller {
       },
     };
   }
+
+  get_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      Controller.validar_id(id);
+
+      const fornecedor = await this.tabela
+        .findFirst({
+          where: { id },
+          select: this.selecionados,
+        })
+        .then((res) => res);
+
+      if (!fornecedor) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum fornecedor",
+          mensagem: "Não foi possível recuperar fornecedor",
+        } as Erro;
+      }
+
+      res.status(200).send(fornecedor);
+    } catch (err) {
+      next(err);
+    }
+  };
 
   list: RequestHandler = async (req, res, next) => {
     const { nome, cnpj, ordenar, limite, pagina } = req.query;
