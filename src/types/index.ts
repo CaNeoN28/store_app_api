@@ -41,7 +41,12 @@ interface Item {
   valor_atual?: number;
   desconto_porcentagem?: number;
   validade_desconto?: Date;
+  imagem_url?: string;
   unidade_id: number;
+  unidade?: {
+    nome: string;
+    id?: number;
+  };
 }
 
 interface Usuario {

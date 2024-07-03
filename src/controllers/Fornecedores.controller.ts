@@ -63,7 +63,6 @@ export default class Controller_Fornecedor extends Controller {
       next(err);
     }
   };
-
   list: RequestHandler = async (req, res, next) => {
     const { nome, cnpj, ordenar } = req.query;
     let limite = Number(req.query.limite);
@@ -122,7 +121,6 @@ export default class Controller_Fornecedor extends Controller {
       next(err);
     }
   };
-
   create: RequestHandler = async (req, res, next) => {
     const usuario = req.user!;
     const { cnpj, nome }: Fornecedor = req.body;

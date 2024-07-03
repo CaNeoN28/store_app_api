@@ -1,13 +1,13 @@
-import e, { RequestHandler } from "express";
+import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Prisma } from "@prisma/client";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { Item, Erro } from "../types";
+import { Item, Erro, Metodo } from "../types";
+import { validar_item } from "../utils/validacao";
 
 export default class Controller_Itens extends Controller {
   tabela: Prisma.ItemDelegate<DefaultArgs>;
-
   protected selecionados: Prisma.ItemSelect;
 
   constructor() {
@@ -29,42 +29,42 @@ export default class Controller_Itens extends Controller {
   }
 
   get_id: RequestHandler = async (req, res, next) => {
-    const { id } = req.params;
-    const number_id = Number(id);
+    const id = Number(req.params.id);
 
     try {
-      Controller.validar_id(number_id);
-      const item = await this.find_one({
-        id: number_id,
-      });
+      const item = await this.tabela
+        .findFirst({
+          where: {
+            id,
+          },
+          select: this.selecionados,
+        })
+        .then((res) => res)
+        .catch(() => {
+          throw {
+            codigo: 404,
+            erro: "O id informado não corresponde a nenhum item",
+            mensagem: "Não foi possível recuperar o item",
+          } as Erro;
+        });
 
       res.status(200).send(item);
     } catch (err) {
       next(err);
     }
   };
-  protected find_one = async (filtros: Prisma.ItemWhereInput) => {
-    const item = await this.tabela
-      .findFirst({
-        where: filtros,
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch(() => undefined);
+  list: RequestHandler = async (req, res, next) => {
+    const { nome, em_desconto, ordenar } = req.query;
+    let limite = Number(req.query.limite),
+      pagina = Number(req.query.pagina);
 
-    if (!item) {
-      throw {
-        codigo: 404,
-        erro: "O id informado não corresponde a nenhum item",
-        mensagem: "Não foi possível recuperar o item",
-      } as Erro;
+    if (isNaN(pagina)) {
+      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    }
+    if (isNaN(limite)) {
+      limite = Controller.LIMITE_EXIBICAO_PADRAO;
     }
 
-    return item;
-  };
-
-  list: RequestHandler = async (req, res, next) => {
-    const { nome, em_desconto, ordenar, limite, pagina } = req.query;
     const filtros: Prisma.ItemWhereInput = {};
 
     if (nome) {
@@ -88,32 +88,6 @@ export default class Controller_Itens extends Controller {
       ordenar
     ) as Prisma.ItemOrderByWithRelationInput;
 
-    try {
-      const resposta = await this.find_many(
-        filtros,
-        ordenacao,
-        Number(limite),
-        Number(pagina)
-      );
-
-      res.send(resposta);
-    } catch (err) {
-      next(err);
-    }
-  };
-  protected find_many = async (
-    filtros: Prisma.ItemWhereInput,
-    ordenacao: Prisma.ItemOrderByWithRelationInput,
-    limite: number,
-    pagina: number
-  ) => {
-    if (isNaN(pagina)) {
-      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-    }
-    if (isNaN(limite)) {
-      limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    }
-    
     const query = Controller.definir_query(
       filtros,
       ordenacao,
@@ -122,311 +96,249 @@ export default class Controller_Itens extends Controller {
       pagina
     );
 
-    const registros =
-      (await this.tabela.count({
-        where: filtros,
-      })) | 0;
-    const resultado = await this.tabela.findMany(query);
+    try {
+      const registros =
+        (await this.tabela.count({
+          where: filtros,
+        })) | 0;
 
-    const maximo_paginas =
-      registros > 0 ? 1 + Math.floor(registros / limite) : 0;
+      const itens = await this.tabela.findMany(query);
 
-    return {
-      resultado,
-      pagina,
-      maximo_paginas,
-      registros,
-      limite,
-    };
+      const maximo_paginas =
+        registros > 0 ? 1 + Math.floor(registros / limite) : 0;
+
+      res.status(200).send({
+        resultado: itens,
+        pagina,
+        maximo_paginas,
+        registros,
+        limite,
+      });
+    } catch (err) {
+      next(err);
+    }
   };
-
   create: RequestHandler = async (req, res, next) => {
     const usuario = req.user!;
 
-    const { nome, unidade_id, desconto_porcentagem, valor_atual }: Item =
-      req.body;
+    const {
+      nome,
+      unidade_id,
+      desconto_porcentagem,
+      valor_atual,
+      imagem_url,
+    }: Item = req.body;
 
     const validade_desconto: Date | undefined = req.body.validade_desconto
       ? new Date(req.body.validade_desconto)
       : undefined;
 
     try {
-      const item = await this.insert_one(
+      validar_item(
         {
           nome,
           unidade_id,
           desconto_porcentagem,
           validade_desconto,
           valor_atual,
+          imagem_url,
         },
-        usuario.id
+        true
       );
+
+      const item = await this.tabela
+        .create({
+          data: {
+            nome,
+            unidade_id,
+            desconto_porcentagem,
+            validade_desconto,
+            valor_atual,
+            alteracoes: {
+              create: {
+                valor_posterior: valor_atual || 0,
+                desconto_posterior: 0,
+                usuario_id: usuario.id,
+                data: new Date(),
+              },
+            },
+          },
+        })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível salvar o item",
+          } as Erro;
+        });
 
       res.status(201).send(item);
     } catch (err) {
       next(err);
     }
   };
-  protected insert_one = async (data: Item, id_usuario?: number) => {
-    this.validar_dados(data, true);
-
-    const item = await this.tabela
-      .create({
-        data: {
-          ...data,
-          alteracoes: {
-            create: {
-              valor_posterior: data.valor_atual || 0,
-              desconto_posterior: 0,
-              usuario_id: id_usuario!,
-              data: new Date(),
-            },
-          },
-        },
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          codigo,
-          erro,
-          mensagem: "Não foi possível salvar o item",
-        } as Erro;
-      });
-
-    return item;
-  };
-
   update_by_id: RequestHandler = async (req, res, next) => {
     const usuario = req.user!;
-
     const id = Number(req.params.id);
-    const metodo = req.method as "PATCH" | "PUT";
-    const { nome, unidade_id, desconto_porcentagem, valor_atual }: Item =
-      req.body;
+    const metodo = req.method as Metodo;
+
+    const {
+      nome,
+      unidade_id,
+      desconto_porcentagem,
+      valor_atual,
+      imagem_url,
+    }: Item = req.body;
 
     const validade_desconto: Date | undefined = req.body.validade_desconto
       ? new Date(req.body.validade_desconto)
       : undefined;
 
-    const data = {
-      nome,
-      unidade_id,
-      desconto_porcentagem,
-      validade_desconto,
-      valor_atual,
-    };
+    let item: any = undefined;
 
     try {
-      const resposta =
-        metodo == "PATCH"
-          ? await this.update_one(id, data, usuario.id)
-          : metodo == "PUT" && (await this.upsert_one(id, data, usuario.id));
+      const item_antigo = await this.tabela.findFirst({ where: { id } });
 
-      res.status(200).send(resposta);
+      if (metodo == "PATCH") {
+        validar_item({
+          nome,
+          unidade_id,
+          desconto_porcentagem,
+          id,
+          validade_desconto,
+          valor_atual,
+        });
+
+        item = await this.tabela
+          .update({
+            where: {
+              id,
+            },
+            data: {
+              nome,
+              desconto_porcentagem,
+              valor_atual,
+              unidade_id,
+              validade_desconto,
+              imagem_url,
+              alteracoes: {
+                create: {
+                  desconto_anterior: item_antigo?.desconto_porcentagem,
+                  desconto_posterior: desconto_porcentagem || 0,
+                  validade_desconto: validade_desconto,
+                  valor_anterior: item_antigo?.valor_atual,
+                  valor_posterior: valor_atual || item_antigo?.valor_atual || 0,
+                  data: new Date(),
+                  usuario_id: usuario.id,
+                },
+              },
+            },
+            select: this.selecionados,
+          })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              mensagem: "Não foi possível atualizar o item",
+              codigo,
+              erro,
+            } as Erro;
+          });
+      } else if (metodo == "PUT") {
+        validar_item(
+          {
+            nome,
+            unidade_id,
+            desconto_porcentagem,
+            id,
+            validade_desconto,
+            valor_atual,
+          },
+          true
+        );
+
+        item = await this.tabela
+          .upsert({
+            where: { id },
+            create: {
+              nome,
+              desconto_porcentagem,
+              imagem_url,
+              unidade_id,
+              validade_desconto,
+              valor_atual,
+              id,
+              alteracoes: {
+                create: {
+                  valor_posterior: valor_atual || 0,
+                  data: new Date(),
+                  desconto_posterior: desconto_porcentagem || 0,
+                  usuario_id: usuario.id,
+                },
+              },
+            },
+            update: {
+              desconto_porcentagem,
+              imagem_url,
+              nome,
+              unidade_id,
+              validade_desconto,
+              valor_atual,
+              alteracoes: {
+                create: {
+                  desconto_anterior: item_antigo?.desconto_porcentagem,
+                  desconto_posterior: desconto_porcentagem || 0,
+                  validade_desconto: validade_desconto,
+                  valor_anterior: item_antigo?.valor_atual,
+                  valor_posterior: valor_atual || item_antigo?.valor_atual || 0,
+                  data: new Date(),
+                  usuario_id: usuario.id,
+                },
+              },
+            },
+          })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              mensagem: "Não foi possível salvar o item",
+              codigo,
+              erro,
+            } as Erro;
+          });
+      }
+
+      res.status(200).send(item);
     } catch (err) {
       next(err);
     }
   };
-  protected update_one = async (
-    id: number,
-    data: Item,
-    id_usuario?: number
-  ): Promise<any> => {
-    Controller.validar_id(id);
-    this.validar_dados(data);
-
-    const item_antigo = await this.tabela.findFirst({
-      where: { id },
-    });
-
-    const item = await this.tabela
-      .update({
-        where: { id },
-        data: {
-          ...data,
-          alteracoes: {
-            create: {
-              desconto_anterior: item_antigo?.desconto_porcentagem,
-              desconto_posterior: data.desconto_porcentagem || 0,
-              validade_desconto: data.validade_desconto,
-              valor_anterior: item_antigo?.valor_atual,
-              valor_posterior:
-                data.valor_atual || item_antigo?.valor_atual || 0,
-              data: new Date(),
-              usuario_id: id_usuario!,
-            },
-          },
-        },
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          mensagem: "Não foi possível atualizar o item",
-          codigo,
-          erro,
-        } as Erro;
-      });
-
-    return item;
-  };
-  protected upsert_one = async (
-    id: number,
-    data: Item,
-    id_usuario?: number
-  ): Promise<any> => {
-    Controller.validar_id(id);
-    this.validar_dados(data, true);
-
-    const item_antigo = await this.tabela.findFirst({
-      where: { id },
-    });
-
-    const item = await this.tabela
-      .upsert({
-        where: { id },
-        create: {
-          ...data,
-          alteracoes: {
-            create: {
-              valor_posterior: data.valor_atual || 0,
-              data: new Date(),
-              desconto_posterior: data.desconto_porcentagem || 0,
-              usuario_id: id_usuario!,
-            },
-          },
-        },
-        update: {
-          ...data,
-          alteracoes: {
-            create: {
-              desconto_anterior: item_antigo?.desconto_porcentagem,
-              desconto_posterior: data.desconto_porcentagem || 0,
-              validade_desconto: data.validade_desconto,
-              valor_anterior: item_antigo?.valor_atual,
-              valor_posterior:
-                data.valor_atual || item_antigo?.valor_atual || 0,
-              data: new Date(),
-              usuario_id: id_usuario!,
-            },
-          },
-        },
-      })
-      .then((res) => res)
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          mensagem: "Não foi possível salvar o item",
-          codigo,
-          erro,
-        } as Erro;
-      });
-
-    return item;
-  };
-
   remove_by_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
 
     try {
-      await this.delete_one(id);
+      Controller.validar_id(id);
+      await this.tabela
+        .delete({
+          where: { id },
+        })
+        .then()
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
 
-      res.status(204).send();
+          throw {
+            mensagem: "Não foi possível remover o item",
+            codigo,
+            erro,
+          } as Erro;
+        });
     } catch (err) {
       next(err);
-    }
-  };
-  protected delete_one = async (id: number): Promise<any> => {
-    Controller.validar_id(id);
-    await this.tabela
-      .delete({
-        where: { id },
-      })
-      .then()
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          mensagem: "Não foi possível remover o item",
-          codigo,
-          erro,
-        } as Erro;
-      });
-  };
-
-  protected validar_dados = (
-    {
-      nome,
-      unidade_id,
-      desconto_porcentagem,
-      id,
-      validade_desconto,
-      valor_atual,
-    }: Item,
-    validar_obrigatorios?: boolean
-  ) => {
-    const erros: {
-      [k: string]: string;
-    } = {};
-
-    if (!nome) {
-      if (validar_obrigatorios) erros.nome = "O nome do item é obrigatório";
-    }
-
-    if (!unidade_id) {
-      if (validar_obrigatorios)
-        erros.unidade_id = "O id da unidade do item é obrigatório";
-    } else if (isNaN(unidade_id)) {
-      erros.unidade_id = "O id da unidade deve ser um número";
-    } else if (unidade_id < 0) {
-      erros.unidade_id = "O id da unidade deve ser positivo";
-    }
-
-    if (desconto_porcentagem) {
-      if (isNaN(desconto_porcentagem)) {
-        erros.desconto_porcentagem = "O desconto deve ser um número";
-      } else if (desconto_porcentagem < 0) {
-        erros.desconto_porcentagem = "O desconto deve ser positivo";
-      } else if (desconto_porcentagem > 100) {
-        erros.desconto_porcentagem = "O desconto não deve ser maior que 100%";
-      }
-    }
-
-    if (id) {
-      if (isNaN(id)) {
-        erros.id = "O id deve ser um número";
-      } else if (id < 0) {
-        erros.id = "O id deve ser positivo";
-      }
-    }
-
-    if (validade_desconto) {
-      if (isNaN(Number(validade_desconto))) {
-        erros.validade_desconto =
-          "A validade do desconto deve ser uma data válida";
-      }
-    }
-
-    if (valor_atual) {
-      if (isNaN(valor_atual)) {
-        erros.valor_atual = "O valor atual deve ser um número";
-      } else if (valor_atual < 0) {
-        erros.valor_atual = "O valor atual deve ser maior que zero";
-      }
-    }
-
-    if (Object.keys(erros).length > 0) {
-      throw {
-        codigo: 400,
-        erro: erros,
-        mensagem: "Erro de validação de item",
-      } as Erro;
     }
   };
 }
