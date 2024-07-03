@@ -7,16 +7,20 @@ const controller = new Controller_Grupos();
 
 router_grupos
   .route("/grupos")
-  .get(authentication_middleware("GRUPO"), controller.list);
+  .all(authentication_middleware("GRUPO"))
+  .get(controller.list);
 
 router_grupos
   .route("/grupo")
-  .post(authentication_middleware("GRUPO"), controller.create);
-  
+  .all(authentication_middleware("GRUPO"))
+  .post(controller.create);
+
 router_grupos
   .route("/grupo/:id")
-  .patch(authentication_middleware("GRUPO"), controller.update_by_id)
-  .put(authentication_middleware("GRUPO"), controller.update_by_id)
-  .delete(authentication_middleware("GRUPO"), controller.remove_by_id);
+  .all(authentication_middleware("GRUPO"))
+  .get(controller.get_id)
+  .patch(controller.update_by_id)
+  .put(controller.update_by_id)
+  .delete(controller.remove_by_id);
 
 export default router_grupos;

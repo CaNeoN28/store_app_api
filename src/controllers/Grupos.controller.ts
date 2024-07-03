@@ -5,6 +5,8 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Grupo, Erro, Metodo } from "../types";
 import { METODOS, TABELAS } from "../utils/globals";
 import { validar_grupo } from "../utils/validacao";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 export default class Controller_Grupos extends Controller {
   protected selecionados: Prisma.GrupoSelect;
@@ -34,6 +36,41 @@ export default class Controller_Grupos extends Controller {
     };
   }
 
+  get_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      Controller.validar_id(id);
+
+      const grupo = await this.tabela
+        .findFirst({
+          where: { id },
+          select: this.selecionados,
+        })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível recuperar o grupo",
+          } as Erro;
+        });
+
+      if (!grupo) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum grupo",
+          mensagem: "Não foi possível recuperar grupo",
+        } as Erro;
+      }
+
+      res.status(200).send(grupo);
+    } catch (err) {
+      next(err);
+    }
+  };
   list: RequestHandler = async (req, res, next) => {
     const { nome, ordenar } = req.query;
     let limite = Number(req.query.number),
