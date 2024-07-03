@@ -22,8 +22,31 @@ export default class Controller_Fornecedor extends Controller {
   }
 
   list: RequestHandler = async (req, res, next) => {
+    const { nome, cnpj, ordenar, limite, pagina } = req.query;
+    const filtros: Prisma.FornecedorWhereInput = {};
+
+    if (nome) {
+      filtros.nome = {
+        contains: String(nome),
+        mode: "insensitive",
+      };
+    }
+
+    if (cnpj) {
+      filtros.cnpj = String(cnpj);
+    }
+
+    const ordenacao = this.formatar_ordenacao(
+      ordenar
+    ) as Prisma.FornecedorOrderByWithRelationInput;
+
     try {
-      const resposta = await this.find_many({}, {}, 10, 1);
+      const resposta = await this.find_many(
+        filtros,
+        ordenacao,
+        Number(limite),
+        Number(pagina)
+      );
 
       res.status(200).send(resposta);
     } catch (err) {
@@ -36,6 +59,13 @@ export default class Controller_Fornecedor extends Controller {
     limite: number,
     pagina: number
   ) => {
+    if (isNaN(pagina)) {
+      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    }
+    if (isNaN(limite)) {
+      limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    }
+
     const query = Controller.definir_query(
       filtros,
       ordenacao,
@@ -44,9 +74,22 @@ export default class Controller_Fornecedor extends Controller {
       pagina
     );
 
+    const registros =
+      (await this.tabela.count({
+        where: filtros,
+      })) | 0;
     const fornecedores = await this.tabela.findMany(query);
 
-    return fornecedores;
+    const maximo_paginas =
+      registros > 0 ? 1 + Math.floor(registros / limite) : 0;
+
+    return {
+      resultado: fornecedores,
+      pagina,
+      maximo_paginas,
+      registros,
+      limite,
+    };
   };
 
   create: RequestHandler = async (req, res, next) => {
@@ -61,7 +104,6 @@ export default class Controller_Fornecedor extends Controller {
       next(err);
     }
   };
-
   protected insert_one = async (data: Fornecedor, id_usuario?: number) => {
     this.validar_dados(data, true);
 
