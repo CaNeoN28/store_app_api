@@ -140,48 +140,40 @@ export default class Controller_Fornecedor extends Controller {
     const { cnpj, nome }: Fornecedor = req.body;
 
     try {
-      const fornecedor = await this.insert_one({ cnpj, nome }, usuario.id);
+      const fornecedor = await this.tabela
+        .create({
+          data: {
+            cnpj: cnpj,
+            nome: nome,
+            alteracoes: {
+              create: {
+                data: new Date(),
+                usuario: {
+                  connect: {
+                    id: usuario.id,
+                  },
+                },
+              },
+            },
+          },
+          select: this.selecionados,
+        })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível cadastrar o fornecedor",
+          } as Erro;
+        });
 
       res.status(201).send(fornecedor);
     } catch (err) {
       next(err);
     }
   };
-  protected insert_one = async (data: Fornecedor, id_usuario?: number) => {
-    validar_fornecedor(data, true);
-
-    const fornecedor = await this.tabela
-      .create({
-        data: {
-          cnpj: data.cnpj,
-          nome: data.nome,
-          alteracoes: {
-            create: {
-              data: new Date(),
-              usuario: {
-                connect: {
-                  id: id_usuario,
-                },
-              },
-            },
-          },
-        },
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          codigo,
-          erro,
-          mensagem: "Não foi possível cadastrar o fornecedor",
-        } as Erro;
-      });
-
-    return fornecedor;
-  };
-
   update_by_id: RequestHandler = async (req, res, next) => {
     const usuario = req.user!;
     const id = Number(req.params.id);
