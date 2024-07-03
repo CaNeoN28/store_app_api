@@ -39,11 +39,6 @@ export default abstract class Controller {
   remove_by_id: RequestHandler = async (req, res, next) => {};
   protected delete_one = async (id: number): Promise<any> => {};
 
-  protected abstract validar_dados(
-    data: any,
-    validar_obrigatorios?: boolean
-  ): void;
-
   protected formatar_ordenacao(campo: any) {
     const formatado = String(campo).replace("-", "");
     const descendente = String(campo).startsWith("-");

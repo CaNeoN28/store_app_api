@@ -2,10 +2,8 @@ import { Prisma } from "@prisma/client";
 import { Erro, Fornecedor, Metodo } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
-import validar_cnpj from "../utils/validacao/validar_cnpj";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
+import { validar_fornecedor } from "../utils/validacao";
 
 export default class Controller_Fornecedor extends Controller {
   protected selecionados: Prisma.FornecedorSelect;
@@ -150,7 +148,7 @@ export default class Controller_Fornecedor extends Controller {
     }
   };
   protected insert_one = async (data: Fornecedor, id_usuario?: number) => {
-    this.validar_dados(data, true);
+    validar_fornecedor(data, true);
 
     const fornecedor = await this.tabela
       .create({
@@ -197,10 +195,10 @@ export default class Controller_Fornecedor extends Controller {
       let atualizacao_verdadeira = false;
 
       if (metodo == "PATCH") {
-        this.validar_dados({ cnpj, nome });
+        validar_fornecedor({ cnpj, nome });
         atualizacao_verdadeira = cnpj || nome ? true : false;
       } else if (metodo == "PUT") {
-        this.validar_dados({ cnpj, nome }, true);
+        validar_fornecedor({ cnpj, nome }, true);
         atualizacao_verdadeira = true;
       }
 
@@ -242,7 +240,6 @@ export default class Controller_Fornecedor extends Controller {
       next(err);
     }
   };
-
   remove_by_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
 
@@ -271,33 +268,4 @@ export default class Controller_Fornecedor extends Controller {
       next(err);
     }
   };
-
-  protected validar_dados(data: Fornecedor, validar_obrigatorios?: boolean) {
-    const { cnpj, nome } = data;
-    const erros: {
-      [k: string]: any;
-    } = {};
-
-    if (validar_obrigatorios) {
-      if (!cnpj) {
-        erros.cnpj = "CNPJ é obrigatório";
-      }
-
-      if (!nome) {
-        erros.nome = "Nome é obrigatório";
-      }
-    }
-
-    if (cnpj && !validar_cnpj(cnpj)) {
-      erros.cnpj = "CNPJ é inválido";
-    }
-
-    if (Object.keys(erros).length > 0) {
-      throw {
-        codigo: 400,
-        erro: erros,
-        mensagem: "Erro de validação de grupo",
-      } as Erro;
-    }
-  }
 }
