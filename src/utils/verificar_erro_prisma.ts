@@ -9,7 +9,7 @@ export default function verificar_erro_prisma(err: any) {
     codigo = 409;
   } else if (err.code == "P2003") {
     codigo = 400;
-    erro = "As chaves estrangeiras utilizadas não pertencem a nenhum registro";
+    erro = "Há um erro relacionado às chaves estrangeiras";
   } else if (err.code == "P2025") {
     codigo = 404;
     erro = "A busca não corresponde a nenhum dos registros";

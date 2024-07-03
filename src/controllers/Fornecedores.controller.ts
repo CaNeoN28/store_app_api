@@ -243,6 +243,35 @@ export default class Controller_Fornecedor extends Controller {
     }
   };
 
+  remove_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      Controller.validar_id(id);
+
+      await this.tabela
+        .delete({
+          where: {
+            id,
+          },
+        })
+        .then((_) => {
+          res.status(204).send();
+        })
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível remover fornecedor",
+          } as Erro;
+        });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   protected validar_dados(data: Fornecedor, validar_obrigatorios?: boolean) {
     const { cnpj, nome } = data;
     const erros: {
