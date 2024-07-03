@@ -19,25 +19,10 @@ export default abstract class Controller {
 
   //Métodos referentes às requests
   get_id: RequestHandler = async (req, res, next) => {};
-  protected find_one = async (filtros: any): Promise<any> => {};
-
   list: RequestHandler = async (req, res, next) => {};
-  protected find_many = async (
-    filtros: any,
-    ordenacao: any,
-    limite: number,
-    pagina: number
-  ): Promise<any> => {};
-
   create: RequestHandler = async (req, res, next) => {};
-  protected insert_one = async (data: any, id_usuario?: number): Promise<any> => {};
-
   update_by_id: RequestHandler = async (req, res, next) => {};
-  protected update_one = async (id: number, data: any, id_usuario?: number): Promise<any> => {};
-  protected upsert_one = async (id: number, data: any, id_usuario?: number): Promise<any> => {};
-
   remove_by_id: RequestHandler = async (req, res, next) => {};
-  protected delete_one = async (id: number): Promise<any> => {};
 
   protected formatar_ordenacao(campo: any) {
     const formatado = String(campo).replace("-", "");
