@@ -19,7 +19,7 @@ router_fornecedor
   .route("/fornecedor/:id")
   .all(authentication_middleware("FORNECEDOR"))
   .get(controller.get_id)
-  .patch(controller.get_id)
+  .patch(controller.update_by_id)
   .put(controller.update_by_id)
   .delete(controller.remove_by_id);
 

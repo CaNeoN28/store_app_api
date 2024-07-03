@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { Erro, Fornecedor } from "../types";
+import { Erro, Fornecedor, Metodo } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
 import validar_cnpj from "../utils/validacao/validar_cnpj";
@@ -24,7 +24,6 @@ export default class Controller_Fornecedor extends Controller {
     this.selecionados.alteracoes = {
       select: {
         data: true,
-        id: true,
         usuario: {
           select: {
             id: true,
@@ -183,6 +182,65 @@ export default class Controller_Fornecedor extends Controller {
       });
 
     return fornecedor;
+  };
+
+  update_by_id: RequestHandler = async (req, res, next) => {
+    const usuario = req.user!;
+    const id = Number(req.params.id);
+    const metodo = req.method as Metodo;
+
+    const { cnpj, nome }: Fornecedor = req.body;
+    let fornecedor: any = undefined;
+
+    try {
+      Controller.validar_id(id);
+      let atualizacao_verdadeira = false;
+
+      if (metodo == "PATCH") {
+        this.validar_dados({ cnpj, nome });
+        atualizacao_verdadeira = cnpj || nome ? true : false;
+      } else if (metodo == "PUT") {
+        this.validar_dados({ cnpj, nome }, true);
+        atualizacao_verdadeira = true;
+      }
+
+      fornecedor = await this.tabela
+        .update({
+          where: { id },
+          data: {
+            cnpj,
+            nome,
+            alteracoes: atualizacao_verdadeira
+              ? {
+                  create: {
+                    data: new Date(),
+                    usuario: {
+                      connect: {
+                        id: usuario.id,
+                      },
+                    },
+                  },
+                }
+              : {},
+          },
+          select: this.selecionados,
+        })
+        .then((res) => res)
+        .catch((err) => {
+          console.log(err);
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível atualizar o fornecedor",
+          } as Erro;
+        });
+
+      res.status(200).send(fornecedor);
+    } catch (err) {
+      next(err);
+    }
   };
 
   protected validar_dados(data: Fornecedor, validar_obrigatorios?: boolean) {
