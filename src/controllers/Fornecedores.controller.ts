@@ -19,6 +19,23 @@ export default class Controller_Fornecedor extends Controller {
     this.selecionados = {};
     this.selecionar_todos_os_campos();
     this.selecionados.compras = {};
+    this.selecionados.alteracoes = {
+      select: {
+        data: true,
+        id: true,
+        usuario: {
+          select: {
+            id: true,
+            nome_completo: true,
+            nome_usuario: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        data: "desc",
+      },
+    };
   }
 
   list: RequestHandler = async (req, res, next) => {
@@ -112,6 +129,16 @@ export default class Controller_Fornecedor extends Controller {
         data: {
           cnpj: data.cnpj,
           nome: data.nome,
+          alteracoes: {
+            create: {
+              data: new Date(),
+              usuario: {
+                connect: {
+                  id: id_usuario,
+                },
+              },
+            },
+          },
         },
         select: this.selecionados,
       })

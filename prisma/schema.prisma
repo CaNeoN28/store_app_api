@@ -69,15 +69,18 @@ model Fornecedor {
   cnpj String @unique
   nome String
 
-  compras Compra[]
+  compras    Compra[]
+  alteracoes Alteracao_Fornecedor[]
 }
 
 model Alteracao_Fornecedor {
   id   Int      @id @default(autoincrement())
   data DateTime @default(now())
 
-  usuario_id Int
-  usuario    Usuario @relation(fields: [usuario_id], references: [id])
+  usuario_id    Int
+  usuario       Usuario    @relation(fields: [usuario_id], references: [id])
+  fornecedor_id Int
+  fornecedor    Fornecedor @relation(fields: [fornecedor_id], references: [id])
 }
 
 model Cliente {
