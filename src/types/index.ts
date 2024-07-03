@@ -61,6 +61,14 @@ interface Login {
   senha: string;
 }
 
+interface Fornecedor {
+  id?: number;
+  cnpj: string;
+  nome: string;
+
+  compras?: [];
+}
+
 export {
   Erro,
   Resposta,
@@ -71,4 +79,5 @@ export {
   Item,
   Usuario,
   Login,
+  Fornecedor,
 };
