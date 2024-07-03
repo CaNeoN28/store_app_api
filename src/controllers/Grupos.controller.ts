@@ -4,6 +4,7 @@ import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Grupo, Erro } from "../types";
 import { METODOS, TABELAS } from "../utils/globals";
+import { validar_grupo } from "../utils/validacao";
 
 export default class Controller_Grupos extends Controller {
   protected selecionados: Prisma.GrupoSelect;
@@ -71,7 +72,7 @@ export default class Controller_Grupos extends Controller {
     if (isNaN(limite)) {
       limite = Controller.LIMITE_EXIBICAO_PADRAO;
     }
-    
+
     const query = Controller.definir_query(
       filtros,
       ordenacao,
@@ -109,7 +110,7 @@ export default class Controller_Grupos extends Controller {
   protected insert_one = async (data: Grupo) => {
     const { acessos, nome, usuarios } = data;
 
-    this.validar_dados({ nome, acessos, usuarios }, true);
+    validar_grupo({ nome, acessos, usuarios }, true);
 
     try {
       const grupo = await this.tabela
@@ -180,7 +181,7 @@ export default class Controller_Grupos extends Controller {
   };
   protected update_one = async (id: number, data: Grupo) => {
     Controller.validar_id(id);
-    this.validar_dados(data);
+    validar_grupo(data);
 
     const { acessos, nome, usuarios } = data;
 
@@ -235,7 +236,7 @@ export default class Controller_Grupos extends Controller {
   };
   protected upsert_one = async (id: number, data: Grupo) => {
     Controller.validar_id(id);
-    this.validar_dados(data, true);
+    validar_grupo(data, true);
 
     const { acessos, nome, usuarios } = data;
 
@@ -350,82 +351,6 @@ export default class Controller_Grupos extends Controller {
       } as Erro;
     }
   };
-
-  protected validar_dados(data: Grupo, validar_obrigatorios?: boolean) {
-    const erros: {
-      [k: string]: any;
-    } = {};
-
-    const { nome, acessos, usuarios, id } = data;
-
-    if (validar_obrigatorios && !nome) {
-      erros.nome = "Nome do grupo é obrigatório";
-    }
-
-    if (id && isNaN(id)) {
-      erros.id = "Id inválido";
-    }
-
-    if (acessos) {
-      if (!Array.isArray(acessos)) {
-        erros.acessos = "Acessos inválidos, deve ser uma lista";
-      } else {
-        const erros_acessos: {
-          [k: number]: {
-            tabela?: string;
-            metodo?: string;
-          };
-        } = {};
-
-        for (let i = 0; i < acessos.length; i++) {
-          const acesso = acessos[i];
-
-          if (!acesso.metodo) {
-            erros_acessos[i] = {};
-            erros_acessos[i].metodo = "Método é obrigatório";
-          } else if (!METODOS.find((m) => m == acesso.metodo)) {
-            erros_acessos[i] = {};
-            erros_acessos[i].metodo = "Método inválido";
-          }
-
-          if (!acesso.tabela) {
-            erros_acessos[i] = {};
-            erros_acessos[i].tabela = "Tabela é obrigatório";
-          } else if (!TABELAS.find((t) => t == acesso.tabela)) {
-            if (!erros_acessos[i]) erros_acessos[i] = {};
-            erros_acessos[i].tabela = "Tabela inválida";
-          }
-        }
-
-        if (Object.keys(erros_acessos).length > 0) {
-          erros.acessos = erros_acessos;
-        }
-      }
-    }
-
-    if (usuarios) {
-      if (!Array.isArray(usuarios)) {
-        erros.usuarios = "Usuários deve ser uma lista";
-      } else if (usuarios.length > 0) {
-        usuarios.map((u, i) => {
-          if (!u.id) {
-            if (!erros.usuario) {
-              erros.usuario = {};
-            }
-
-            erros.usuario[i] = "O id de um usuário é necessário";
-          }
-        });
-      }
-    }
-    if (Object.keys(erros).length > 0) {
-      throw {
-        codigo: 400,
-        mensagem: "Erro de validação de grupo",
-        erro: erros,
-      } as Erro;
-    }
-  }
 
   protected async remover_acessos_nao_utilizados() {
     const tabela_acessos = Controller.delegar_tabela(
