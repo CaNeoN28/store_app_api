@@ -65,7 +65,17 @@ export default class Controller_Fornecedor extends Controller {
   };
 
   list: RequestHandler = async (req, res, next) => {
-    const { nome, cnpj, ordenar, limite, pagina } = req.query;
+    const { nome, cnpj, ordenar } = req.query;
+    let limite = Number(req.query.limite);
+    let pagina = Number(req.query.pagina);
+
+    if (isNaN(pagina)) {
+      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    }
+    if (isNaN(limite)) {
+      limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    }
+
     const filtros: Prisma.FornecedorWhereInput = {};
 
     if (nome) {
@@ -83,32 +93,6 @@ export default class Controller_Fornecedor extends Controller {
       ordenar
     ) as Prisma.FornecedorOrderByWithRelationInput;
 
-    try {
-      const resposta = await this.find_many(
-        filtros,
-        ordenacao,
-        Number(limite),
-        Number(pagina)
-      );
-
-      res.status(200).send(resposta);
-    } catch (err) {
-      next(err);
-    }
-  };
-  protected find_many = async (
-    filtros: Prisma.FornecedorWhereInput,
-    ordenacao: Prisma.FornecedorOrderByWithRelationInput,
-    limite: number,
-    pagina: number
-  ) => {
-    if (isNaN(pagina)) {
-      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-    }
-    if (isNaN(limite)) {
-      limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    }
-
     const query = Controller.definir_query(
       filtros,
       ordenacao,
@@ -117,22 +101,26 @@ export default class Controller_Fornecedor extends Controller {
       pagina
     );
 
-    const registros =
-      (await this.tabela.count({
-        where: filtros,
-      })) | 0;
-    const fornecedores = await this.tabela.findMany(query);
+    try {
+      const registros =
+        (await this.tabela.count({
+          where: filtros,
+        })) | 0;
+      const fornecedores = await this.tabela.findMany(query);
 
-    const maximo_paginas =
-      registros > 0 ? 1 + Math.floor(registros / limite) : 0;
+      const maximo_paginas =
+        registros > 0 ? 1 + Math.floor(registros / limite) : 0;
 
-    return {
-      resultado: fornecedores,
-      pagina,
-      maximo_paginas,
-      registros,
-      limite,
-    };
+      res.status(200).send({
+        resultado: fornecedores,
+        pagina,
+        maximo_paginas,
+        registros,
+        limite,
+      });
+    } catch (err) {
+      next(err);
+    }
   };
 
   create: RequestHandler = async (req, res, next) => {
