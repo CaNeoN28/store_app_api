@@ -25,7 +25,7 @@ function validar_fornecedor(data: Fornecedor, validar_obrigatorios?: boolean) {
     throw {
       codigo: 400,
       erro: erros,
-      mensagem: "Erro de validação de grupo",
+      mensagem: "Erro de validação de fornecedor",
     } as Erro;
   }
 }

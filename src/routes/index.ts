@@ -18,11 +18,11 @@ function config_router() {
 
   router.use(
     router_autenticacao,
+    router_clientes,
     router_fornecedor,
     router_grupos,
     router_itens,
     router_usuarios
-    // router_clientes,
     // router_compras,
     // router_itens,
     // router_unidades,

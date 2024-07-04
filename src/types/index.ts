@@ -23,6 +23,12 @@ type Tabela_Prisma =
 
 type Metodo = "GET" | "PUT" | "PATCH" | "DELETE" | "POST";
 
+interface Cliente {
+  id?: number;
+  cnpj: string;
+  nome: string;
+}
+
 interface Grupo {
   id?: number;
   nome: string;
@@ -80,9 +86,10 @@ export {
   Tabela,
   Tabela_Prisma,
   Metodo,
+  Cliente,
+  Fornecedor,
   Grupo,
   Item,
   Usuario,
   Login,
-  Fornecedor,
 };
