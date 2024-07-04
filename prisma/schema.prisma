@@ -60,8 +60,6 @@ model Usuario {
 
   grupos                Grupo[]
   alteracoes_item       Alteracao_Item[]
-  alteracoes_fornecedor Alteracao_Fornecedor[]
-  alteracoes_cliente    Alteracao_Cliente[]
 }
 
 model Fornecedor {
@@ -70,17 +68,6 @@ model Fornecedor {
   nome String
 
   compras    Compra[]
-  alteracoes Alteracao_Fornecedor[]
-}
-
-model Alteracao_Fornecedor {
-  id   Int      @id @default(autoincrement())
-  data DateTime @default(now())
-
-  usuario_id    Int
-  usuario       Usuario    @relation(fields: [usuario_id], references: [id])
-  fornecedor_id Int
-  fornecedor    Fornecedor @relation(fields: [fornecedor_id], references: [id])
 }
 
 model Cliente {
@@ -89,14 +76,6 @@ model Cliente {
   nome String
 
   vendas Venda[]
-}
-
-model Alteracao_Cliente {
-  id   Int      @id @default(autoincrement())
-  data DateTime @default(now())
-
-  usuario_id Int
-  usuario    Usuario @relation(fields: [usuario_id], references: [id])
 }
 
 model Unidade {
