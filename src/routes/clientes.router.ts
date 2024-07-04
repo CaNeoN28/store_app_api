@@ -19,6 +19,7 @@ router_clientes
   .route("/cliente/:id")
   .all(authentication_middleware("CLIENTE"))
   .get(controller.get_id)
-  .patch(controller.update_by_id);
+  .patch(controller.update_by_id)
+  .put(controller.update_by_id);
 
 export default router_clientes;

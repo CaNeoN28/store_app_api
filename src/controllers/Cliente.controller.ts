@@ -8,8 +8,6 @@ import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { validar_id } from "../utils/validacao";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 
 export default class Controller_Cliente extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -157,6 +155,39 @@ export default class Controller_Cliente extends Controller {
               codigo,
               erro,
               mensagem: "Não foi possível atualizar o cliente",
+            } as Erro;
+          });
+      } else if (metodo == "PUT") {
+        validar_cliente(
+          {
+            cnpj,
+            nome,
+          },
+          true
+        );
+
+        cliente_novo = await Tabela_Cliente.upsert({
+          where: { id },
+          create: {
+            cnpj,
+            nome,
+            id,
+          },
+          update: {
+            cnpj,
+            nome,
+          },
+          select: this.selecionar_campos(),
+        })
+          .then((res) => res)
+          .catch((err) => {
+            console.log(err);
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível salvar o cliente",
             } as Erro;
           });
       }
