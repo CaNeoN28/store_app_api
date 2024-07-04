@@ -340,4 +340,30 @@ export default class Controller_Usuarios extends Controller {
       next(err);
     }
   };
+  remove_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      await this.tabela
+        .delete({
+          where: { id },
+        })
+        .then()
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível remover o usuário",
+          } as Erro;
+        });
+
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  };
 }
