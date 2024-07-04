@@ -53,16 +53,6 @@ export default abstract class Controller {
     return prisma[tabela];
   }
 
-  static validar_id(id: number) {
-    if (isNaN(id)) {
-      throw {
-        codigo: 400,
-        erro: "O id informado é inválido",
-        mensagem: "Não foi possível recuperar o item",
-      };
-    }
-  }
-
   static definir_query(filtros: any, ordenacao: any, selecionados: any, limite: number, pagina: number){
     if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
     if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;

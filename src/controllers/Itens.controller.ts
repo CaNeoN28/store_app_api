@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { Item, Erro, Metodo } from "../types";
-import { validar_item } from "../utils/validacao";
+import { validar_id, validar_item } from "../utils/validacao";
 
 export default class Controller_Itens extends Controller {
   tabela: Prisma.ItemDelegate<DefaultArgs>;
@@ -32,6 +32,7 @@ export default class Controller_Itens extends Controller {
     const id = Number(req.params.id);
 
     try {
+      validar_id;
       const item = await this.tabela
         .findFirst({
           where: {
@@ -200,6 +201,7 @@ export default class Controller_Itens extends Controller {
     let item: any = undefined;
 
     try {
+      validar_id(id);
       const item_antigo = await this.tabela.findFirst({ where: { id } });
 
       if (metodo == "PATCH") {
@@ -322,7 +324,7 @@ export default class Controller_Itens extends Controller {
     const id = Number(req.params.id);
 
     try {
-      Controller.validar_id(id);
+      validar_id(id);
       await this.tabela
         .delete({
           where: { id },

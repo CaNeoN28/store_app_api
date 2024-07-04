@@ -4,7 +4,7 @@ import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Grupo, Erro, Metodo } from "../types";
 import { METODOS, TABELAS } from "../utils/globals";
-import { validar_grupo } from "../utils/validacao";
+import { validar_grupo, validar_id } from "../utils/validacao";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 
@@ -40,7 +40,7 @@ export default class Controller_Grupos extends Controller {
     const id = Number(req.params.id);
 
     try {
-      Controller.validar_id(id);
+      validar_id(id);
 
       const grupo = await this.tabela
         .findFirst({
@@ -180,6 +180,7 @@ export default class Controller_Grupos extends Controller {
     const metodo = req.method as Metodo;
 
     try {
+      validar_id(id);
       let grupo: any = undefined;
 
       if (metodo == "PATCH") {
@@ -311,6 +312,7 @@ export default class Controller_Grupos extends Controller {
     const id = Number(req.params.id);
 
     try {
+      validar_id(id);
       await this.tabela
         .delete({
           where: {

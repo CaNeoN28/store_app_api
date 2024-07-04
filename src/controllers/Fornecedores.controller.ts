@@ -3,7 +3,7 @@ import { Erro, Fornecedor, Metodo } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
-import { validar_fornecedor } from "../utils/validacao";
+import { validar_fornecedor, validar_id } from "../utils/validacao";
 
 export default class Controller_Fornecedor extends Controller {
   protected selecionados: Prisma.FornecedorSelect;
@@ -41,7 +41,7 @@ export default class Controller_Fornecedor extends Controller {
     const id = Number(req.params.id);
 
     try {
-      Controller.validar_id(id);
+      validar_id(id);
 
       const fornecedor = await this.tabela
         .findFirst({
@@ -169,7 +169,7 @@ export default class Controller_Fornecedor extends Controller {
     let fornecedor: any = undefined;
 
     try {
-      Controller.validar_id(id);
+      validar_id(id);
       let atualizacao_verdadeira = false;
 
       if (metodo == "PATCH") {
@@ -222,7 +222,7 @@ export default class Controller_Fornecedor extends Controller {
     const id = Number(req.params.id);
 
     try {
-      Controller.validar_id(id);
+      validar_id(id);
 
       await this.tabela
         .delete({

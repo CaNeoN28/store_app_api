@@ -5,6 +5,7 @@ import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { REGEX_EMAIL, REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
 import { criptografar_senha } from "../utils/senhas";
+import { validar_id } from "../utils/validacao";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -222,7 +223,7 @@ export default class Controller_Usuarios extends Controller {
     }
   };
   protected update_one = async (id: number, data: Usuario) => {
-    Controller.validar_id(id);
+    validar_id(id);
     this.validar_dados(data);
 
     let { grupos, senha } = data;
@@ -261,7 +262,7 @@ export default class Controller_Usuarios extends Controller {
     return usuario_novo;
   };
   protected upsert_one = async (id: number, data: Usuario) => {
-    Controller.validar_id(id);
+    validar_id(id);
     this.validar_dados(data, true);
 
     let { grupos, senha } = data;
