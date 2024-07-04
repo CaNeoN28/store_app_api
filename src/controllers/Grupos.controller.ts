@@ -40,7 +40,7 @@ export default class Controller_Grupos extends Controller {
 
       const grupo = await Tabela_Grupo.findFirst({
         where: { id },
-        select: this.selecionar_campos(true),
+        select: this.selecionar_campos(true, limite_usuarios, pagina_usuarios),
       })
         .then((res) => res)
         .catch((err) => {
@@ -338,7 +338,11 @@ export default class Controller_Grupos extends Controller {
     }
   };
 
-  protected selecionar_campos(exibir_usuarios?: boolean) {
+  protected selecionar_campos(
+    exibir_usuarios?: boolean,
+    limite_usuarios = 10,
+    pagina_usuarios = 1
+  ) {
     const selecionados: Prisma.GrupoSelect = {
       id: true,
       nome: true,
@@ -358,6 +362,8 @@ export default class Controller_Grupos extends Controller {
               numero_telefone: true,
               foto_url: true,
             },
+            skip: (pagina_usuarios - 1) * limite_usuarios,
+            take: limite_usuarios,
           }
         : false,
     };
