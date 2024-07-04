@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Metodo, Prisma } from "@prisma/client";
 import { Erro, Usuario } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
@@ -37,15 +37,19 @@ export default class Controller_Usuarios extends Controller {
   }
 
   list: RequestHandler = async (req, res, next) => {
-    const {
-      nome_completo,
-      nome_usuario,
-      email,
-      nome_grupo,
-      ordenar,
-      limite,
-      pagina,
-    } = req.query;
+    const { nome_completo, nome_usuario, email, nome_grupo, ordenar } =
+      req.query;
+
+    let limite = Number(req.params.limite),
+      pagina = Number(req.params.pagina);
+
+    if (isNaN(limite)) {
+      limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    }
+    if (isNaN(pagina)) {
+      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    }
+
     const filtros: Prisma.UsuarioWhereInput = {};
 
     if (nome_completo) {
@@ -85,49 +89,33 @@ export default class Controller_Usuarios extends Controller {
     ) as Prisma.UsuarioOrderByWithRelationInput;
 
     try {
-      const resposta = await this.find_many(
+      const query = Controller.definir_query(
         filtros,
         ordenacao,
-        Number(limite),
-        Number(pagina)
+        this.selecionados,
+        limite,
+        pagina
       );
 
-      res.status(200).send(resposta);
+      const registros = (await this.tabela.count({ where: filtros })) | 0;
+      const usuarios = await this.tabela.findMany(query);
+
+      const maximo_paginas =
+        registros > 0 ? 1 + Math.floor(registros / limite) : 0;
+
+      res.status(200).send({
+        resultado: usuarios,
+        pagina,
+        maximo_paginas,
+        registros,
+        limite,
+      });
     } catch (err) {
       next(err);
     }
   };
-  protected find_many = async (
-    filtros: Prisma.UsuarioWhereInput,
-    ordenacao: Prisma.UsuarioOrderByWithRelationInput,
-    limite: number,
-    pagina: number
-  ) => {
-    const query = Controller.definir_query(
-      filtros,
-      ordenacao,
-      this.selecionados,
-      limite,
-      pagina
-    );
-
-    const registros = (await this.tabela.count({ where: filtros })) | 0;
-    const resultado = await this.tabela.findMany(query);
-
-    const maximo_paginas =
-      registros > 0 ? 1 + Math.floor(registros / limite) : 0;
-
-    return {
-      resultado,
-      pagina,
-      maximo_paginas,
-      registros,
-      limite,
-    };
-  };
-
   create: RequestHandler = async (req, res, next) => {
-    const {
+    let {
       email,
       foto_url,
       grupos,
@@ -138,59 +126,59 @@ export default class Controller_Usuarios extends Controller {
     }: Usuario = req.body;
 
     try {
-      const usuario = await this.insert_one({
-        email,
-        foto_url,
-        grupos,
-        nome_completo,
-        nome_usuario,
-        numero_telefone,
-        senha,
-      });
+      this.validar_dados(
+        {
+          email,
+          foto_url,
+          grupos,
+          nome_completo,
+          nome_usuario,
+          numero_telefone,
+          senha,
+        },
+        true
+      );
 
-      res.status(201).send(usuario);
+      senha = await criptografar_senha(senha);
+
+      const usuario = await this.tabela
+        .create({
+          data: {
+            nome_completo,
+            nome_usuario,
+            email,
+            foto_url,
+            numero_telefone,
+            senha,
+            grupos: {
+              connect:
+                grupos &&
+                grupos.map((g) => ({
+                  id: g.id,
+                })),
+            },
+          },
+          select: this.selecionados,
+        })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível criar usuário",
+          } as Erro;
+        });
+
+      res.status(200).send(usuario);
     } catch (err) {
       next(err);
     }
   };
-  protected insert_one = async (data: Usuario) => {
-    this.validar_dados(data, true);
-
-    let { grupos, senha } = data;
-    senha = await criptografar_senha(senha);
-
-    const usuario = await this.tabela
-      .create({
-        data: {
-          ...data,
-          senha,
-          grupos: {
-            connect:
-              grupos &&
-              grupos.map((g) => ({
-                id: g.id,
-              })),
-          },
-        },
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          codigo,
-          erro,
-          mensagem: "Não foi possível criar usuário",
-        } as Erro;
-      });
-
-    return usuario;
-  };
-
   update_by_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
-    const {
+    let {
       email,
       foto_url,
       nome_completo,
@@ -199,7 +187,7 @@ export default class Controller_Usuarios extends Controller {
       senha,
       grupos,
     }: Usuario = req.body;
-    const metodo = (req.method as "PATCH") || "PUT";
+    const metodo = req.method as Metodo;
 
     const data = {
       email,
@@ -212,104 +200,109 @@ export default class Controller_Usuarios extends Controller {
     };
 
     try {
-      const resposta =
-        metodo == "PATCH"
-          ? await this.update_one(id, data)
-          : metodo == "PUT" && (await this.upsert_one(id, data));
+      const usuario_antigo = await this.tabela.findFirst({
+        where: {
+          id
+        }
+      })
+      let usuario_novo: any = undefined;
+      validar_id(id);
 
-      res.status(200).send(resposta);
+      if (metodo == "PATCH") {
+        this.validar_dados(data);
+
+        if (senha) senha = await criptografar_senha(senha);
+
+        usuario_novo = await this.tabela
+          .update({
+            where: {
+              id,
+            },
+            data: {
+              email,
+              foto_url,
+              nome_completo,
+              nome_usuario,
+              numero_telefone,
+              grupos: {
+                set: [],
+                connect:
+                  grupos &&
+                  grupos.map((g) => ({
+                    id: g.id,
+                  })),
+              },
+              senha,
+            },
+            select: this.selecionados,
+          })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível atualizar o usuário",
+            } as Erro;
+          });
+      } else if (metodo == "PUT") {
+        this.validar_dados(data, true);
+
+        usuario_novo = await this.tabela
+          .upsert({
+            where: {
+              id,
+            },
+            create: {
+              id,
+              nome_completo,
+              nome_usuario,
+              email,
+              foto_url,
+              numero_telefone,
+              senha,
+              grupos: {
+                connect:
+                  grupos &&
+                  grupos.map((g) => ({
+                    id: g.id,
+                  })),
+              },
+            },
+            update: {
+              email,
+              foto_url,
+              nome_completo,
+              nome_usuario,
+              numero_telefone,
+              senha,
+              grupos: {
+                connect:
+                  grupos &&
+                  grupos.map((g) => ({
+                    id: g.id,
+                  })),
+              },
+            },
+            select: this.selecionados,
+          })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível salvar usuário",
+            } as Erro;
+          });
+      }
+
+      res.status(usuario_antigo ? 200 : 201).send(usuario_novo)
     } catch (err) {
       next(err);
     }
-  };
-  protected update_one = async (id: number, data: Usuario) => {
-    validar_id(id);
-    this.validar_dados(data);
-
-    let { grupos, senha } = data;
-    if (senha) senha = await criptografar_senha(senha);
-
-    const usuario_novo = await this.tabela
-      .update({
-        where: {
-          id,
-        },
-        data: {
-          ...data,
-          grupos: {
-            set: [],
-            connect:
-              grupos &&
-              grupos.map((g) => ({
-                id: g.id,
-              })),
-          },
-          senha,
-        },
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          codigo,
-          erro,
-          mensagem: "Não foi possível atualizar o usuário",
-        } as Erro;
-      });
-
-    return usuario_novo;
-  };
-  protected upsert_one = async (id: number, data: Usuario) => {
-    validar_id(id);
-    this.validar_dados(data, true);
-
-    let { grupos, senha } = data;
-    senha = await criptografar_senha(senha);
-
-    const usuario_novo = await this.tabela
-      .upsert({
-        where: {
-          id,
-        },
-        create: {
-          id,
-          ...data,
-          senha,
-          grupos: {
-            connect:
-              grupos &&
-              grupos.map((g) => ({
-                id: g.id,
-              })),
-          },
-        },
-        update: {
-          ...data,
-          senha,
-          grupos: {
-            connect:
-              grupos &&
-              grupos.map((g) => ({
-                id: g.id,
-              })),
-          },
-        },
-        select: this.selecionados,
-      })
-      .then((res) => res)
-      .catch((err) => {
-        const { codigo, erro } = verificar_erro_prisma(err);
-
-        throw {
-          codigo,
-          erro,
-          mensagem: "Não foi possível salvar usuário",
-        } as Erro;
-      });
-
-    return usuario_novo;
   };
 
   protected validar_dados(

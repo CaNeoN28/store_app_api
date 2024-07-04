@@ -24,7 +24,6 @@ export default class Controller_Autenticacao extends Controller {
         id: true,
         nome: true,
         acessos: true,
-        usuarios: true,
       },
     };
   }
