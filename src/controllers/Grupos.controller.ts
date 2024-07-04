@@ -8,12 +8,6 @@ import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Grupo } from "../db/tabelas";
 
 export default class Controller_Grupos extends Controller {
-  tabela: Prisma.GrupoDelegate;
-  constructor() {
-    super("grupo");
-
-    this.tabela = Controller.delegar_tabela("grupo") as Prisma.GrupoDelegate;
-  }
 
   get_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
@@ -21,7 +15,7 @@ export default class Controller_Grupos extends Controller {
     try {
       validar_id(id);
 
-      const grupo = await this.tabela
+      const grupo = await Tabela_Grupo
         .findFirst({
           where: { id },
           select: this.selecionar_campos(),
@@ -80,8 +74,8 @@ export default class Controller_Grupos extends Controller {
     );
 
     try {
-      const registros = await this.tabela.count({ where: filtros });
-      const grupos = await this.tabela
+      const registros = await Tabela_Grupo.count({ where: filtros });
+      const grupos = await Tabela_Grupo
         .findMany(query)
         .then((res) => res)
         .catch((err) => {
@@ -108,7 +102,7 @@ export default class Controller_Grupos extends Controller {
     try {
       validar_grupo({ acessos, nome, usuarios }, true);
 
-      const grupo = await this.tabela
+      const grupo = await Tabela_Grupo
         .create({
           data: {
             nome,
@@ -161,14 +155,14 @@ export default class Controller_Grupos extends Controller {
     const metodo = req.method as Metodo;
 
     try {
-      let grupo_antigo = await this.tabela.findFirst({
+      let grupo_antigo = await Tabela_Grupo.findFirst({
         where: { id },
       });
       validar_id(id);
       let grupo_novo: any = undefined;
 
       if (metodo == "PATCH") {
-        grupo_novo = await this.tabela
+        grupo_novo = await Tabela_Grupo
           .update({
             where: { id },
             data: {
@@ -211,7 +205,7 @@ export default class Controller_Grupos extends Controller {
             } as Erro;
           });
       } else if (metodo == "PUT") {
-        grupo_novo = await this.tabela
+        grupo_novo = await Tabela_Grupo
           .upsert({
             where: { id },
             create: {
@@ -297,7 +291,7 @@ export default class Controller_Grupos extends Controller {
 
     try {
       validar_id(id);
-      await this.tabela
+      await Tabela_Grupo
         .delete({
           where: {
             id,

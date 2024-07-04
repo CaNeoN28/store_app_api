@@ -9,22 +9,12 @@ import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Item } from "../db/tabelas";
 
 export default class Controller_Itens extends Controller {
-  tabela: Prisma.ItemDelegate<DefaultArgs>;
-
-  constructor() {
-    super("item");
-
-    this.tabela = Controller.delegar_tabela(
-      "item"
-    ) as Prisma.ItemDelegate<DefaultArgs>;
-  }
-
   get_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
 
     try {
       validar_id;
-      const item = await this.tabela
+      const item = await Tabela_Item
         .findFirst({
           where: {
             id,
@@ -86,11 +76,11 @@ export default class Controller_Itens extends Controller {
 
     try {
       const registros =
-        (await this.tabela.count({
+        (await Tabela_Item.count({
           where: filtros,
         })) | 0;
 
-      const itens = await this.tabela.findMany(query);
+      const itens = await Tabela_Item.findMany(query);
 
       const maximo_paginas =
         registros > 0 ? 1 + Math.floor(registros / limite) : 0;
@@ -134,7 +124,7 @@ export default class Controller_Itens extends Controller {
         true
       );
 
-      const item = await this.tabela
+      const item = await Tabela_Item
         .create({
           data: {
             nome,
@@ -189,7 +179,7 @@ export default class Controller_Itens extends Controller {
 
     try {
       validar_id(id);
-      const item_antigo = await this.tabela.findFirst({ where: { id } });
+      const item_antigo = await Tabela_Item.findFirst({ where: { id } });
 
       if (metodo == "PATCH") {
         validar_item({
@@ -201,7 +191,7 @@ export default class Controller_Itens extends Controller {
           valor_atual,
         });
 
-        item_novo = await this.tabela
+        item_novo = await Tabela_Item
           .update({
             where: {
               id,
@@ -250,7 +240,7 @@ export default class Controller_Itens extends Controller {
           true
         );
 
-        item_novo = await this.tabela
+        item_novo = await Tabela_Item
           .upsert({
             where: { id },
             create: {
@@ -312,7 +302,7 @@ export default class Controller_Itens extends Controller {
 
     try {
       validar_id(id);
-      await this.tabela
+      await Tabela_Item
         .delete({
           where: { id },
         })

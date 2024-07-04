@@ -2,19 +2,12 @@ import { RequestHandler } from "express";
 import prisma from "../db/prisma";
 import { Tabela_Prisma } from "../types";
 
-export default abstract class Controller {
-  static ORDENACAO_PADRAO = { id: "asc" };
+export default class Controller {
   static PAGINA_EXIBICAO_PADRAO = 1;
   static LIMITE_EXIBICAO_PADRAO = 10;
 
-  tabela: any;
 
   protected ordenacao: any;
-
-  constructor(tabela: Tabela_Prisma) {
-    this.ordenacao = Controller.ORDENACAO_PADRAO;
-    this.tabela = prisma[tabela];
-  }
 
   //Métodos referentes às requests
   get_id: RequestHandler = async (req, res, next) => {};

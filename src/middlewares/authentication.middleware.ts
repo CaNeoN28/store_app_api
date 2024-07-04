@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { verificar_token_usuario } from "../utils/jwt";
 import { Metodo, Tabela } from "../types";
-import prisma from "../db/prisma";
+import { Tabela_Usuario } from "../db/tabelas";
 
 export default function authentication_middleware(tabela?: Tabela) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -17,7 +17,7 @@ export default function authentication_middleware(tabela?: Tabela) {
       const metodo = req.method as Metodo;
       const { id } = dados_usuario;
 
-      const usuario = await prisma.usuario.findFirst({
+      const usuario = await Tabela_Usuario.findFirst({
         where: { id },
         select: {
           id: true,

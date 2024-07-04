@@ -8,23 +8,13 @@ import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Fornecedor } from "../db/tabelas";
 
 export default class Controller_Fornecedor extends Controller {
-  tabela: Prisma.FornecedorDelegate;
-
-  constructor() {
-    super("fornecedor");
-
-    this.tabela = Controller.delegar_tabela(
-      "fornecedor"
-    ) as Prisma.FornecedorDelegate;
-  }
-
   get_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
 
     try {
       validar_id(id);
 
-      const fornecedor = await this.tabela
+      const fornecedor = await Tabela_Fornecedor
         .findFirst({
           where: { id },
           select: this.selecionar_campos(),
@@ -79,10 +69,10 @@ export default class Controller_Fornecedor extends Controller {
 
     try {
       const registros =
-        (await this.tabela.count({
+        (await Tabela_Fornecedor.count({
           where: filtros,
         })) | 0;
-      const fornecedores = await this.tabela.findMany(query);
+      const fornecedores = await Tabela_Fornecedor.findMany(query);
 
       const maximo_paginas =
         registros > 0 ? 1 + Math.floor(registros / limite) : 0;
@@ -103,7 +93,7 @@ export default class Controller_Fornecedor extends Controller {
     const { cnpj, nome }: Fornecedor = req.body;
 
     try {
-      const fornecedor = await this.tabela
+      const fornecedor = await Tabela_Fornecedor
         .create({
           data: {
             cnpj: cnpj,
@@ -145,7 +135,7 @@ export default class Controller_Fornecedor extends Controller {
     const { cnpj, nome }: Fornecedor = req.body;
 
     try {
-      let fornecedor_antigo = await this.tabela.findFirst({
+      let fornecedor_antigo = await Tabela_Fornecedor.findFirst({
         where: {
           id,
         },
@@ -159,7 +149,7 @@ export default class Controller_Fornecedor extends Controller {
         validar_fornecedor({ cnpj, nome });
         atualizacao_verdadeira = cnpj || nome ? true : false;
 
-        fornecedor_novo = await this.tabela
+        fornecedor_novo = await Tabela_Fornecedor
           .update({
             where: { id },
             data: {
@@ -195,7 +185,7 @@ export default class Controller_Fornecedor extends Controller {
         validar_fornecedor({ cnpj, nome }, true);
         atualizacao_verdadeira = true;
 
-        fornecedor_novo = await this.tabela
+        fornecedor_novo = await Tabela_Fornecedor
           .upsert({
             where: { id },
             create: {
@@ -253,7 +243,7 @@ export default class Controller_Fornecedor extends Controller {
     try {
       validar_id(id);
 
-      await this.tabela
+      await Tabela_Fornecedor
         .delete({
           where: {
             id,

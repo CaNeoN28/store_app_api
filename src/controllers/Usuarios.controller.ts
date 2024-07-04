@@ -9,15 +9,6 @@ import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Usuario } from "../db/tabelas";
 
 export default class Controller_Usuarios extends Controller {
-  tabela: Prisma.UsuarioDelegate;
-
-  constructor() {
-    super("usuario");
-
-    this.tabela = Controller.delegar_tabela(
-      "usuario"
-    ) as Prisma.UsuarioDelegate;
-  }
 
   get_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
@@ -25,7 +16,7 @@ export default class Controller_Usuarios extends Controller {
     try {
       validar_id(id);
 
-      const usuario = await this.tabela
+      const usuario = await Tabela_Usuario
         .findFirst({
           where: { id },
           select: this.selecionar_campos(),
@@ -110,8 +101,8 @@ export default class Controller_Usuarios extends Controller {
         pagina
       );
 
-      const registros = (await this.tabela.count({ where: filtros })) | 0;
-      const usuarios = await this.tabela.findMany(query);
+      const registros = (await Tabela_Usuario.count({ where: filtros })) | 0;
+      const usuarios = await Tabela_Usuario.findMany(query);
 
       const maximo_paginas =
         registros > 0 ? 1 + Math.floor(registros / limite) : 0;
@@ -154,7 +145,7 @@ export default class Controller_Usuarios extends Controller {
 
       senha = await criptografar_senha(senha);
 
-      const usuario = await this.tabela
+      const usuario = await Tabela_Usuario
         .create({
           data: {
             nome_completo,
@@ -213,7 +204,7 @@ export default class Controller_Usuarios extends Controller {
     };
 
     try {
-      const usuario_antigo = await this.tabela.findFirst({
+      const usuario_antigo = await Tabela_Usuario.findFirst({
         where: {
           id,
         },
@@ -226,7 +217,7 @@ export default class Controller_Usuarios extends Controller {
 
         if (senha) senha = await criptografar_senha(senha);
 
-        usuario_novo = await this.tabela
+        usuario_novo = await Tabela_Usuario
           .update({
             where: {
               id,
@@ -262,7 +253,7 @@ export default class Controller_Usuarios extends Controller {
       } else if (metodo == "PUT") {
         validar_usuario(data, true);
 
-        usuario_novo = await this.tabela
+        usuario_novo = await Tabela_Usuario
           .upsert({
             where: {
               id,
@@ -323,7 +314,7 @@ export default class Controller_Usuarios extends Controller {
     try {
       validar_id(id);
 
-      await this.tabela
+      await Tabela_Usuario
         .delete({
           where: { id },
         })

@@ -5,18 +5,9 @@ import { RequestHandler } from "express-serve-static-core";
 import { comparar_senha } from "../utils/senhas";
 import { gerar_token_usuario } from "../utils/jwt";
 import { validar_login } from "../utils/validacao";
+import { Tabela_Usuario } from "../db/tabelas";
 
 export default class Controller_Autenticacao extends Controller {
-  tabela: Prisma.UsuarioDelegate;
-
-  constructor() {
-    super("usuario");
-
-    this.tabela = Controller.delegar_tabela(
-      "usuario"
-    ) as Prisma.UsuarioDelegate;
-  }
-
   realizar_login: RequestHandler = async (req, res, next) => {
     const { nome_usuario, senha }: Login = req.body;
 
@@ -37,7 +28,7 @@ export default class Controller_Autenticacao extends Controller {
   protected async login_handler({ nome_usuario, senha }: Login) {
     validar_login({ nome_usuario, senha });
 
-    const usuario = await this.tabela.findFirst({
+    const usuario = await Tabela_Usuario.findFirst({
       where: {
         nome_usuario,
       },
