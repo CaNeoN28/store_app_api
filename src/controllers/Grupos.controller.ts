@@ -3,10 +3,9 @@ import { Prisma } from "@prisma/client";
 import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Grupo, Erro, Metodo } from "../types";
-import { METODOS, TABELAS } from "../utils/globals";
 import { validar_grupo, validar_id } from "../utils/validacao";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
+import ordenar_documentos from "../utils/ordenar_documentos";
+import { Tabela_Grupo } from "../db/tabelas";
 
 export default class Controller_Grupos extends Controller {
   tabela: Prisma.GrupoDelegate;
@@ -72,12 +71,9 @@ export default class Controller_Grupos extends Controller {
       };
     }
 
-    const ordenacao: Prisma.GrupoOrderByWithRelationInput =
-      this.formatar_ordenacao(ordenar) as Prisma.GrupoOrderByWithRelationInput;
-
     const query = Controller.definir_query(
       filtros,
-      ordenacao,
+      ordenar_documentos(ordenar, Tabela_Grupo),
       this.selecionar_campos(),
       limite,
       pagina
@@ -85,7 +81,12 @@ export default class Controller_Grupos extends Controller {
 
     try {
       const registros = await this.tabela.count({ where: filtros });
-      const grupos = await this.tabela.findMany(query);
+      const grupos = await this.tabela
+        .findMany(query)
+        .then((res) => res)
+        .catch((err) => {
+          const {codigo, erro} = verificar_erro_prisma(err);
+        });
 
       const maximo_paginas =
         registros > 0 ? 1 + Math.floor(registros / limite) : 0;

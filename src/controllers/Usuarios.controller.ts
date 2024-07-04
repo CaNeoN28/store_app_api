@@ -3,11 +3,10 @@ import { Erro, Usuario } from "../types";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
-import { REGEX_EMAIL, REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
 import { criptografar_senha } from "../utils/senhas";
 import { validar_id, validar_usuario } from "../utils/validacao";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
+import ordenar_documentos from "../utils/ordenar_documentos";
+import { Tabela_Usuario } from "../db/tabelas";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -102,14 +101,10 @@ export default class Controller_Usuarios extends Controller {
       };
     }
 
-    const ordenacao = this.formatar_ordenacao(
-      ordenar
-    ) as Prisma.UsuarioOrderByWithRelationInput;
-
     try {
       const query = Controller.definir_query(
         filtros,
-        ordenacao,
+        ordenar_documentos(ordenar, Tabela_Usuario),
         this.selecionar_campos(),
         limite,
         pagina

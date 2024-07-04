@@ -5,6 +5,8 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { Item, Erro, Metodo } from "../types";
 import { validar_id, validar_item } from "../utils/validacao";
+import ordenar_documentos from "../utils/ordenar_documentos";
+import { Tabela_Item } from "../db/tabelas";
 
 export default class Controller_Itens extends Controller {
   tabela: Prisma.ItemDelegate<DefaultArgs>;
@@ -74,13 +76,9 @@ export default class Controller_Itens extends Controller {
       };
     }
 
-    const ordenacao = this.formatar_ordenacao(
-      ordenar
-    ) as Prisma.ItemOrderByWithRelationInput;
-
     const query = Controller.definir_query(
       filtros,
-      ordenacao,
+      ordenar_documentos(ordenar, Tabela_Item),
       this.selecionar_campos(),
       limite,
       pagina

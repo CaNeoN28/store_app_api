@@ -23,20 +23,6 @@ export default abstract class Controller {
   update_by_id: RequestHandler = async (req, res, next) => {};
   remove_by_id: RequestHandler = async (req, res, next) => {};
 
-  protected formatar_ordenacao(campo: any) {
-    const formatado = String(campo).replace("-", "");
-    const descendente = String(campo).startsWith("-");
-    const campos = Object.keys(this.tabela.fields);
-
-    if (campos.find((c) => c == formatado)) {
-      return {
-        [formatado]: descendente ? "desc" : "asc",
-      };
-    } else {
-      return Controller.ORDENACAO_PADRAO;
-    }
-  }
-
   static delegar_tabela(tabela: Tabela_Prisma) {
     return prisma[tabela];
   }

@@ -4,6 +4,8 @@ import Controller from "./Controller";
 import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { validar_fornecedor, validar_id } from "../utils/validacao";
+import ordenar_documentos from "../utils/ordenar_documentos";
+import { Tabela_Fornecedor } from "../db/tabelas";
 
 export default class Controller_Fornecedor extends Controller {
   tabela: Prisma.FornecedorDelegate;
@@ -67,13 +69,9 @@ export default class Controller_Fornecedor extends Controller {
       filtros.cnpj = String(cnpj);
     }
 
-    const ordenacao = this.formatar_ordenacao(
-      ordenar
-    ) as Prisma.FornecedorOrderByWithRelationInput;
-
     const query = Controller.definir_query(
       filtros,
-      ordenacao,
+      ordenar_documentos(ordenar, Tabela_Fornecedor),
       this.selecionar_campos(),
       limite,
       pagina
