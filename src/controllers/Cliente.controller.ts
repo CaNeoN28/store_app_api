@@ -7,8 +7,32 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
+import { validar_id } from "../utils/validacao";
 
 export default class Controller_Cliente extends Controller {
+  get_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      const cliente = await Tabela_Cliente.findFirst({ where: { id } }).then(
+        (res) => res
+      );
+
+      if (!cliente) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum cliente",
+          mensagem: "Não foi possível recuperar o cliente",
+        } as Erro;
+      }
+
+      return res.status(200).send(cliente);
+    } catch (err) {
+      next(err);
+    }
+  };
   list: RequestHandler = async (req, res, next) => {
     let limite = Number(req.query.limite),
       pagina = Number(req.query.pagina);
@@ -71,7 +95,6 @@ export default class Controller_Cliente extends Controller {
       next(err);
     }
   };
-
   create: RequestHandler = async (req, res, next) => {
     const { cnpj, nome }: Cliente = req.body;
 

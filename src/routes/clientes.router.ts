@@ -15,4 +15,9 @@ router_clientes
   .all(authentication_middleware("CLIENTE"))
   .post(controller.create);
 
+router_clientes
+  .route("/cliente/:id")
+  .all(authentication_middleware("CLIENTE"))
+  .get(controller.get_id);
+
 export default router_clientes;
