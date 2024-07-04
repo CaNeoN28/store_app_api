@@ -9,31 +9,11 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 
 export default class Controller_Grupos extends Controller {
-  protected selecionados: Prisma.GrupoSelect;
-
   tabela: Prisma.GrupoDelegate;
   constructor() {
     super("grupo");
 
     this.tabela = Controller.delegar_tabela("grupo") as Prisma.GrupoDelegate;
-    this.selecionados = {};
-    this.selecionar_todos_os_campos();
-    this.selecionados.acessos = {
-      select: {
-        metodo: true,
-        tabela: true,
-      },
-    };
-    this.selecionados.usuarios = {
-      select: {
-        id: true,
-        nome_completo: true,
-        nome_usuario: true,
-        email: true,
-        foto_url: true,
-        numero_telefone: true,
-      },
-    };
   }
 
   get_id: RequestHandler = async (req, res, next) => {
@@ -45,7 +25,7 @@ export default class Controller_Grupos extends Controller {
       const grupo = await this.tabela
         .findFirst({
           where: { id },
-          select: this.selecionados,
+          select: this.selecionar_campos(),
         })
         .then((res) => res)
         .catch((err) => {
@@ -98,7 +78,7 @@ export default class Controller_Grupos extends Controller {
     const query = Controller.definir_query(
       filtros,
       ordenacao,
-      this.selecionados,
+      this.selecionar_campos(),
       limite,
       pagina
     );
@@ -155,7 +135,7 @@ export default class Controller_Grupos extends Controller {
                 })),
             },
           },
-          select: this.selecionados,
+          select: this.selecionar_campos(),
         })
         .then((res) => res)
         .catch((err) => {
@@ -217,7 +197,7 @@ export default class Controller_Grupos extends Controller {
                   })),
               },
             },
-            select: this.selecionados,
+            select: this.selecionar_campos(),
           })
           .then((res) => res)
           .catch((err) => {
@@ -288,7 +268,7 @@ export default class Controller_Grupos extends Controller {
                   })),
               },
             },
-            select: this.selecionados,
+            select: this.selecionar_campos(),
           })
           .then((res) => res)
           .catch((err) => {
@@ -340,6 +320,31 @@ export default class Controller_Grupos extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.GrupoSelect = {
+      id: true,
+      nome: true,
+      acessos: {
+        select: {
+          metodo: true,
+          tabela: true,
+        },
+      },
+      usuarios: {
+        select: {
+          id: true,
+          nome_usuario: true,
+          email: true,
+          nome_completo: true,
+          numero_telefone: true,
+          foto_url: true,
+        },
+      },
+    };
+
+    return selecionados;
+  }
 
   protected async remover_acessos_nao_utilizados() {
     const tabela_acessos = Controller.delegar_tabela(

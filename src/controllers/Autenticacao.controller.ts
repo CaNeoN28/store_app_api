@@ -6,7 +6,6 @@ import { comparar_senha } from "../utils/senhas";
 import { gerar_token_usuario } from "../utils/jwt";
 
 export default class Controller_Autenticacao extends Controller {
-  protected selecionados: Prisma.UsuarioSelect;
   tabela: Prisma.UsuarioDelegate;
 
   constructor() {
@@ -15,17 +14,6 @@ export default class Controller_Autenticacao extends Controller {
     this.tabela = Controller.delegar_tabela(
       "usuario"
     ) as Prisma.UsuarioDelegate;
-
-    this.selecionados = {};
-    this.selecionar_todos_os_campos();
-    this.selecionados.senha = false;
-    this.selecionados.grupos = {
-      select: {
-        id: true,
-        nome: true,
-        acessos: true,
-      },
-    };
   }
 
   realizar_login: RequestHandler = async (req, res, next) => {
@@ -52,10 +40,7 @@ export default class Controller_Autenticacao extends Controller {
       where: {
         nome_usuario,
       },
-      select: {
-        ...this.selecionados,
-        senha: true,
-      },
+      select: this.selecionar_campos(true),
     });
 
     if (usuario && (await comparar_senha(senha, usuario.senha))) {
@@ -82,6 +67,32 @@ export default class Controller_Autenticacao extends Controller {
 
     res.send(user);
   };
+
+  protected selecionar_campos(senha?: boolean) {
+    const selecionados: Prisma.UsuarioSelect = {
+      id: true,
+      nome_usuario: true,
+      nome_completo: true,
+      email: true,
+      numero_telefone: true,
+      foto_url: true,
+      senha,
+      grupos: {
+        select: {
+          id: true,
+          nome: true,
+          acessos: {
+            select: {
+              tabela: true,
+              metodo: true,
+            },
+          },
+        },
+      },
+    };
+
+    return selecionados;
+  }
 
   protected validar_dados(data: Login, validar_obrigatorios?: boolean): void {
     const { nome_usuario, senha } = data;

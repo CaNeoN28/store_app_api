@@ -6,7 +6,6 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { validar_fornecedor, validar_id } from "../utils/validacao";
 
 export default class Controller_Fornecedor extends Controller {
-  protected selecionados: Prisma.FornecedorSelect;
   tabela: Prisma.FornecedorDelegate;
 
   constructor() {
@@ -15,26 +14,6 @@ export default class Controller_Fornecedor extends Controller {
     this.tabela = Controller.delegar_tabela(
       "fornecedor"
     ) as Prisma.FornecedorDelegate;
-
-    this.selecionados = {};
-    this.selecionar_todos_os_campos();
-    this.selecionados.compras = {};
-    this.selecionados.alteracoes = {
-      select: {
-        data: true,
-        usuario: {
-          select: {
-            id: true,
-            nome_completo: true,
-            nome_usuario: true,
-            email: true,
-          },
-        },
-      },
-      orderBy: {
-        data: "desc",
-      },
-    };
   }
 
   get_id: RequestHandler = async (req, res, next) => {
@@ -46,7 +25,7 @@ export default class Controller_Fornecedor extends Controller {
       const fornecedor = await this.tabela
         .findFirst({
           where: { id },
-          select: this.selecionados,
+          select: this.selecionar_campos(),
         })
         .then((res) => res);
 
@@ -95,7 +74,7 @@ export default class Controller_Fornecedor extends Controller {
     const query = Controller.definir_query(
       filtros,
       ordenacao,
-      this.selecionados,
+      this.selecionar_campos(),
       limite,
       pagina
     );
@@ -142,7 +121,7 @@ export default class Controller_Fornecedor extends Controller {
               },
             },
           },
-          select: this.selecionados,
+          select: this.selecionar_campos(),
         })
         .then((res) => res)
         .catch((err) => {
@@ -201,7 +180,7 @@ export default class Controller_Fornecedor extends Controller {
                   }
                 : {},
             },
-            select: this.selecionados,
+            select: this.selecionar_campos(),
           })
           .then((res) => res)
           .catch((err) => {
@@ -250,7 +229,7 @@ export default class Controller_Fornecedor extends Controller {
                 },
               },
             },
-            select: this.selecionados,
+            select: this.selecionar_campos(),
           })
           .then((res) => res)
           .catch((err) => {
@@ -298,4 +277,26 @@ export default class Controller_Fornecedor extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.FornecedorSelect = {
+      nome: true,
+      cnpj: true,
+      alteracoes: {
+        select: {
+          data: true,
+          usuario: {
+            select: {
+              id: true,
+              email: true,
+              nome_usuario: true,
+              numero_telefone: true,
+            },
+          },
+        },
+      },
+    };
+
+    return selecionados;
+  }
 }

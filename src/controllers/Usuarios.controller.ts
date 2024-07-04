@@ -12,30 +12,12 @@ import { ParsedQs } from "qs";
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
 
-  protected selecionados: Prisma.UsuarioSelect;
-
   constructor() {
     super("usuario");
 
     this.tabela = Controller.delegar_tabela(
       "usuario"
     ) as Prisma.UsuarioDelegate;
-
-    this.selecionados = {};
-    this.selecionar_todos_os_campos();
-    this.selecionados.senha = false;
-    this.selecionados.grupos = {
-      select: {
-        id: true,
-        nome: true,
-        acessos: {
-          select: {
-            metodo: true,
-            tabela: true,
-          },
-        },
-      },
-    };
   }
 
   get_id: RequestHandler = async (req, res, next) => {
@@ -47,7 +29,7 @@ export default class Controller_Usuarios extends Controller {
       const usuario = await this.tabela
         .findFirst({
           where: { id },
-          select: this.selecionados,
+          select: this.selecionar_campos(),
         })
         .then((res) => res)
         .catch((err) => {
@@ -128,7 +110,7 @@ export default class Controller_Usuarios extends Controller {
       const query = Controller.definir_query(
         filtros,
         ordenacao,
-        this.selecionados,
+        this.selecionar_campos(),
         limite,
         pagina
       );
@@ -194,7 +176,7 @@ export default class Controller_Usuarios extends Controller {
                 })),
             },
           },
-          select: this.selecionados,
+          select: this.selecionar_campos(),
         })
         .then((res) => res)
         .catch((err) => {
@@ -270,7 +252,7 @@ export default class Controller_Usuarios extends Controller {
               },
               senha,
             },
-            select: this.selecionados,
+            select: this.selecionar_campos(),
           })
           .then((res) => res)
           .catch((err) => {
@@ -321,7 +303,7 @@ export default class Controller_Usuarios extends Controller {
                   })),
               },
             },
-            select: this.selecionados,
+            select: this.selecionar_campos(),
           })
           .then((res) => res)
           .catch((err) => {
@@ -366,4 +348,30 @@ export default class Controller_Usuarios extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.UsuarioSelect = {
+      id: true,
+      nome_usuario: true,
+      nome_completo: true,
+      email: true,
+      numero_telefone: true,
+      foto_url: true,
+      senha: false,
+      grupos: {
+        select: {
+          id: true,
+          nome: true,
+          acessos: {
+            select: {
+              tabela: true,
+              metodo: true,
+            }
+          }
+        }
+      },
+    };
+
+    return selecionados;
+  }
 }

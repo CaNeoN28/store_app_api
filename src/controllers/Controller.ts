@@ -9,7 +9,6 @@ export default abstract class Controller {
 
   tabela: any;
 
-  protected abstract selecionados: any;
   protected ordenacao: any;
 
   constructor(tabela: Tabela_Prisma) {
@@ -36,17 +35,6 @@ export default abstract class Controller {
     } else {
       return Controller.ORDENACAO_PADRAO;
     }
-  }
-
-  protected selecionar_todos_os_campos() {
-    const campos = Object.keys(this.tabela.fields);
-    const selecionados: any = {};
-
-    campos.map((c) => {
-      selecionados[c] = true;
-    });
-
-    this.selecionados = selecionados;
   }
 
   static delegar_tabela(tabela: Tabela_Prisma) {

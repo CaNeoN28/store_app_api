@@ -8,7 +8,6 @@ import { validar_id, validar_item } from "../utils/validacao";
 
 export default class Controller_Itens extends Controller {
   tabela: Prisma.ItemDelegate<DefaultArgs>;
-  protected selecionados: Prisma.ItemSelect;
 
   constructor() {
     super("item");
@@ -16,16 +15,6 @@ export default class Controller_Itens extends Controller {
     this.tabela = Controller.delegar_tabela(
       "item"
     ) as Prisma.ItemDelegate<DefaultArgs>;
-
-    this.selecionados = {};
-    this.selecionar_todos_os_campos();
-    this.selecionados.unidade = {
-      select: {
-        id: true,
-        nome: true,
-      },
-    };
-    this.selecionados.unidade_id = false;
   }
 
   get_id: RequestHandler = async (req, res, next) => {
@@ -38,7 +27,7 @@ export default class Controller_Itens extends Controller {
           where: {
             id,
           },
-          select: this.selecionados,
+          select: this.selecionar_campos(),
         })
         .then((res) => res)
         .catch(() => {
@@ -92,7 +81,7 @@ export default class Controller_Itens extends Controller {
     const query = Controller.definir_query(
       filtros,
       ordenacao,
-      this.selecionados,
+      this.selecionar_campos(),
       limite,
       pagina
     );
@@ -238,7 +227,7 @@ export default class Controller_Itens extends Controller {
                 },
               },
             },
-            select: this.selecionados,
+            select: this.selecionar_campos(),
           })
           .then((res) => res)
           .catch((err) => {
@@ -343,4 +332,22 @@ export default class Controller_Itens extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.ItemSelect = {
+      id: true,
+      nome: true,
+      valor_atual: true,
+      desconto_porcentagem: true,
+      validade_desconto: true,
+      imagem_url: true,
+      unidade: {
+        select: {
+          nome: true,
+        },
+      },
+    };
+
+    return selecionados;
+  }
 }
