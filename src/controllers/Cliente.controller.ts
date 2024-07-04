@@ -8,6 +8,8 @@ import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { validar_id } from "../utils/validacao";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 export default class Controller_Cliente extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -193,6 +195,31 @@ export default class Controller_Cliente extends Controller {
       }
 
       res.status(cliente_antigo ? 200 : 201).send(cliente_novo);
+    } catch (err) {
+      next(err);
+    }
+  };
+  remove_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      await Tabela_Cliente.delete({
+        where: { id },
+      })
+        .then()
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível remover o cliente",
+          } as Erro;
+        });
+        
+      res.status(204).send();
     } catch (err) {
       next(err);
     }
