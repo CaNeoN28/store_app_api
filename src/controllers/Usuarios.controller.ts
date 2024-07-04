@@ -6,6 +6,8 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { REGEX_EMAIL, REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
 import { criptografar_senha } from "../utils/senhas";
 import { validar_id, validar_usuario } from "../utils/validacao";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -36,6 +38,40 @@ export default class Controller_Usuarios extends Controller {
     };
   }
 
+  get_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      const usuario = await this.tabela
+        .findFirst({
+          where: { id },
+          select: this.selecionados,
+        })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível recuperar o usuário",
+          } as Erro;
+        });
+
+      if (!usuario) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum usuário",
+          mensagem: "Não foi possível recuperar o usuário",
+        } as Erro;
+      }
+
+      res.status(200).send(usuario);
+    } catch (err) {
+      next(err);
+    }
+  };
   list: RequestHandler = async (req, res, next) => {
     const { nome_completo, nome_usuario, email, nome_grupo, ordenar } =
       req.query;
@@ -202,9 +238,9 @@ export default class Controller_Usuarios extends Controller {
     try {
       const usuario_antigo = await this.tabela.findFirst({
         where: {
-          id
-        }
-      })
+          id,
+        },
+      });
       let usuario_novo: any = undefined;
       validar_id(id);
 
@@ -299,7 +335,7 @@ export default class Controller_Usuarios extends Controller {
           });
       }
 
-      res.status(usuario_antigo ? 200 : 201).send(usuario_novo)
+      res.status(usuario_antigo ? 200 : 201).send(usuario_novo);
     } catch (err) {
       next(err);
     }
