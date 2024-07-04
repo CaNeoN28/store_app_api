@@ -59,7 +59,6 @@ export default class Controller_Autenticacao extends Controller {
 
     res.send(user);
   };
-
   protected selecionar_campos(senha?: boolean) {
     const selecionados: Prisma.UsuarioSelect = {
       id: true,

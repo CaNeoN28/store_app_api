@@ -1,6 +1,7 @@
 import prisma from "./prisma";
 
 const Tabela_Acessos = prisma.acesso
+const Tabela_Alteracoes_Fornecedor = prisma.alteracao_Fornecedor
 const Tabela_Cliente = prisma.cliente;
 const Tabela_Compra = prisma.compra;
 const Tabela_Fornecedor = prisma.fornecedor;
@@ -12,6 +13,7 @@ const Tabela_Venda = prisma.venda;
 
 export {
   Tabela_Acessos,
+  Tabela_Alteracoes_Fornecedor,
   Tabela_Cliente,
   Tabela_Compra,
   Tabela_Fornecedor,
