@@ -5,7 +5,8 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Grupo, Erro, Metodo } from "../types";
 import { validar_grupo, validar_id } from "../utils/validacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
-import { Tabela_Grupo } from "../db/tabelas";
+import { Tabela_Acessos, Tabela_Grupo } from "../db/tabelas";
+import definir_query from "../utils/definir_query";
 
 export default class Controller_Grupos extends Controller {
 
@@ -65,7 +66,7 @@ export default class Controller_Grupos extends Controller {
       };
     }
 
-    const query = Controller.definir_query(
+    const query = definir_query(
       filtros,
       ordenar_documentos(ordenar, Tabela_Grupo),
       this.selecionar_campos(),
@@ -342,11 +343,8 @@ export default class Controller_Grupos extends Controller {
   }
 
   protected async remover_acessos_nao_utilizados() {
-    const tabela_acessos = Controller.delegar_tabela(
-      "acesso"
-    ) as Prisma.AcessoDelegate;
 
-    await tabela_acessos.deleteMany({
+    await Tabela_Acessos.deleteMany({
       where: {
         grupos: {
           none: {

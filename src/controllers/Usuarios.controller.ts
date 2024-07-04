@@ -7,6 +7,7 @@ import { criptografar_senha } from "../utils/senhas";
 import { validar_id, validar_usuario } from "../utils/validacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Usuario } from "../db/tabelas";
+import definir_query from "../utils/definir_query";
 
 export default class Controller_Usuarios extends Controller {
 
@@ -93,7 +94,7 @@ export default class Controller_Usuarios extends Controller {
     }
 
     try {
-      const query = Controller.definir_query(
+      const query = definir_query(
         filtros,
         ordenar_documentos(ordenar, Tabela_Usuario),
         this.selecionar_campos(),

@@ -6,6 +6,7 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { validar_fornecedor, validar_id } from "../utils/validacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Fornecedor } from "../db/tabelas";
+import definir_query from "../utils/definir_query";
 
 export default class Controller_Fornecedor extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -59,7 +60,7 @@ export default class Controller_Fornecedor extends Controller {
       filtros.cnpj = String(cnpj);
     }
 
-    const query = Controller.definir_query(
+    const query = definir_query(
       filtros,
       ordenar_documentos(ordenar, Tabela_Fornecedor),
       this.selecionar_campos(),

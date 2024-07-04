@@ -7,6 +7,7 @@ import { Item, Erro, Metodo } from "../types";
 import { validar_id, validar_item } from "../utils/validacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Item } from "../db/tabelas";
+import definir_query from "../utils/definir_query";
 
 export default class Controller_Itens extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -66,7 +67,7 @@ export default class Controller_Itens extends Controller {
       };
     }
 
-    const query = Controller.definir_query(
+    const query = definir_query(
       filtros,
       ordenar_documentos(ordenar, Tabela_Item),
       this.selecionar_campos(),
