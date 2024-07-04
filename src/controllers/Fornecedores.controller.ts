@@ -166,54 +166,106 @@ export default class Controller_Fornecedor extends Controller {
     const metodo = req.method as Metodo;
 
     const { cnpj, nome }: Fornecedor = req.body;
-    let fornecedor: any = undefined;
 
     try {
+      let fornecedor_antigo = await this.tabela.findFirst({
+        where: {
+          id,
+        },
+      });
+      let fornecedor_novo: any = undefined;
+
       validar_id(id);
       let atualizacao_verdadeira = false;
 
       if (metodo == "PATCH") {
         validar_fornecedor({ cnpj, nome });
         atualizacao_verdadeira = cnpj || nome ? true : false;
+
+        fornecedor_novo = await this.tabela
+          .update({
+            where: { id },
+            data: {
+              cnpj,
+              nome,
+              alteracoes: atualizacao_verdadeira
+                ? {
+                    create: {
+                      data: new Date(),
+                      usuario: {
+                        connect: {
+                          id: usuario.id,
+                        },
+                      },
+                    },
+                  }
+                : {},
+            },
+            select: this.selecionados,
+          })
+          .then((res) => res)
+          .catch((err) => {
+            console.log(err);
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível atualizar o fornecedor",
+            } as Erro;
+          });
       } else if (metodo == "PUT") {
         validar_fornecedor({ cnpj, nome }, true);
         atualizacao_verdadeira = true;
-      }
 
-      fornecedor = await this.tabela
-        .update({
-          where: { id },
-          data: {
-            cnpj,
-            nome,
-            alteracoes: atualizacao_verdadeira
-              ? {
-                  create: {
-                    data: new Date(),
-                    usuario: {
-                      connect: {
-                        id: usuario.id,
-                      },
+        fornecedor_novo = await this.tabela
+          .upsert({
+            where: { id },
+            create: {
+              id,
+              cnpj,
+              nome,
+              alteracoes: {
+                create: {
+                  data: new Date(),
+                  usuario: {
+                    connect: {
+                      id: usuario.id,
                     },
                   },
-                }
-              : {},
-          },
-          select: this.selecionados,
-        })
-        .then((res) => res)
-        .catch((err) => {
-          console.log(err);
-          const { codigo, erro } = verificar_erro_prisma(err);
+                },
+              },
+            },
+            update: {
+              cnpj,
+              nome,
+              alteracoes: {
+                create: {
+                  data: new Date(),
+                  usuario: {
+                    connect: {
+                      id: usuario.id,
+                    },
+                  },
+                },
+              },
+            },
+            select: this.selecionados,
+          })
+          .then((res) => res)
+          .catch((err) => {
+            console.log(err);
+            const { codigo, erro } = verificar_erro_prisma(err);
 
-          throw {
-            codigo,
-            erro,
-            mensagem: "Não foi possível atualizar o fornecedor",
-          } as Erro;
-        });
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível atualizar o fornecedor",
+            } as Erro;
+          });
+      }
 
-      res.status(200).send(fornecedor);
+      res.status(fornecedor_antigo ? 200 : 201).send(fornecedor_novo);
     } catch (err) {
       next(err);
     }
