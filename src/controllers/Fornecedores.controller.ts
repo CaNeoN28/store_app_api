@@ -50,8 +50,6 @@ export default class Controller_Fornecedor extends Controller {
         } as Erro;
       }
 
-      console.log(fornecedor)
-
       res.status(200).send({
         ...fornecedor,
         alteracoes: {
@@ -140,7 +138,7 @@ export default class Controller_Fornecedor extends Controller {
             },
           },
         },
-        select: this.selecionar_campos(),
+        select: this.selecionar_campos(true),
       })
         .then((res) => res)
         .catch((err) => {
@@ -198,7 +196,7 @@ export default class Controller_Fornecedor extends Controller {
                 }
               : {},
           },
-          select: this.selecionar_campos(),
+          select: this.selecionar_campos(true),
         })
           .then((res) => res)
           .catch((err) => {
@@ -246,7 +244,7 @@ export default class Controller_Fornecedor extends Controller {
               },
             },
           },
-          select: this.selecionar_campos(),
+          select: this.selecionar_campos(true),
         })
           .then((res) => res)
           .catch((err) => {
