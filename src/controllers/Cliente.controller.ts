@@ -1,13 +1,15 @@
 import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Tabela_Cliente } from "../db/tabelas";
-import { Cliente, Erro } from "../types";
+import { Cliente, Erro, Metodo } from "../types";
 import validar_cliente from "../utils/validacao/validar_cliente";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { validar_id } from "../utils/validacao";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 export default class Controller_Cliente extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -120,6 +122,46 @@ export default class Controller_Cliente extends Controller {
         });
 
       res.status(201).send(cliente);
+    } catch (err) {
+      next(err);
+    }
+  };
+  update_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+    const metodo = req.method as Metodo;
+    const { cnpj, nome }: Cliente = req.body;
+
+    try {
+      validar_id(id);
+
+      let cliente_antigo = await Tabela_Cliente.findFirst({ where: { id } });
+
+      let cliente_novo: any = undefined;
+
+      if (metodo == "PATCH") {
+        validar_cliente({ cnpj, nome });
+
+        cliente_novo = await Tabela_Cliente.update({
+          where: { id },
+          data: {
+            cnpj,
+            nome,
+          },
+          select: this.selecionar_campos(),
+        })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível atualizar o cliente",
+            } as Erro;
+          });
+      }
+
+      res.status(cliente_antigo ? 200 : 201).send(cliente_novo);
     } catch (err) {
       next(err);
     }
