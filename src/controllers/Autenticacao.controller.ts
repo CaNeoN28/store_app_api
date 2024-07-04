@@ -4,6 +4,7 @@ import { Erro, Login } from "../types";
 import { RequestHandler } from "express-serve-static-core";
 import { comparar_senha } from "../utils/senhas";
 import { gerar_token_usuario } from "../utils/jwt";
+import { validar_login } from "../utils/validacao";
 
 export default class Controller_Autenticacao extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -34,7 +35,7 @@ export default class Controller_Autenticacao extends Controller {
     }
   };
   protected async login_handler({ nome_usuario, senha }: Login) {
-    this.validar_dados({ nome_usuario, senha });
+    validar_login({ nome_usuario, senha });
 
     const usuario = await this.tabela.findFirst({
       where: {
@@ -92,26 +93,5 @@ export default class Controller_Autenticacao extends Controller {
     };
 
     return selecionados;
-  }
-
-  protected validar_dados(data: Login, validar_obrigatorios?: boolean): void {
-    const { nome_usuario, senha } = data;
-    const erros: { [k: string]: string } = {};
-
-    if (!nome_usuario) {
-      erros.nome_usuario = "Nome de usuário é obrigatório";
-    }
-
-    if (!senha) {
-      erros.senha = "Senha é obrigatório";
-    }
-
-    if (Object.keys(erros).length > 0) {
-      throw {
-        codigo: 401,
-        erro: erros,
-        mensagem: "Não foi possível realizar login  ",
-      } as Erro;
-    }
   }
 }
