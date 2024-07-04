@@ -180,11 +180,14 @@ export default class Controller_Grupos extends Controller {
     const metodo = req.method as Metodo;
 
     try {
+      let grupo_antigo = await this.tabela.findFirst({
+        where: { id },
+      });
       validar_id(id);
-      let grupo: any = undefined;
+      let grupo_novo: any = undefined;
 
       if (metodo == "PATCH") {
-        grupo = await this.tabela
+        grupo_novo = await this.tabela
           .update({
             where: { id },
             data: {
@@ -227,7 +230,7 @@ export default class Controller_Grupos extends Controller {
             } as Erro;
           });
       } else if (metodo == "PUT") {
-        grupo = await this.tabela
+        grupo_novo = await this.tabela
           .upsert({
             where: { id },
             create: {
@@ -303,7 +306,7 @@ export default class Controller_Grupos extends Controller {
         await this.remover_acessos_nao_utilizados();
       }
 
-      res.status(200).send(grupo);
+      res.status(grupo_antigo ? 200 : 201).send(grupo_novo);
     } catch (err) {
       next(err);
     }

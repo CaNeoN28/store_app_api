@@ -198,7 +198,7 @@ export default class Controller_Itens extends Controller {
       ? new Date(req.body.validade_desconto)
       : undefined;
 
-    let item: any = undefined;
+    let item_novo: any = undefined;
 
     try {
       validar_id(id);
@@ -214,7 +214,7 @@ export default class Controller_Itens extends Controller {
           valor_atual,
         });
 
-        item = await this.tabela
+        item_novo = await this.tabela
           .update({
             where: {
               id,
@@ -263,7 +263,7 @@ export default class Controller_Itens extends Controller {
           true
         );
 
-        item = await this.tabela
+        item_novo = await this.tabela
           .upsert({
             where: { id },
             create: {
@@ -315,7 +315,7 @@ export default class Controller_Itens extends Controller {
           });
       }
 
-      res.status(200).send(item);
+      res.status(item_antigo ? 200 : 201).send(item_novo);
     } catch (err) {
       next(err);
     }
