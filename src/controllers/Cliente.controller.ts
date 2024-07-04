@@ -6,6 +6,7 @@ import { ParsedQs } from "qs";
 import { Cliente, Erro } from "../types";
 import validar_cliente from "../utils/validacao/validar_cliente";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import { Prisma } from "@prisma/client";
 
 export default class Controller_Cliente extends Controller {
   list: RequestHandler = async (req, res, next) => {
@@ -31,6 +32,7 @@ export default class Controller_Cliente extends Controller {
           cnpj,
           nome,
         },
+        select: this.selecionar_campos(),
       })
         .then((res) => res)
         .catch((err) => {
@@ -48,4 +50,14 @@ export default class Controller_Cliente extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.ClienteSelect = {
+      id: true,
+      cnpj: true,
+      nome: true,
+    };
+
+    return selecionados;
+  }
 }
