@@ -125,7 +125,7 @@ export default class Controller_Grupos extends Controller {
     const { nome, acessos, usuarios }: Grupo = req.body;
 
     try {
-      validar_grupo({ acessos, nome, usuarios });
+      validar_grupo({ acessos, nome, usuarios }, true);
 
       const grupo = await this.tabela
         .create({

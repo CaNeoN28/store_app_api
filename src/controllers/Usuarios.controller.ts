@@ -5,7 +5,7 @@ import { RequestHandler } from "express";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { REGEX_EMAIL, REGEX_NOME_USUARIO, REGEX_SENHA } from "../utils/regex";
 import { criptografar_senha } from "../utils/senhas";
-import { validar_id } from "../utils/validacao";
+import { validar_id, validar_usuario } from "../utils/validacao";
 
 export default class Controller_Usuarios extends Controller {
   tabela: Prisma.UsuarioDelegate;
@@ -126,7 +126,7 @@ export default class Controller_Usuarios extends Controller {
     }: Usuario = req.body;
 
     try {
-      this.validar_dados(
+      validar_usuario(
         {
           email,
           foto_url,
@@ -209,7 +209,7 @@ export default class Controller_Usuarios extends Controller {
       validar_id(id);
 
       if (metodo == "PATCH") {
-        this.validar_dados(data);
+        validar_usuario(data);
 
         if (senha) senha = await criptografar_senha(senha);
 
@@ -247,7 +247,7 @@ export default class Controller_Usuarios extends Controller {
             } as Erro;
           });
       } else if (metodo == "PUT") {
-        this.validar_dados(data, true);
+        validar_usuario(data, true);
 
         usuario_novo = await this.tabela
           .upsert({
@@ -304,64 +304,4 @@ export default class Controller_Usuarios extends Controller {
       next(err);
     }
   };
-
-  protected validar_dados(
-    data: Usuario,
-    validar_obrigatorios?: boolean | undefined
-  ) {
-    const {
-      email,
-      foto_url,
-      grupos,
-      nome_completo,
-      nome_usuario,
-      numero_telefone,
-      senha,
-    } = data;
-    const erros: { [k: string]: any } = {};
-
-    if (validar_obrigatorios && !nome_completo) {
-      erros.nome_completo = "Nome completo é obrigatório";
-    }
-
-    if (validar_obrigatorios && !nome_usuario) {
-      erros.nome_usuario = "Nome de usuário é obrigatório";
-    } else if (nome_usuario && !REGEX_NOME_USUARIO.test(nome_usuario)) {
-      erros.nome_usuario = "Nome de usuário inválido";
-    }
-
-    if (validar_obrigatorios && !senha) {
-      erros.senha = "Senha é obrigatório";
-    } else if (senha && !REGEX_SENHA.test(senha)) {
-      erros.senha = "Senha inválida";
-    }
-
-    if (email && !REGEX_EMAIL.test(email)) {
-      erros.email = "Email inválido";
-    }
-
-    if (grupos) {
-      if (!Array.isArray(grupos)) {
-        erros.grupos = "Deve ser uma lista";
-      } else if (grupos.length > 0) {
-        grupos.map((g, i) => {
-          if (!g.id) {
-            if (!erros.grupos) {
-              erros.grupos = {};
-            }
-
-            erros.grupos[i] = "O id de um grupo é necessário";
-          }
-        });
-      }
-    }
-
-    if (Object.keys(erros).length > 0) {
-      throw {
-        codigo: 400,
-        erro: erros,
-        mensagem: "Erro ao validar dados do usuário",
-      } as Erro;
-    }
-  }
 }
