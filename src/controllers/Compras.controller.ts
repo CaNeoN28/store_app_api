@@ -1,7 +1,5 @@
 import { RequestHandler } from "express";
 import Controller from "./Controller";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 import { Compra, Erro } from "../types";
 import { validar_id } from "../utils/validacao";
 import validar_compra from "../utils/validacao/validar_compra";
@@ -12,6 +10,30 @@ import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
 
 export default class Controller_Compras extends Controller {
+  get_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      const compra = await Tabela_Compra.findFirst({
+        where: { id },
+        select: this.selecionar_campos(true, true),
+      });
+
+      if (!compra) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhuma compra",
+          mensagem: "Não foi possível recuperar compra",
+        } as Erro;
+      }
+
+      res.status(200).send(compra);
+    } catch (err) {
+      next(err);
+    }
+  };
   list: RequestHandler = async (req, res, next) => {
     let limite = Number(req.query.limite),
       pagina = Number(req.query.pagina);

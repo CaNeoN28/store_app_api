@@ -17,4 +17,8 @@ router_compras
   .route("/listar-compras/:fornecedor_id")
   .get(authentication_middleware("COMPRA"), controller.list_fornecedor);
 
+router_compras
+  .route("/visualizar-compra/:id")
+  .get(authentication_middleware("COMPRA"), controller.get_id);
+
 export default router_compras;
