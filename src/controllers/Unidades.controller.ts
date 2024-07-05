@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Tabela_Unidade } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
-import { Erro, Unidade } from "../types";
+import { Erro, Metodo, Unidade } from "../types";
 import definir_query from "../utils/definir_query";
 import { Prisma } from "@prisma/client";
 import ordenar_documentos from "../utils/ordenar_documentos";
@@ -119,9 +119,45 @@ export default class Controller_Unidades extends Controller {
     }
   };
   update_by_id: RequestHandler = async (req, res, next) => {
+    const metodo = req.method as Metodo;
+
+    const id = Number(req.params.id);
+    let { nome }: Unidade = req.body;
+
     try {
-      res.send("Atualizar unidade");
-    } catch (err) {}
+      validar_id(id);
+
+      const unidade_antiga = await Tabela_Unidade.findFirst({
+        where: { id },
+      });
+      let unidade_nova: any = undefined;
+
+      if (metodo == "PATCH") {
+        validar_unidade({ nome });
+
+        if (nome) nome = nome.toLowerCase();
+
+        unidade_nova = await Tabela_Unidade.update({
+          where: { id },
+          data: { nome },
+          select: this.selecionar_campos(),
+        })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível atualizar a unidade",
+            } as Erro;
+          });
+      }
+
+      res.status(unidade_antiga ? 200 : 201).send(unidade_nova);
+    } catch (err) {
+      next(err);
+    }
   };
   remove_by_id: RequestHandler = async (req, res, next) => {
     try {
