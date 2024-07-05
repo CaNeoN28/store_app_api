@@ -2,10 +2,11 @@ import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
-import { Compra } from "../types";
+import { Compra, Erro } from "../types";
 import { validar_id } from "../utils/validacao";
 import validar_compra from "../utils/validacao/validar_compra";
 import { Tabela_Compra } from "../db/tabelas";
+import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 
 export default class Controller_Compras extends Controller {
   list: RequestHandler = async (req, res, next) => {};
@@ -64,7 +65,17 @@ export default class Controller_Compras extends Controller {
             },
           },
         },
-      });
+      })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível cadastrar a compra",
+          } as Erro;
+        });
 
       res.status(201).send(compra);
     } catch (err) {
