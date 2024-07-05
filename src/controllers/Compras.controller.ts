@@ -7,6 +7,7 @@ import { validar_id } from "../utils/validacao";
 import validar_compra from "../utils/validacao/validar_compra";
 import { Tabela_Compra } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import { Prisma } from "@prisma/client";
 
 export default class Controller_Compras extends Controller {
   list: RequestHandler = async (req, res, next) => {};
@@ -40,31 +41,7 @@ export default class Controller_Compras extends Controller {
             })),
           },
         },
-        select: {
-          data: true,
-          valor_total: true,
-          fornecedor: {
-            select: {
-              id: true,
-              cnpj: true,
-              nome: true,
-            },
-          },
-          compra_item: {
-            select: {
-              quantidade: true,
-              valor_combinado: true,
-              item: {
-                select: {
-                  id: true,
-                  nome: true,
-                  imagem_url: true,
-                  unidade: { select: { nome: true } },
-                },
-              },
-            },
-          },
-        },
+        select: this.selecionar_campos(),
       })
         .then((res) => res)
         .catch((err) => {
@@ -82,4 +59,34 @@ export default class Controller_Compras extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.CompraSelect = {
+      data: true,
+      valor_total: true,
+      fornecedor: {
+        select: {
+          id: true,
+          cnpj: true,
+          nome: true,
+        },
+      },
+      compra_item: {
+        select: {
+          quantidade: true,
+          valor_combinado: true,
+          item: {
+            select: {
+              id: true,
+              nome: true,
+              imagem_url: true,
+              unidade: { select: { nome: true } },
+            },
+          },
+        },
+      },
+    };
+
+    return selecionados;
+  }
 }
