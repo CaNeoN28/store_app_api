@@ -15,12 +15,12 @@ function config_router() {
   router.use(
     router_autenticacao,
     router_clientes,
+    router_compras,
     router_fornecedor,
     router_grupos,
     router_itens,
     router_unidades,
     router_usuarios
-    // router_compras,
     // router_vendas
   );
 
