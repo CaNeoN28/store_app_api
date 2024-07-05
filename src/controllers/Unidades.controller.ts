@@ -2,10 +2,11 @@ import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Tabela_Unidade } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
-import { Erro } from "../types";
+import { Erro, Unidade } from "../types";
 import definir_query from "../utils/definir_query";
 import { Prisma } from "@prisma/client";
 import ordenar_documentos from "../utils/ordenar_documentos";
+import { validar_unidade } from "../utils/validacao";
 
 export default class Controller_Unidades extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -14,9 +15,32 @@ export default class Controller_Unidades extends Controller {
     } catch (err) {}
   };
   create: RequestHandler = async (req, res, next) => {
+    let { nome }: Unidade = req.body;
     try {
-      res.send("Criar unidade");
-    } catch (err) {}
+      validar_unidade({ nome }, true);
+      nome = nome.toLowerCase()
+
+      const unidade = await Tabela_Unidade.create({
+        data: {
+          nome,
+        },
+        select: this.selecionar_campos(),
+      })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível criar unidade",
+          } as Erro;
+        });
+
+      res.status(201).send(unidade);
+    } catch (err) {
+      next(err);
+    }
   };
   list: RequestHandler = async (req, res, next) => {
     let limite = Number(req.query.limite),

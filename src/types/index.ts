@@ -49,10 +49,12 @@ interface Item {
   validade_desconto?: Date;
   imagem_url?: string;
   unidade_id: number;
-  unidade?: {
-    nome: string;
-    id?: number;
-  };
+  unidade?: Unidade;
+}
+
+interface Unidade {
+  id?: number;
+  nome: string;
 }
 
 interface Usuario {
@@ -90,6 +92,7 @@ export {
   Fornecedor,
   Grupo,
   Item,
+  Unidade,
   Usuario,
   Login,
 };
