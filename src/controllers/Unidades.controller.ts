@@ -19,6 +19,17 @@ export default class Controller_Unidades extends Controller {
     } catch (err) {}
   };
   list: RequestHandler = async (req, res, next) => {
+    let limite = Number(req.query.limite),
+      pagina = Number(req.query.pagina);
+
+    if (isNaN(limite)) {
+      limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    }
+
+    if (isNaN(pagina)) {
+      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+    }
+
     const { nome, ordenar } = req.query;
     const filtros: Prisma.UnidadeWhereInput = {};
 
@@ -33,11 +44,15 @@ export default class Controller_Unidades extends Controller {
       filtros,
       ordenar_documentos(ordenar, Tabela_Unidade),
       this.selecionar_campos(),
-      10,
-      1
+      limite,
+      pagina
     );
 
     try {
+      const registros = await Tabela_Unidade.count({ where: filtros });
+
+      const maximo_paginas = registros > 0 ? Math.floor(registros / limite) : 0;
+
       const unidades = await Tabela_Unidade.findMany(query)
         .then((res) => res)
         .catch((err) => {
@@ -52,6 +67,10 @@ export default class Controller_Unidades extends Controller {
 
       res.status(200).send({
         resultado: unidades,
+        pagina,
+        maximo_paginas,
+        registros,
+        limite,
       });
     } catch (err) {
       next(err);
