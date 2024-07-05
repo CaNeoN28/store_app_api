@@ -41,7 +41,7 @@ export default class Controller_Compras extends Controller {
             })),
           },
         },
-        select: this.selecionar_campos(),
+        select: this.selecionar_campos(true),
       })
         .then((res) => res)
         .catch((err) => {
@@ -60,7 +60,7 @@ export default class Controller_Compras extends Controller {
     }
   };
 
-  protected selecionar_campos() {
+  protected selecionar_campos(mostrar_itens?: boolean) {
     const selecionados: Prisma.CompraSelect = {
       data: true,
       valor_total: true,
@@ -71,20 +71,22 @@ export default class Controller_Compras extends Controller {
           nome: true,
         },
       },
-      compra_item: {
-        select: {
-          quantidade: true,
-          valor_combinado: true,
-          item: {
+      compra_item: mostrar_itens
+        ? {
             select: {
-              id: true,
-              nome: true,
-              imagem_url: true,
-              unidade: { select: { nome: true } },
+              quantidade: true,
+              valor_combinado: true,
+              item: {
+                select: {
+                  id: true,
+                  nome: true,
+                  imagem_url: true,
+                  unidade: { select: { nome: true } },
+                },
+              },
             },
-          },
-        },
-      },
+          }
+        : false,
     };
 
     return selecionados;
