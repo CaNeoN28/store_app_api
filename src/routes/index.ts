@@ -12,20 +12,15 @@ import router_autenticacao from "./autenticacao.router";
 function config_router() {
   const router = Router();
 
-  router.get("/", (req, res) => {
-    res.status(200).send("Hello world");
-  });
-
   router.use(
     router_autenticacao,
     router_clientes,
     router_fornecedor,
     router_grupos,
     router_itens,
+    router_unidades,
     router_usuarios
     // router_compras,
-    // router_itens,
-    // router_unidades,
     // router_vendas
   );
 
