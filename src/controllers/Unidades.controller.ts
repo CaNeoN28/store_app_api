@@ -186,9 +186,29 @@ export default class Controller_Unidades extends Controller {
     }
   };
   remove_by_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
     try {
-      res.send("Remover unidade");
-    } catch (err) {}
+      validar_id(id);
+
+      await Tabela_Unidade.delete({
+        where: { id },
+      })
+        .then()
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível remover a unidade",
+          } as Erro;
+        });
+
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   };
 
   protected selecionar_campos() {
