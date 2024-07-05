@@ -6,19 +6,37 @@ import { Erro, Unidade } from "../types";
 import definir_query from "../utils/definir_query";
 import { Prisma } from "@prisma/client";
 import ordenar_documentos from "../utils/ordenar_documentos";
-import { validar_unidade } from "../utils/validacao";
+import { validar_id, validar_unidade } from "../utils/validacao";
 
 export default class Controller_Unidades extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
     try {
-      res.send("Recuperar unidade");
-    } catch (err) {}
+      validar_id(id);
+
+      const unidade = await Tabela_Unidade.findFirst({
+        where: { id },
+        select: this.selecionar_campos(),
+      });
+
+      if (!unidade) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhuma unidade",
+          mensagem: "Não foi possível recuperar unidade",
+        } as Erro;
+      }
+
+      res.status(200).send(unidade);
+    } catch (err) {
+      next(err);
+    }
   };
   create: RequestHandler = async (req, res, next) => {
     let { nome }: Unidade = req.body;
     try {
       validar_unidade({ nome }, true);
-      nome = nome.toLowerCase()
+      nome = nome.toLowerCase();
 
       const unidade = await Tabela_Unidade.create({
         data: {
