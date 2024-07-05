@@ -9,8 +9,6 @@ export default function validar_unidade(
 
   if (validar_obrigatorios && !nome) {
     erros.nome = "Nome da unidade é obrigatório";
-  } else if (nome && !/^[A-Z]+$/i.test(nome)) {
-    erros.nome = "Nome da unidade é inválido";
   }
 
   if(Object.keys(erros).length > 0){

@@ -152,6 +152,32 @@ export default class Controller_Unidades extends Controller {
               mensagem: "Não foi possível atualizar a unidade",
             } as Erro;
           });
+      } else if (metodo == "PUT") {
+        validar_unidade({ nome }, true);
+
+        nome = nome.toLowerCase();
+
+        unidade_nova = await Tabela_Unidade.upsert({
+          where: { id },
+          create: {
+            nome,
+            id,
+          },
+          update: {
+            nome,
+          },
+          select: this.selecionar_campos(),
+        })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível salvar a unidade",
+            } as Erro;
+          });
       }
 
       res.status(unidade_antiga ? 200 : 201).send(unidade_nova);
