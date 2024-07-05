@@ -10,7 +10,19 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 
 export default class Controller_Compras extends Controller {
-  list: RequestHandler = async (req, res, next) => {};
+  list: RequestHandler = async (req, res, next) => {
+    try {
+      const compras = await Tabela_Compra.findMany({
+        select: this.selecionar_campos(),
+      });
+
+      res.status(200).send({
+        resultado: compras,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
   create: RequestHandler = async (req, res, next) => {
     const { fornecedor_id, itens }: Compra = req.body;
     try {
@@ -62,6 +74,7 @@ export default class Controller_Compras extends Controller {
 
   protected selecionar_campos(mostrar_itens?: boolean) {
     const selecionados: Prisma.CompraSelect = {
+      id: true,
       data: true,
       valor_total: true,
       fornecedor: {
