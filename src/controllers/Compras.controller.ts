@@ -11,13 +11,30 @@ import { Prisma } from "@prisma/client";
 
 export default class Controller_Compras extends Controller {
   list: RequestHandler = async (req, res, next) => {
+    let limite = Number(req.query.limite),
+      pagina = Number(req.query.pagina);
+
+    if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
+    if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+
     try {
+      const registros = await Tabela_Compra.count();
+
+      const maximo_paginas = registros > 0 ? Math.floor(registros / limite) + 1 : 0;
+
       const compras = await Tabela_Compra.findMany({
         select: this.selecionar_campos(),
+        orderBy: {
+          data: "desc",
+        },
       });
 
       res.status(200).send({
         resultado: compras,
+        pagina,
+        maximo_paginas,
+        registros,
+        limite,
       });
     } catch (err) {
       next(err);

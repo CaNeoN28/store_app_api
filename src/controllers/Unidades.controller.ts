@@ -93,7 +93,7 @@ export default class Controller_Unidades extends Controller {
     try {
       const registros = await Tabela_Unidade.count({ where: filtros });
 
-      const maximo_paginas = registros > 0 ? Math.floor(registros / limite) : 0;
+      const maximo_paginas = registros > 0 ? Math.floor(registros / limite) + 1 : 0;
 
       const unidades = await Tabela_Unidade.findMany(query)
         .then((res) => res)

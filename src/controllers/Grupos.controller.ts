@@ -35,7 +35,7 @@ export default class Controller_Grupos extends Controller {
 
       const maximo_paginas =
         registros_usuarios > 0
-          ? Math.floor(registros_usuarios / limite_usuarios)
+          ? Math.floor(registros_usuarios / limite_usuarios) + 1
           : 0;
 
       const grupo = await Tabela_Grupo.findFirst({

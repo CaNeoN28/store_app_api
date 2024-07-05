@@ -10,18 +10,16 @@ import { Tabela_Usuario } from "../db/tabelas";
 import definir_query from "../utils/definir_query";
 
 export default class Controller_Usuarios extends Controller {
-
   get_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
 
     try {
       validar_id(id);
 
-      const usuario = await Tabela_Usuario
-        .findFirst({
-          where: { id },
-          select: this.selecionar_campos(),
-        })
+      const usuario = await Tabela_Usuario.findFirst({
+        where: { id },
+        select: this.selecionar_campos(),
+      })
         .then((res) => res)
         .catch((err) => {
           const { codigo, erro } = verificar_erro_prisma(err);
@@ -146,25 +144,24 @@ export default class Controller_Usuarios extends Controller {
 
       senha = await criptografar_senha(senha);
 
-      const usuario = await Tabela_Usuario
-        .create({
-          data: {
-            nome_completo,
-            nome_usuario,
-            email,
-            foto_url,
-            numero_telefone,
-            senha,
-            grupos: {
-              connect:
-                grupos &&
-                grupos.map((g) => ({
-                  id: g.id,
-                })),
-            },
+      const usuario = await Tabela_Usuario.create({
+        data: {
+          nome_completo,
+          nome_usuario,
+          email,
+          foto_url,
+          numero_telefone,
+          senha,
+          grupos: {
+            connect:
+              grupos &&
+              grupos.map((g) => ({
+                id: g.id,
+              })),
           },
-          select: this.selecionar_campos(),
-        })
+        },
+        select: this.selecionar_campos(),
+      })
         .then((res) => res)
         .catch((err) => {
           const { codigo, erro } = verificar_erro_prisma(err);
@@ -218,29 +215,28 @@ export default class Controller_Usuarios extends Controller {
 
         if (senha) senha = await criptografar_senha(senha);
 
-        usuario_novo = await Tabela_Usuario
-          .update({
-            where: {
-              id,
+        usuario_novo = await Tabela_Usuario.update({
+          where: {
+            id,
+          },
+          data: {
+            email,
+            foto_url,
+            nome_completo,
+            nome_usuario,
+            numero_telefone,
+            grupos: {
+              set: [],
+              connect:
+                grupos &&
+                grupos.map((g) => ({
+                  id: g.id,
+                })),
             },
-            data: {
-              email,
-              foto_url,
-              nome_completo,
-              nome_usuario,
-              numero_telefone,
-              grupos: {
-                set: [],
-                connect:
-                  grupos &&
-                  grupos.map((g) => ({
-                    id: g.id,
-                  })),
-              },
-              senha,
-            },
-            select: this.selecionar_campos(),
-          })
+            senha,
+          },
+          select: this.selecionar_campos(),
+        })
           .then((res) => res)
           .catch((err) => {
             const { codigo, erro } = verificar_erro_prisma(err);
@@ -254,44 +250,43 @@ export default class Controller_Usuarios extends Controller {
       } else if (metodo == "PUT") {
         validar_usuario(data, true);
 
-        usuario_novo = await Tabela_Usuario
-          .upsert({
-            where: {
-              id,
+        usuario_novo = await Tabela_Usuario.upsert({
+          where: {
+            id,
+          },
+          create: {
+            id,
+            nome_completo,
+            nome_usuario,
+            email,
+            foto_url,
+            numero_telefone,
+            senha,
+            grupos: {
+              connect:
+                grupos &&
+                grupos.map((g) => ({
+                  id: g.id,
+                })),
             },
-            create: {
-              id,
-              nome_completo,
-              nome_usuario,
-              email,
-              foto_url,
-              numero_telefone,
-              senha,
-              grupos: {
-                connect:
-                  grupos &&
-                  grupos.map((g) => ({
-                    id: g.id,
-                  })),
-              },
+          },
+          update: {
+            email,
+            foto_url,
+            nome_completo,
+            nome_usuario,
+            numero_telefone,
+            senha,
+            grupos: {
+              connect:
+                grupos &&
+                grupos.map((g) => ({
+                  id: g.id,
+                })),
             },
-            update: {
-              email,
-              foto_url,
-              nome_completo,
-              nome_usuario,
-              numero_telefone,
-              senha,
-              grupos: {
-                connect:
-                  grupos &&
-                  grupos.map((g) => ({
-                    id: g.id,
-                  })),
-              },
-            },
-            select: this.selecionar_campos(),
-          })
+          },
+          select: this.selecionar_campos(),
+        })
           .then((res) => res)
           .catch((err) => {
             const { codigo, erro } = verificar_erro_prisma(err);
@@ -315,10 +310,9 @@ export default class Controller_Usuarios extends Controller {
     try {
       validar_id(id);
 
-      await Tabela_Usuario
-        .delete({
-          where: { id },
-        })
+      await Tabela_Usuario.delete({
+        where: { id },
+      })
         .then()
         .catch((err) => {
           const { codigo, erro } = verificar_erro_prisma(err);
@@ -353,9 +347,9 @@ export default class Controller_Usuarios extends Controller {
             select: {
               tabela: true,
               metodo: true,
-            }
-          }
-        }
+            },
+          },
+        },
       },
     };
 

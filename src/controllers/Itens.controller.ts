@@ -30,7 +30,7 @@ export default class Controller_Itens extends Controller {
 
       const maximo_paginas =
         registros_alteracoes > 0
-          ? Math.floor(registros_alteracoes / limite_alteracoes)
+          ? Math.floor(registros_alteracoes / limite_alteracoes) + 1
           : 0;
 
       const item = await Tabela_Item.findFirst({

@@ -72,7 +72,8 @@ export default class Controller_Cliente extends Controller {
     try {
       const registros = await Tabela_Cliente.count({ where: filtros });
 
-      const maximo_paginas = registros > 0 ? Math.floor(registros / limite) : 0;
+      const maximo_paginas =
+        registros > 0 ? Math.floor(registros / limite) + 1 : 0;
 
       const clientes = await Tabela_Cliente.findMany(query)
         .then((res) => res)
@@ -218,7 +219,7 @@ export default class Controller_Cliente extends Controller {
             mensagem: "Não foi possível remover o cliente",
           } as Erro;
         });
-        
+
       res.status(204).send();
     } catch (err) {
       next(err);
