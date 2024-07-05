@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 import Controller from "./Controller";
+import { Tabela_Unidade } from "../db/tabelas";
+import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import { Erro } from "../types";
 
 export default class Controller_Unidades extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -16,8 +17,24 @@ export default class Controller_Unidades extends Controller {
   };
   list: RequestHandler = async (req, res, next) => {
     try {
-      res.send("Listar unidades");
-    } catch (err) {}
+      const unidades = await Tabela_Unidade.findMany()
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível listar unidades",
+          } as Erro;
+        });
+
+      res.status(200).send({
+        resultado: unidades,
+      });
+    } catch (err) {
+      next(err);
+    }
   };
   update_by_id: RequestHandler = async (req, res, next) => {
     try {
