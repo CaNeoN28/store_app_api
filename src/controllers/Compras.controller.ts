@@ -99,10 +99,19 @@ export default class Controller_Compras extends Controller {
   resumo: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
+    const nome_item = String(req.query.nome_item);
+
     const compra_itens = await Tabela_Compra_Item.groupBy({
       by: "item_id",
       orderBy: {
         item_id: "asc",
+      },
+      where: {
+        item: {
+          nome: {
+            contains: nome_item,
+          },
+        },
       },
       take: limite,
       skip: (pagina - 1) * limite,
