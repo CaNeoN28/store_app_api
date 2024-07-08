@@ -129,6 +129,7 @@ export default class Controller_Compras extends Controller {
         };
       });
     });
+    
     const numero_itens = (await Tabela_Compra_Item.groupBy({
       by: "item_id",
       where: filtros,

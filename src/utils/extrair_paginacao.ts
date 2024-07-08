@@ -1,13 +1,17 @@
 import { Request } from "express";
 import Controller from "../controllers/Controller";
 
-export default function extrair_paginacao(request: Request) {
+export default function extrair_paginacao(
+  request: Request,
+  limite_padrao = Controller.LIMITE_EXIBICAO_PADRAO,
+  pagina_padrao = Controller.PAGINA_EXIBICAO_PADRAO
+) {
   let limite = Number(request.query.limite),
     pagina = Number(request.query.pagina);
 
-  if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
+  if (isNaN(limite)) limite = limite_padrao;
 
-  if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
+  if (isNaN(pagina)) pagina = pagina_padrao;
 
   return {
     limite,
