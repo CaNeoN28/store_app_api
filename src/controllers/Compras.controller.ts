@@ -8,13 +8,15 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
+import extrair_paginacao from "../utils/extrair_paginacao";
 
 interface Resumo_Item {
   nome: string;
   id: number;
   quantidade: number;
-  preco_medio: number;
+  valor: number;
   numero_compras: number;
+  total: number;
 }
 
 export default class Controller_Compras extends Controller {
@@ -95,13 +97,63 @@ export default class Controller_Compras extends Controller {
     }
   };
   resumo: RequestHandler = async (req, res, next) => {
-    const resumo_compras = await Tabela_Compra.aggregate({
-      where: {},
-      _sum: {
-        valor_total: true,
+    const { limite, pagina } = extrair_paginacao(req);
+
+    const compra_itens = await Tabela_Compra_Item.groupBy({
+      by: "item_id",
+      orderBy: {
+        item_id: "asc",
       },
-      _count: {
-        id: true,
+      take: limite,
+      skip: (pagina - 1) * limite,
+      _avg: { valor_combinado: true },
+      _sum: { quantidade: true },
+      _count: { compra_id: true },
+    }).then((res) => {
+      return res.map((i) => {
+        return {
+          ...i,
+          total: Number(i._sum.quantidade) * Number(i._avg.valor_combinado),
+        };
+      });
+    });
+
+    const resumo_itens: Resumo_Item[] = [];
+
+    for (const compra of compra_itens) {
+      const item = await Tabela_Item.findFirst({
+        where: { id: compra.item_id },
+        select: {
+          nome: true,
+        },
+      });
+
+      if (item) {
+        const quantidade = Number(compra._sum.quantidade);
+        const valor = Number(compra._avg.valor_combinado);
+
+        const total = quantidade * valor;
+
+        resumo_itens.push({
+          id: compra.item_id,
+          nome: item.nome,
+          numero_compras: compra._count.compra_id,
+          quantidade,
+          valor,
+          total,
+        });
+      }
+    }
+
+    const resumo_compras = await Tabela_Compra.aggregate({
+      where: {
+        compra_item: {
+          some: {
+            item_id: {
+              in: resumo_itens.map((i) => i.id),
+            },
+          },
+        },
       },
       _min: {
         data: true,
@@ -111,48 +163,19 @@ export default class Controller_Compras extends Controller {
       },
     });
 
-    const numero_compras = resumo_compras._count.id,
-      data_mais_antiga = resumo_compras._min.data,
-      data_mais_recente = resumo_compras._min.data,
-      valor_total = resumo_compras._sum.valor_total;
+    const data_mais_antiga = resumo_compras._min.data,
+      data_mais_recente = resumo_compras._max.data;
 
-    const resumo_itens = await Tabela_Compra_Item.groupBy({
-      by: "item_id",
-      orderBy: {
-        item_id: "asc",
-      },
-      _avg: { valor_combinado: true },
-      _sum: { quantidade: true },
-      _count: { compra_id: true },
-    });
-
-    const itens_compra: Resumo_Item[] = [];
-
-    for (const resumo of resumo_itens) {
-      const item = await Tabela_Item.findFirst({
-        where: { id: resumo.item_id },
-        select: {
-          nome: true,
-        },
-      });
-
-      if (item) {
-        itens_compra.push({
-          id: resumo.item_id,
-          nome: item.nome,
-          numero_compras: resumo._count.compra_id,
-          quantidade: Number(resumo._sum.quantidade),
-          preco_medio: Number(resumo._avg.valor_combinado),
-        });
-      }
-    }
+    const total = resumo_itens.reduce((prev, curr) => ({
+      ...prev,
+      total: prev.total + curr.total,
+    })).total;
 
     res.status(200).send({
-      numero_compras,
       data_mais_antiga,
       data_mais_recente,
-      valor_total,
-      itens: itens_compra
+      total,
+      resumo_itens,
     });
   };
   list_fornecedor: RequestHandler = async (req, res, next) => {
