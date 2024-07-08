@@ -41,14 +41,32 @@ export default class Controller_Compras extends Controller {
     if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
     if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
 
+    const {
+      data_minima,
+      data_maxima,
+    }: { data_minima?: string; data_maxima?: string } = req.query;
+    const filtros: Prisma.CompraWhereInput = {};
+
+    if (data_minima || data_maxima) {
+      filtros.data = {};
+
+      if (data_minima && !isNaN(Number(new Date(data_minima)))) {
+        filtros.data.gte = new Date(data_minima);
+      }
+
+      if (data_maxima && !isNaN(Number(new Date(data_maxima)))) {
+        filtros.data.lte = new Date(data_maxima);
+      }
+    }
+
     try {
-      const registros = await Tabela_Compra.count();
+      const registros = await Tabela_Compra.count({where: filtros});
 
       const maximo_paginas =
         registros > 0 ? Math.floor(registros / limite) + 1 : 0;
 
       const query = definir_query(
-        {},
+        filtros,
         ordenar_documentos("-data", Tabela_Compra),
         this.selecionar_campos(true),
         limite,
