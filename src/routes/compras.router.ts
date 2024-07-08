@@ -14,6 +14,10 @@ router_compras
   .get(authentication_middleware("COMPRA"), controller.list);
 
 router_compras
+  .route("/resumo-compras")
+  .get(authentication_middleware("COMPRA"), controller.resumo);
+
+router_compras
   .route("/listar-compras/:fornecedor_id")
   .get(authentication_middleware("COMPRA"), controller.list_fornecedor);
 

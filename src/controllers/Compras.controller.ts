@@ -60,7 +60,7 @@ export default class Controller_Compras extends Controller {
     }
 
     try {
-      const registros = await Tabela_Compra.count({where: filtros});
+      const registros = await Tabela_Compra.count({ where: filtros });
 
       const maximo_paginas =
         registros > 0 ? Math.floor(registros / limite) + 1 : 0;
@@ -86,6 +86,34 @@ export default class Controller_Compras extends Controller {
       next(err);
     }
   };
+  resumo: RequestHandler = async (req, res, next) => {
+    const resposta = await Tabela_Compra.aggregate({
+      _sum: {
+        valor_total: true,
+      },
+      _count: {
+        id: true,
+      },
+      _min: {
+        data: true,
+      },
+      _max: {
+        data: true,
+      },
+    });
+
+    const numero_compras = resposta._count.id,
+      data_mais_antiga = resposta._min.data,
+      data_mais_recente = resposta._min.data,
+      valor_total = resposta._sum.valor_total;
+
+    res.status(200).send({
+      numero_compras,
+      data_mais_antiga,
+      data_mais_recente,
+      valor_total,
+    });
+  };
   list_fornecedor: RequestHandler = async (req, res, next) => {
     const fornecedor_id = Number(req.params.fornecedor_id);
 
@@ -94,7 +122,7 @@ export default class Controller_Compras extends Controller {
 
     if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
     if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-    
+
     const {
       data_minima,
       data_maxima,
@@ -116,7 +144,9 @@ export default class Controller_Compras extends Controller {
     try {
       validar_id(fornecedor_id);
 
-      const registros = await Tabela_Compra.count({ where: { fornecedor_id, ...filtros } });
+      const registros = await Tabela_Compra.count({
+        where: { fornecedor_id, ...filtros },
+      });
 
       const maximo_paginas =
         registros > 0 ? Math.floor(registros / limite) + 1 : 0;
