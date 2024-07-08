@@ -3,11 +3,19 @@ import Controller from "./Controller";
 import { Compra, Erro } from "../types";
 import { validar_id } from "../utils/validacao";
 import validar_compra from "../utils/validacao/validar_compra";
-import { Tabela_Compra } from "../db/tabelas";
+import { Tabela_Compra, Tabela_Compra_Item, Tabela_Item } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
+
+interface Resumo_Item {
+  nome: string;
+  id: number;
+  quantidade: number;
+  preco_medio: number;
+  numero_compras: number;
+}
 
 export default class Controller_Compras extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -87,7 +95,8 @@ export default class Controller_Compras extends Controller {
     }
   };
   resumo: RequestHandler = async (req, res, next) => {
-    const resposta = await Tabela_Compra.aggregate({
+    const resumo_compras = await Tabela_Compra.aggregate({
+      where: {},
       _sum: {
         valor_total: true,
       },
@@ -102,16 +111,48 @@ export default class Controller_Compras extends Controller {
       },
     });
 
-    const numero_compras = resposta._count.id,
-      data_mais_antiga = resposta._min.data,
-      data_mais_recente = resposta._min.data,
-      valor_total = resposta._sum.valor_total;
+    const numero_compras = resumo_compras._count.id,
+      data_mais_antiga = resumo_compras._min.data,
+      data_mais_recente = resumo_compras._min.data,
+      valor_total = resumo_compras._sum.valor_total;
+
+    const resumo_itens = await Tabela_Compra_Item.groupBy({
+      by: "item_id",
+      orderBy: {
+        item_id: "asc",
+      },
+      _avg: { valor_combinado: true },
+      _sum: { quantidade: true },
+      _count: { compra_id: true },
+    });
+
+    const itens_compra: Resumo_Item[] = [];
+
+    for (const resumo of resumo_itens) {
+      const item = await Tabela_Item.findFirst({
+        where: { id: resumo.item_id },
+        select: {
+          nome: true,
+        },
+      });
+
+      if (item) {
+        itens_compra.push({
+          id: resumo.item_id,
+          nome: item.nome,
+          numero_compras: resumo._count.compra_id,
+          quantidade: Number(resumo._sum.quantidade),
+          preco_medio: Number(resumo._avg.valor_combinado),
+        });
+      }
+    }
 
     res.status(200).send({
       numero_compras,
       data_mais_antiga,
       data_mais_recente,
       valor_total,
+      itens: itens_compra
     });
   };
   list_fornecedor: RequestHandler = async (req, res, next) => {
