@@ -99,20 +99,23 @@ export default class Controller_Compras extends Controller {
   resumo: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
-    const nome_item = String(req.query.nome_item);
+    const { nome_item } = req.query;
+    const filtros: Prisma.Compra_ItemWhereInput = {};
+
+    if (nome_item) {
+      filtros.item = {
+        nome: {
+          contains: String(nome_item),
+        },
+      };
+    }
 
     const compra_itens = await Tabela_Compra_Item.groupBy({
       by: "item_id",
       orderBy: {
         item_id: "asc",
       },
-      where: {
-        item: {
-          nome: {
-            contains: nome_item,
-          },
-        },
-      },
+      where: filtros,
       take: limite,
       skip: (pagina - 1) * limite,
       _avg: { valor_combinado: true },
@@ -126,6 +129,13 @@ export default class Controller_Compras extends Controller {
         };
       });
     });
+    const numero_itens = (await Tabela_Compra_Item.groupBy({
+      by: "item_id",
+      where: filtros,
+    })).length;
+
+    const maximo_paginas =
+      numero_itens > 0 ? Math.floor(numero_itens / limite) + 1 : 0;
 
     const resumo_itens: Resumo_Item[] = [];
 
@@ -175,16 +185,25 @@ export default class Controller_Compras extends Controller {
     const data_mais_antiga = resumo_compras._min.data,
       data_mais_recente = resumo_compras._max.data;
 
-    const total = resumo_itens.reduce((prev, curr) => ({
-      ...prev,
-      total: prev.total + curr.total,
-    })).total;
+    const total =
+      resumo_itens.length > 0
+        ? resumo_itens.reduce((prev, curr) => ({
+            ...prev,
+            total: prev.total + curr.total,
+          })).total
+        : 0;
 
     res.status(200).send({
       data_mais_antiga,
       data_mais_recente,
       total,
-      resumo_itens,
+      resumo_itens: {
+        itens: resumo_itens,
+        pagina,
+        maximo_paginas,
+        limite,
+        registros: numero_itens,
+      },
     });
   };
   list_fornecedor: RequestHandler = async (req, res, next) => {
