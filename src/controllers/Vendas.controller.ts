@@ -35,7 +35,7 @@ export default class Controller_Vendas extends Controller {
           },
           valor_total,
         },
-        select: this.selecionar_campos(),
+        select: this.selecionar_campos(true, true),
       })
         .then((res) => res)
         .catch((err) => {
@@ -54,36 +54,43 @@ export default class Controller_Vendas extends Controller {
     }
   };
 
-  protected selecionar_campos() {
+  protected selecionar_campos(
+    mostrar_cliente?: boolean,
+    mostrar_itens?: boolean
+  ) {
     const selecionados: Prisma.VendaSelect = {
       id: true,
       data: true,
       valor_total: true,
-      cliente: {
-        select: {
-          id: true,
-          cnpj: true,
-          nome: true,
-        },
-      },
-      venda_item: {
-        select: {
-          quantidade: true,
-          valor_venda: true,
-          item: {
+      cliente: mostrar_cliente
+        ? {
             select: {
               id: true,
+              cnpj: true,
               nome: true,
-              unidade: {
+            },
+          }
+        : true,
+      venda_item: mostrar_itens
+        ? {
+            select: {
+              quantidade: true,
+              valor_venda: true,
+              item: {
                 select: {
                   id: true,
                   nome: true,
+                  unidade: {
+                    select: {
+                      id: true,
+                      nome: true,
+                    },
+                  },
                 },
               },
             },
-          },
-        },
-      },
+          }
+        : true,
     };
 
     return selecionados;
