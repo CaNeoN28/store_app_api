@@ -208,7 +208,18 @@ export default class Controller_Vendas extends Controller {
 
   resumo: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
+
+    const { nome_item } = req.query;
     const filtros: Prisma.Venda_ItemWhereInput = {};
+
+    if (nome_item) {
+      filtros.item = {
+        nome: {
+          contains: String(nome_item),
+          mode: "insensitive",
+        },
+      };
+    }
 
     try {
       const venda_itens = await Tabela_Venda_Item.groupBy({
