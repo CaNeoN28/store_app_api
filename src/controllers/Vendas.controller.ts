@@ -223,26 +223,50 @@ export default class Controller_Vendas extends Controller {
 
       const resumo_itens: Resumo_Item[] = [];
 
-      for (const venda of venda_itens) {
-        const item = await Tabela_Item.findFirst({
+      for (const venda_resumo of venda_itens) {
+        const vendas_item = await Tabela_Venda_Item.findMany({
           where: {
-            id: venda.item_id,
+            item_id: venda_resumo.item_id,
           },
           select: {
-            nome: true,
+            quantidade: true,
+            valor_venda: true,
+            item: {
+              select: {
+                nome: true,
+              },
+            },
           },
+        }).then((res) => {
+          return res
+            .map((venda) => {
+              const { item, quantidade, valor_venda } = venda;
+
+              return {
+                nome_item: item.nome,
+                quantidade: Number(quantidade),
+                valor_venda: Number(valor_venda),
+                total: Number(quantidade) * Number(valor_venda),
+              };
+            })
+            .reduce((prev, curr) => {
+              return {
+                ...prev,
+                quantidade: prev.quantidade + curr.quantidade,
+                total: prev.total + curr.total,
+              };
+            });
         });
 
-        if (item) {
-          const quantidade = Number(venda._sum.quantidade);
-          const valor = Number(venda._avg.valor_venda);
-
-          const total = quantidade * valor;
+        if (vendas_item) {
+          const quantidade = vendas_item.quantidade;
+          const total = vendas_item.total;
+          const valor = Number(venda_resumo._avg.valor_venda?.toFixed(2));
 
           resumo_itens.push({
-            id: venda.item_id,
-            nome: item.nome,
-            numero_vendas: venda._count.venda_id,
+            id: venda_resumo.item_id,
+            nome: vendas_item.nome_item,
+            numero_vendas: venda_resumo._count.venda_id,
             quantidade,
             total,
             valor,
@@ -250,7 +274,41 @@ export default class Controller_Vendas extends Controller {
         }
       }
 
-      res.status(200).send(resumo_itens);
+      const resumo_vendas = await Tabela_Venda.aggregate({
+        where: {
+          venda_item: {
+            some: {
+              item_id: {
+                in: resumo_itens.map((i) => i.id),
+              },
+            },
+          },
+        },
+        _min: {
+          data: true,
+        },
+        _max: {
+          data: true,
+        },
+      });
+
+      const data_mais_antiga = resumo_vendas._min.data,
+        data_mais_recente = resumo_vendas._min.data;
+
+      const total =
+        resumo_itens.length > 0
+          ? resumo_itens.reduce((prev, curr) => ({
+              ...prev,
+              total: prev.total + curr.total,
+            })).total
+          : 0;
+
+      res.status(200).send({
+        data_mais_antiga,
+        data_mais_recente,
+        total,
+        resumo_itens,
+      });
     } catch (err) {
       next(err);
     }
