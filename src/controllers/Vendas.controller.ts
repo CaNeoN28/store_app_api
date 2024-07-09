@@ -27,6 +27,14 @@ export default class Controller_Vendas extends Controller {
         select: this.selecionar_campos(true, true),
       });
 
+      if (!venda) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhuma venda",
+          mensagem: "Não foi possível recuperar venda",
+        } as Erro;
+      }
+
       res.status(200).send(venda);
     } catch (err) {
       next(err);
