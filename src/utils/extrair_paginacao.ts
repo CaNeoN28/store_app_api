@@ -14,7 +14,7 @@ export default function extrair_paginacao(
   if (isNaN(pagina)) pagina = pagina_padrao;
 
   return {
-    limite,
-    pagina,
+    limite: limite > 0 ? limite : 1,
+    pagina: pagina > 0 ? pagina : 1,
   };
 }
