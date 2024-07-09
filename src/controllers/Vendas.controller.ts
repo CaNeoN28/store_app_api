@@ -17,7 +17,7 @@ interface Resumo_Item {
   nome: string;
   id: number;
   quantidade: number;
-  valor: number;
+  valor_medio: number;
   numero_vendas: number;
   total: number;
 }
@@ -292,7 +292,7 @@ export default class Controller_Vendas extends Controller {
             numero_vendas: venda_resumo._count.venda_id,
             quantidade,
             total,
-            valor,
+            valor_medio: valor,
           });
         }
       }
@@ -434,7 +434,7 @@ export default class Controller_Vendas extends Controller {
             numero_vendas: venda_resumo._count.venda_id,
             quantidade,
             total,
-            valor,
+            valor_medio: valor,
           });
         }
       }

@@ -14,7 +14,7 @@ interface Resumo_Item {
   nome: string;
   id: number;
   quantidade: number;
-  valor: number;
+  valor_medio: number;
   numero_compras: number;
   total: number;
 }
@@ -189,7 +189,7 @@ export default class Controller_Compras extends Controller {
             nome: item.nome_item,
             numero_compras: compra._count.compra_id,
             quantidade,
-            valor,
+            valor_medio: valor,
             total,
           });
         }
@@ -399,7 +399,7 @@ export default class Controller_Compras extends Controller {
             nome: item.nome_item,
             numero_compras: compra._count.compra_id,
             quantidade,
-            valor,
+            valor_medio: valor,
             total,
           });
         }
