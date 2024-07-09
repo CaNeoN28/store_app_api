@@ -6,6 +6,7 @@ import { Erro, Venda } from "../types";
 import { Tabela_Venda } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import validar_venda from "../utils/validacao/validar_venda";
+import { Prisma } from "@prisma/client";
 
 export default class Controller_Vendas extends Controller {
   create: RequestHandler = async (req, res, next) => {
@@ -13,7 +14,7 @@ export default class Controller_Vendas extends Controller {
 
     try {
       validar_venda({ itens, cliente_id });
-      
+
       const valor_total = itens
         .map((i) => i.quantidade * i.valor_combinado)
         .reduce((prev, curr) => prev + curr);
@@ -34,6 +35,7 @@ export default class Controller_Vendas extends Controller {
           },
           valor_total,
         },
+        select: this.selecionar_campos(),
       })
         .then((res) => res)
         .catch((err) => {
@@ -51,4 +53,39 @@ export default class Controller_Vendas extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.VendaSelect = {
+      id: true,
+      data: true,
+      valor_total: true,
+      cliente: {
+        select: {
+          id: true,
+          cnpj: true,
+          nome: true,
+        },
+      },
+      venda_item: {
+        select: {
+          quantidade: true,
+          valor_venda: true,
+          item: {
+            select: {
+              id: true,
+              nome: true,
+              unidade: {
+                select: {
+                  id: true,
+                  nome: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    return selecionados;
+  }
 }
