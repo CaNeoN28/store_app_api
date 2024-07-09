@@ -16,6 +16,22 @@ interface Intervalo_Data {
 }
 
 export default class Controller_Vendas extends Controller {
+  get_id: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      const venda = await Tabela_Venda.findFirst({
+        where: { id },
+        select: this.selecionar_campos(true, true),
+      });
+
+      res.status(200).send(venda);
+    } catch (err) {
+      next(err);
+    }
+  };
   list: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
     const { cliente_valido } = req.query;
