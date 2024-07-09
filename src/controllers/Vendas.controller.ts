@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Erro, Venda } from "../types";
-import { Tabela_Venda, Tabela_Venda_Item } from "../db/tabelas";
+import { Tabela_Item, Tabela_Venda, Tabela_Venda_Item } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
@@ -11,6 +11,15 @@ import { validar_id } from "../utils/validacao";
 interface Intervalo_Data {
   data_minima?: string;
   data_maxima?: string;
+}
+
+interface Resumo_Item {
+  nome: string;
+  id: number;
+  quantidade: number;
+  valor: number;
+  numero_vendas: number;
+  total: number;
 }
 
 export default class Controller_Vendas extends Controller {
@@ -198,18 +207,50 @@ export default class Controller_Vendas extends Controller {
   };
 
   resumo: RequestHandler = async (req, res, next) => {
+    const filtros: Prisma.Venda_ItemWhereInput = {};
+
     try {
       const venda_itens = await Tabela_Venda_Item.groupBy({
         by: "item_id",
         orderBy: {
           item_id: "asc",
         },
+        where: filtros,
         _avg: { valor_venda: true },
         _sum: { quantidade: true },
         _count: { venda_id: true },
       });
 
-      res.status(200).send(venda_itens);
+      const resumo_itens: Resumo_Item[] = [];
+
+      for (const venda of venda_itens) {
+        const item = await Tabela_Item.findFirst({
+          where: {
+            id: venda.item_id,
+          },
+          select: {
+            nome: true,
+          },
+        });
+
+        if (item) {
+          const quantidade = Number(venda._sum.quantidade);
+          const valor = Number(venda._avg.valor_venda);
+
+          const total = quantidade * valor;
+
+          resumo_itens.push({
+            id: venda.item_id,
+            nome: item.nome,
+            numero_vendas: venda._count.venda_id,
+            quantidade,
+            total,
+            valor,
+          });
+        }
+      }
+
+      res.status(200).send(resumo_itens);
     } catch (err) {
       next(err);
     }
