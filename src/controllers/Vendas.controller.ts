@@ -12,12 +12,30 @@ import extrair_paginacao from "../utils/extrair_paginacao";
 export default class Controller_Vendas extends Controller {
   list: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
+    const { cliente_valido } = req.query;
+
+    const filtros: Prisma.VendaWhereInput = {};
+
+    if (cliente_valido) {
+      if (cliente_valido == "true")
+        filtros.cliente = {
+          isNot: null,
+        };
+      else if (cliente_valido == "false") {
+        filtros.cliente = {
+          is: null,
+        };
+      }
+    }
 
     try {
-      const registros = await Tabela_Venda.count({});
+      const registros = await Tabela_Venda.count({
+        where: filtros,
+      });
       const maximo_paginas = registros > 0 ? Math.ceil(registros / limite) : 0;
-      
+
       const itens = await Tabela_Venda.findMany({
+        where: filtros,
         select: this.selecionar_campos(true),
         orderBy: { data: "desc" },
         skip: (pagina - 1) * limite,
