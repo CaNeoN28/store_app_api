@@ -9,4 +9,8 @@ router_vendas
   .route("/criar-venda")
   .post(authentication_middleware("VENDA"), controller.create);
 
+router_vendas
+  .route("/listar-vendas")
+  .get(authentication_middleware("VENDA"), controller.list);
+
 export default router_vendas;

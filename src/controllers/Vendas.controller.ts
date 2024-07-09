@@ -9,6 +9,27 @@ import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
 
 export default class Controller_Vendas extends Controller {
+  list: RequestHandler = async (req, res, next) => {
+    try {
+      const itens = await Tabela_Venda.findMany({
+        select: this.selecionar_campos(true),
+      })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível listar as vendas",
+          } as Erro;
+        });
+
+      res.status(200).send(itens);
+    } catch (err) {
+      next(err);
+    }
+  };
   create: RequestHandler = async (req, res, next) => {
     const { itens, cliente_id }: Venda = req.body;
 
@@ -70,7 +91,7 @@ export default class Controller_Vendas extends Controller {
               nome: true,
             },
           }
-        : true,
+        : false,
       venda_item: mostrar_itens
         ? {
             select: {
@@ -90,7 +111,7 @@ export default class Controller_Vendas extends Controller {
               },
             },
           }
-        : true,
+        : false,
     };
 
     return selecionados;

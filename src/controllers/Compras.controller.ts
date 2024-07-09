@@ -1,4 +1,4 @@
-import { RequestHandler } from "express";
+ import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Compra, Erro } from "../types";
 import { validar_id } from "../utils/validacao";
