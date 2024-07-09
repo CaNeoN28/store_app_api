@@ -1,4 +1,4 @@
- import { RequestHandler } from "express";
+import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Compra, Erro } from "../types";
 import { validar_id } from "../utils/validacao";
@@ -145,22 +145,48 @@ export default class Controller_Compras extends Controller {
       const resumo_itens: Resumo_Item[] = [];
 
       for (const compra of compra_itens) {
-        const item = await Tabela_Item.findFirst({
-          where: { id: compra.item_id },
-          select: {
-            nome: true,
+        const item = await Tabela_Compra_Item.findMany({
+          where: {
+            item_id: compra.item_id,
           },
+          select: {
+            quantidade: true,
+            valor_combinado: true,
+            item: {
+              select: {
+                nome: true,
+              },
+            },
+          },
+        }).then((res) => {
+          return res
+            .map((venda) => {
+              const { item, quantidade, valor_combinado } = venda;
+
+              return {
+                nome_item: item.nome,
+                quantidade: Number(quantidade),
+                valor_venda: Number(quantidade),
+                total: Number(quantidade) * Number(valor_combinado),
+              };
+            })
+            .reduce((prev, curr) => {
+              return {
+                ...prev,
+                quantidade: prev.quantidade + curr.quantidade,
+                total: prev.total + curr.total,
+              };
+            });
         });
 
         if (item) {
-          const quantidade = Number(compra._sum.quantidade);
-          const valor = Number(compra._avg.valor_combinado);
-
-          const total = quantidade * valor;
+          const valor = Number(compra._avg.valor_combinado?.toFixed(2));
+          const quantidade = item.quantidade;
+          const total = item.total;
 
           resumo_itens.push({
             id: compra.item_id,
-            nome: item.nome,
+            nome: item.nome_item,
             numero_compras: compra._count.compra_id,
             quantidade,
             valor,
@@ -329,22 +355,48 @@ export default class Controller_Compras extends Controller {
       const resumo_itens: Resumo_Item[] = [];
 
       for (const compra of compra_itens) {
-        const item = await Tabela_Item.findFirst({
-          where: { id: compra.item_id },
-          select: {
-            nome: true,
+        const item = await Tabela_Compra_Item.findMany({
+          where: {
+            item_id: compra.item_id,
           },
+          select: {
+            quantidade: true,
+            valor_combinado: true,
+            item: {
+              select: {
+                nome: true,
+              },
+            },
+          },
+        }).then((res) => {
+          return res
+            .map((venda) => {
+              const { item, quantidade, valor_combinado } = venda;
+
+              return {
+                nome_item: item.nome,
+                quantidade: Number(quantidade),
+                valor_venda: Number(quantidade),
+                total: Number(quantidade) * Number(valor_combinado),
+              };
+            })
+            .reduce((prev, curr) => {
+              return {
+                ...prev,
+                quantidade: prev.quantidade + curr.quantidade,
+                total: prev.total + curr.total,
+              };
+            });
         });
 
         if (item) {
-          const quantidade = Number(compra._sum.quantidade);
-          const valor = Number(compra._avg.valor_combinado);
-
-          const total = quantidade * valor;
+          const valor = Number(compra._avg.valor_combinado?.toFixed(2));
+          const quantidade = item.quantidade;
+          const total = item.total;
 
           resumo_itens.push({
             id: compra.item_id,
-            nome: item.nome,
+            nome: item.nome_item,
             numero_compras: compra._count.compra_id,
             quantidade,
             valor,
