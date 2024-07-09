@@ -38,6 +38,15 @@ interface Compra {
   }[];
 }
 
+interface Venda {
+  cliente_id?: number;
+  itens: {
+    item_id: number;
+    quantidade: number;
+    valor_combinado: number;
+  }[];
+}
+
 interface Grupo {
   id?: number;
   nome: string;
@@ -98,6 +107,7 @@ export {
   Tabela_Prisma,
   Metodo,
   Compra,
+  Venda,
   Cliente,
   Fornecedor,
   Grupo,

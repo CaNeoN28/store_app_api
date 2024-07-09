@@ -20,8 +20,8 @@ function config_router() {
     router_grupos,
     router_itens,
     router_unidades,
-    router_usuarios
-    // router_vendas
+    router_usuarios,
+    router_vendas
   );
 
   return router;
