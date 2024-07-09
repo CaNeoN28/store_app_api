@@ -8,6 +8,7 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
 import extrair_paginacao from "../utils/extrair_paginacao";
+import { validar_id } from "../utils/validacao";
 
 interface Intervalo_Data {
   data_minima?: string;
@@ -79,6 +80,36 @@ export default class Controller_Vendas extends Controller {
         limite,
         registros,
       });
+    } catch (err) {
+      next(err);
+    }
+  };
+  list_cliente: RequestHandler = async (req, res, next) => {
+    const cliente_id = Number(req.params.cliente_id);
+
+    const filtros: Prisma.VendaWhereInput = {
+      cliente_id,
+    };
+
+    try {
+      validar_id(cliente_id);
+
+      const vendas = await Tabela_Venda.findMany({
+        where: filtros,
+        select: this.selecionar_campos(),
+      })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível listar vendas",
+          } as Erro;
+        });
+
+      res.status(200).send(vendas);
     } catch (err) {
       next(err);
     }

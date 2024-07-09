@@ -13,4 +13,8 @@ router_vendas
   .route("/listar-vendas")
   .get(authentication_middleware("VENDA"), controller.list);
 
+  router_vendas
+  .route("/listar-vendas/:cliente_id")
+  .get(authentication_middleware("VENDA"), controller.list_cliente);
+
 export default router_vendas;
