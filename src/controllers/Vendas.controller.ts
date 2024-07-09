@@ -9,10 +9,16 @@ import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
 import extrair_paginacao from "../utils/extrair_paginacao";
 
+interface Intervalo_Data {
+  data_minima?: string;
+  data_maxima?: string;
+}
+
 export default class Controller_Vendas extends Controller {
   list: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
     const { cliente_valido } = req.query;
+    const { data_minima, data_maxima }: Intervalo_Data = req.query;
 
     const filtros: Prisma.VendaWhereInput = {};
 
@@ -25,6 +31,20 @@ export default class Controller_Vendas extends Controller {
         filtros.cliente = {
           is: null,
         };
+      }
+    }
+
+    if (data_minima || data_maxima) {
+      const data_minima_formatada = data_minima && new Date(data_minima);
+      const data_maxima_formatada = data_maxima && new Date(data_maxima);
+      filtros.data = {};
+
+      if (data_minima && !isNaN(Number(data_minima_formatada))) {
+        filtros.data.gte = data_minima_formatada;
+      }
+
+      if (data_maxima && !isNaN(Number(data_maxima_formatada))) {
+        filtros.data.lte = data_maxima_formatada;
       }
     }
 
