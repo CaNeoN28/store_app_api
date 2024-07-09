@@ -5,12 +5,15 @@ import Controller from "./Controller";
 import { Erro, Venda } from "../types";
 import { Tabela_Venda } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import validar_venda from "../utils/validacao/validar_venda";
 
 export default class Controller_Vendas extends Controller {
   create: RequestHandler = async (req, res, next) => {
     const { itens, cliente_id }: Venda = req.body;
 
     try {
+      validar_venda({ itens, cliente_id });
+      
       const valor_total = itens
         .map((i) => i.quantidade * i.valor_combinado)
         .reduce((prev, curr) => prev + curr);
