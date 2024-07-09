@@ -21,4 +21,8 @@ router_vendas
   .route("/venda/:id")
   .get(authentication_middleware("VENDA"), controller.get_id);
 
+router_vendas
+  .route("/resumo-vendas")
+  .get(authentication_middleware("VENDA"), controller.resumo);
+
 export default router_vendas;

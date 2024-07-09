@@ -1,9 +1,7 @@
 import { RequestHandler } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 import Controller from "./Controller";
 import { Erro, Venda } from "../types";
-import { Tabela_Venda } from "../db/tabelas";
+import { Tabela_Venda, Tabela_Venda_Item } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
@@ -194,6 +192,24 @@ export default class Controller_Vendas extends Controller {
         });
 
       res.status(201).send(venda);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  resumo: RequestHandler = async (req, res, next) => {
+    try {
+      const venda_itens = await Tabela_Venda_Item.groupBy({
+        by: "item_id",
+        orderBy: {
+          item_id: "asc",
+        },
+        _avg: { valor_venda: true },
+        _sum: { quantidade: true },
+        _count: { venda_id: true },
+      });
+
+      res.status(200).send(venda_itens);
     } catch (err) {
       next(err);
     }
