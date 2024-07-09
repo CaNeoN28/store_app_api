@@ -7,12 +7,21 @@ import { Tabela_Venda } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
+import extrair_paginacao from "../utils/extrair_paginacao";
 
 export default class Controller_Vendas extends Controller {
   list: RequestHandler = async (req, res, next) => {
+    const { limite, pagina } = extrair_paginacao(req);
+
     try {
+      const registros = await Tabela_Venda.count({});
+      const maximo_paginas = registros > 0 ? Math.ceil(registros / limite) : 0;
+      
       const itens = await Tabela_Venda.findMany({
         select: this.selecionar_campos(true),
+        orderBy: { data: "desc" },
+        skip: (pagina - 1) * limite,
+        take: limite,
       })
         .then((res) => res)
         .catch((err) => {
@@ -25,7 +34,13 @@ export default class Controller_Vendas extends Controller {
           } as Erro;
         });
 
-      res.status(200).send(itens);
+      res.status(200).send({
+        resultado: itens,
+        pagina,
+        maximo_paginas,
+        limite,
+        registros,
+      });
     } catch (err) {
       next(err);
     }
