@@ -7,8 +7,16 @@ import extrair_paginacao from "../utils/extrair_paginacao";
 export default class Estoque_Controller extends Controller {
   list: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
+    const { nome_item } = req.query;
 
     const filtros: Prisma.ItemWhereInput = {};
+
+    if (nome_item) {
+      filtros.nome = {
+        contains: String(nome_item),
+        mode: "insensitive",
+      };
+    }
 
     try {
       const registros = await Tabela_Item.count({
