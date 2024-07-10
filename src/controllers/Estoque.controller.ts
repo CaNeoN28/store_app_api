@@ -1,26 +1,72 @@
 import { Prisma } from "@prisma/client";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
-import { Tabela_Estoque, Tabela_Item } from "../db/tabelas";
+import { Tabela_Alteracoes_Estoque, Tabela_Estoque, Tabela_Item } from "../db/tabelas";
 import extrair_paginacao from "../utils/extrair_paginacao";
-import { Estoque, Metodo } from "../types";
+import { Erro, Estoque, Metodo } from "../types";
 import { validar_estoque, validar_id } from "../utils/validacao";
 
 export default class Estoque_Controller extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
+    let limite_alteracoes = Number(req.query.limite_alteracoes),
+      pagina_alteracoes = Number(req.query.pagina_alteracoes);
+
+    if (isNaN(limite_alteracoes))
+      limite_alteracoes = Controller.LIMITE_EXIBICAO_PADRAO;
+
+    if (isNaN(pagina_alteracoes))
+      pagina_alteracoes = Controller.PAGINA_EXIBICAO_PADRAO;
+
     try {
       validar_id(item_id);
 
-      const estoque = await Tabela_Item.findFirst({
+      const registros = await Tabela_Alteracoes_Estoque.count({
+        where: {
+          estoque:{
+            item_id
+          },
+        },
+      });
+
+      const maximo_paginas = Math.ceil(registros / limite_alteracoes);
+
+      const item = await Tabela_Item.findFirst({
         where: {
           id: item_id,
         },
-        select: this.selecionar_campos(true),
+        select: this.selecionar_campos(
+          true,
+          limite_alteracoes,
+          pagina_alteracoes
+        ),
       });
 
-      res.status(200).send(estoque);
+      if (!item) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível recuperar o estoque",
+        } as Erro;
+      }
+
+      const { nome, id, estoque }: any = item;
+
+      res.status(200).send({
+        id,
+        nome,
+        estoque: {
+          ...estoque,
+          alteracoes_estoque: {
+            resultado: estoque.alteracoes_estoque,
+            pagina: pagina_alteracoes,
+            maximo_paginas,
+            limite: limite_alteracoes,
+            registros,
+          },
+        },
+      });
     } catch (err) {
       next(err);
     }
