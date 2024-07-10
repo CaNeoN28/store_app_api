@@ -9,7 +9,8 @@ type Tabela =
   | "UNIDADE"
   | "COMPRA"
   | "VENDA"
-  | "ESTOQUE";
+  | "ESTOQUE"
+  | "PERDA";
 
 type Tabela_Prisma =
   | "item"
@@ -21,7 +22,8 @@ type Tabela_Prisma =
   | "unidade"
   | "compra"
   | "venda"
-  | "estoque";
+  | "estoque"
+  | "perda";
 
 type Metodo = "GET" | "PUT" | "PATCH" | "DELETE" | "POST";
 

@@ -23,6 +23,7 @@ enum Tabela {
   COMPRA
   VENDA
   ESTOQUE
+  PERDA
 }
 
 enum Metodo {
@@ -103,6 +104,7 @@ model Item {
   alteracoes Alteracao_Item[]
   compras    Compra_Item[]
   vendas     Venda_Item[]
+  perdas     Perda_Item[]
 }
 
 model Alteracao_Item {
@@ -185,4 +187,21 @@ model Venda_Item {
   quantidade  Decimal
 
   @@id([venda_id, item_id])
+}
+
+model Perda {
+  id         Int          @id @default(autoincrement())
+  data       DateTime     @default(now())
+  perda_item Perda_Item[]
+}
+
+model Perda_Item {
+  perda_id Int
+  perda    Perda @relation(fields: [perda_id], references: [id])
+  item_id  Int
+  item     Item  @relation(fields: [item_id], references: [id])
+
+  quantidade Decimal
+
+  @@id([perda_id, item_id])
 }
