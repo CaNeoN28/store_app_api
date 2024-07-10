@@ -162,6 +162,9 @@ export default class Controller_Itens extends Controller {
           desconto_porcentagem,
           validade_desconto,
           valor_atual,
+          estoque: {
+            create: {},
+          },
           alteracoes: {
             create: {
               valor_posterior: valor_atual || 0,
@@ -233,6 +236,14 @@ export default class Controller_Itens extends Controller {
             unidade_id,
             validade_desconto,
             imagem_url,
+            estoque: {
+              connectOrCreate: {
+                create: {},
+                where: {
+                  item_id: id,
+                },
+              },
+            },
             alteracoes: {
               create: {
                 desconto_anterior: item_antigo?.desconto_porcentagem,
@@ -280,6 +291,9 @@ export default class Controller_Itens extends Controller {
             validade_desconto,
             valor_atual,
             id,
+            estoque: {
+              create: {},
+            },
             alteracoes: {
               create: {
                 valor_posterior: valor_atual || 0,
@@ -296,6 +310,14 @@ export default class Controller_Itens extends Controller {
             unidade_id,
             validade_desconto,
             valor_atual,
+            estoque: {
+              connectOrCreate: {
+                create: {},
+                where: {
+                  item_id: id,
+                },
+              },
+            },
             alteracoes: {
               create: {
                 desconto_anterior: item_antigo?.desconto_porcentagem,
@@ -365,6 +387,11 @@ export default class Controller_Itens extends Controller {
       unidade: {
         select: {
           nome: true,
+        },
+      },
+      estoque: {
+        select: {
+          quantidade: true,
         },
       },
       alteracoes: exibir_alteracoes
