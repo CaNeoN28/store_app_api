@@ -7,11 +7,30 @@ import { Tabela_Estoque, Tabela_Perda } from "../db/tabelas";
 import { Prisma } from "@prisma/client";
 import validar_perda from "../utils/validacao/validar_perda";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import definir_query from "../utils/definir_query";
+import extrair_paginacao from "../utils/extrair_paginacao";
+import ordenar_documentos from "../utils/ordenar_documentos";
 
 export default class Controller_Perdas extends Controller {
   list: RequestHandler = async (req, res, next) => {
+    const { limite, pagina } = extrair_paginacao(req);
+
+    const filtros: Prisma.PerdaWhereInput = {};
+
+    const query = definir_query(
+      filtros,
+      ordenar_documentos("-data", Tabela_Perda),
+      this.selecionar_campos(),
+      limite,
+      pagina
+    );
+
     try {
-      const perdas = await Tabela_Perda.findMany()
+      const registros = await Tabela_Perda.count({ where: filtros });
+
+      const maximo_paginas = Math.ceil(registros / limite);
+
+      const perdas = await Tabela_Perda.findMany(query)
         .then((res) => res)
         .catch((err) => {
           const { codigo, erro } = verificar_erro_prisma(err);
@@ -23,7 +42,13 @@ export default class Controller_Perdas extends Controller {
           } as Erro;
         });
 
-      res.status(200).send(perdas);
+      res.status(200).send({
+        resultado: perdas,
+        pagina,
+        maximo_paginas,
+        limite,
+        registros,
+      });
     } catch (err) {
       next(err);
     }
