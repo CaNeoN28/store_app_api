@@ -9,6 +9,7 @@ import router_usuarios from "./usuarios.router";
 import router_vendas from "./venda.router";
 import router_autenticacao from "./autenticacao.router";
 import router_estoque from "./estoque.router";
+import router_perdas from "./perdas.router";
 
 function config_router() {
   const router = Router();
@@ -21,9 +22,10 @@ function config_router() {
     router_fornecedor,
     router_grupos,
     router_itens,
+    router_perdas,
     router_unidades,
     router_usuarios,
-    router_vendas
+    router_vendas,
   );
 
   return router;

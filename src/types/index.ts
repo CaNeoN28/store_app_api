@@ -51,6 +51,13 @@ interface Venda {
   }[];
 }
 
+interface Perda {
+  itens: {
+    id: number;
+    quantidade: number;
+  }[];
+}
+
 interface Estoque {
   quantidade: number;
 }
@@ -117,6 +124,7 @@ export {
   Metodo,
   Compra,
   Venda,
+  Perda,
   Estoque,
   Cliente,
   Fornecedor,

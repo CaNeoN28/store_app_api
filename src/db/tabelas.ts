@@ -14,6 +14,8 @@ const Tabela_Unidade = prisma.unidade;
 const Tabela_Usuario = prisma.usuario;
 const Tabela_Venda = prisma.venda;
 const Tabela_Venda_Item = prisma.venda_Item;
+const Tabela_Perda = prisma.perda;
+const Tabela_Perda_Item = prisma.perda_Item;
 
 export {
   Tabela_Acessos,
@@ -30,4 +32,6 @@ export {
   Tabela_Usuario,
   Tabela_Venda,
   Tabela_Venda_Item,
+  Tabela_Perda,
+  Tabela_Perda_Item,
 };
