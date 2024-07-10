@@ -5,12 +5,15 @@ import Controller from "./Controller";
 import { Perda } from "../types";
 import { Tabela_Perda } from "../db/tabelas";
 import { Prisma } from "@prisma/client";
+import validar_perda from "../utils/validacao/validar_perda";
 
 export default class Controller_Perdas extends Controller {
   create: RequestHandler = async (req, res, next) => {
     const { itens }: Perda = req.body;
 
     try {
+      validar_perda({ itens });
+      
       const perdas = await Tabela_Perda.create({
         data: {
           perda_item: {
