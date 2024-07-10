@@ -4,6 +4,7 @@ import { ParsedQs } from "qs";
 import Controller from "./Controller";
 import { Perda } from "../types";
 import { Tabela_Perda } from "../db/tabelas";
+import { Prisma } from "@prisma/client";
 
 export default class Controller_Perdas extends Controller {
   create: RequestHandler = async (req, res, next) => {
@@ -23,6 +24,7 @@ export default class Controller_Perdas extends Controller {
             })),
           },
         },
+        select: this.selecionar_campos(),
       });
 
       res.status(201).send(perdas);
@@ -30,4 +32,27 @@ export default class Controller_Perdas extends Controller {
       next(err);
     }
   };
+
+  protected selecionar_campos() {
+    const selecionados: Prisma.PerdaSelect = {
+      id: true,
+      data: true,
+      perda_item: {
+        orderBy: {
+          item_id: "asc",
+        },
+        select: {
+          quantidade: true,
+          item: {
+            select: {
+              id: true,
+              nome: true,
+            },
+          },
+        },
+      },
+    };
+
+    return selecionados;
+  }
 }
