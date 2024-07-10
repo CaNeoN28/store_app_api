@@ -3,7 +3,12 @@ import Controller from "./Controller";
 import { Compra, Erro } from "../types";
 import { validar_id } from "../utils/validacao";
 import validar_compra from "../utils/validacao/validar_compra";
-import { Tabela_Compra, Tabela_Compra_Item, Tabela_Item } from "../db/tabelas";
+import {
+  Tabela_Compra,
+  Tabela_Compra_Item,
+  Tabela_Estoque,
+  Tabela_Item,
+} from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
@@ -492,6 +497,31 @@ export default class Controller_Compras extends Controller {
             mensagem: "Não foi possível cadastrar a compra",
           } as Erro;
         });
+
+      for (const item of itens) {
+        const quantidade_atual =
+          Number(
+            (
+              await Tabela_Estoque.findFirst({
+                where: {
+                  item_id: item.item_id,
+                },
+                select: {
+                  quantidade: true,
+                },
+              })
+            )?.quantidade
+          ) || 0;
+
+        await Tabela_Estoque.update({
+          where: {
+            item_id: item.item_id,
+          },
+          data: {
+            quantidade: quantidade_atual + item.quantidade,
+          },
+        });
+      }
 
       res.status(201).send(compra);
     } catch (err) {

@@ -5,6 +5,7 @@ const Tabela_Alteracoes_Item = prisma.alteracao_Item;
 const Tabela_Cliente = prisma.cliente;
 const Tabela_Compra = prisma.compra;
 const Tabela_Compra_Item = prisma.compra_Item;
+const Tabela_Estoque = prisma.estoque;
 const Tabela_Fornecedor = prisma.fornecedor;
 const Tabela_Grupo = prisma.grupo;
 const Tabela_Item = prisma.item;
@@ -19,6 +20,7 @@ export {
   Tabela_Cliente,
   Tabela_Compra,
   Tabela_Compra_Item,
+  Tabela_Estoque,
   Tabela_Fornecedor,
   Tabela_Grupo,
   Tabela_Item,
