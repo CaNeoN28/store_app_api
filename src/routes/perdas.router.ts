@@ -6,6 +6,10 @@ const router_perdas = Router();
 const controller = new Controller_Perdas();
 
 router_perdas
+  .route("/listar-perdas")
+  .get(authentication_middleware("PERDA"), controller.list);
+
+router_perdas
   .route("/adicionar-perda")
   .post(authentication_middleware("PERDA"), controller.create);
 

@@ -9,6 +9,25 @@ import validar_perda from "../utils/validacao/validar_perda";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 
 export default class Controller_Perdas extends Controller {
+  list: RequestHandler = async (req, res, next) => {
+    try {
+      const perdas = await Tabela_Perda.findMany()
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível listar perdas",
+          } as Erro;
+        });
+
+      res.status(200).send(perdas);
+    } catch (err) {
+      next(err);
+    }
+  };
   create: RequestHandler = async (req, res, next) => {
     const { itens }: Perda = req.body;
 
