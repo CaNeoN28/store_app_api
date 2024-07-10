@@ -49,6 +49,10 @@ interface Venda {
   }[];
 }
 
+interface Estoque {
+  quantidade: number;
+}
+
 interface Grupo {
   id?: number;
   nome: string;
@@ -70,6 +74,7 @@ interface Item {
   imagem_url?: string;
   unidade_id: number;
   unidade?: Unidade;
+  estoque?: Estoque;
 }
 
 interface Unidade {
@@ -110,6 +115,7 @@ export {
   Metodo,
   Compra,
   Venda,
+  Estoque,
   Cliente,
   Fornecedor,
   Grupo,
