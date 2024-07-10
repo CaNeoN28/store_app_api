@@ -9,4 +9,9 @@ router_estoque
   .route("/itens/estoque")
   .get(authentication_middleware("ESTOQUE"), controller.list);
 
+router_estoque
+  .route("/item/:id/estoque")
+  .patch(authentication_middleware("ESTOQUE"), controller.update_by_id)
+  .put(authentication_middleware("ESTOQUE"), controller.update_by_id);
+
 export default router_estoque;

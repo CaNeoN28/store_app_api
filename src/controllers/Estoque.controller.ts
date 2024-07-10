@@ -1,10 +1,62 @@
 import { Prisma } from "@prisma/client";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
-import { Tabela_Item } from "../db/tabelas";
+import { Tabela_Estoque, Tabela_Item } from "../db/tabelas";
 import extrair_paginacao from "../utils/extrair_paginacao";
+import { Estoque, Metodo } from "../types";
+import { METODOS } from "../utils/globals";
+import { validar_id } from "../utils/validacao";
 
 export default class Estoque_Controller extends Controller {
+  update_by_id: RequestHandler = async (req, res, next) => {
+    const { id: usuario_id } = req.user!;
+
+    const item_id = Number(req.params.id);
+    const metodo = req.method as Metodo;
+
+    const { quantidade: quantidade_nova }: Estoque = req.body;
+
+    try {
+      validar_id(item_id);
+      const estoque_antigo = await Tabela_Estoque.findFirst({
+        where: {
+          item_id,
+        },
+        select: {
+          quantidade: true,
+        },
+      });
+      let estoque_novo: any = undefined;
+
+      if (metodo == "PATCH") {
+        estoque_novo = await Tabela_Item.update({
+          where: {
+            id: item_id,
+          },
+          select: this.selecionar_campos(),
+          data: {
+            estoque: {
+              update: {
+                quantidade: quantidade_nova,
+                alteracoes_estoque: {
+                  create: {
+                    usuario_id: usuario_id,
+                    quantidade_anterior: estoque_antigo?.quantidade,
+                    quantidade_atual: quantidade_nova,
+                  },
+                },
+              },
+            },
+          },
+        });
+      } else if (metodo == "PUT") {
+      }
+
+      res.status(estoque_antigo ? 200 : 201).send(estoque_novo);
+    } catch (err) {
+      next(err);
+    }
+  };
   list: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
     const { nome_item } = req.query;
@@ -63,6 +115,21 @@ export default class Estoque_Controller extends Controller {
       estoque: {
         select: {
           quantidade: true,
+          alteracoes_estoque: {
+            select: {
+              data: true,
+              quantidade_anterior: true,
+              quantidade_atual: true,
+              usuario: {
+                select: {
+                  id: true,
+                  nome_usuario: true,
+                  email: true,
+                  numero_telefone: true,
+                },
+              },
+            },
+          },
         },
       },
     };
