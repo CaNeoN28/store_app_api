@@ -4,10 +4,27 @@ import { RequestHandler } from "express";
 import { Tabela_Estoque, Tabela_Item } from "../db/tabelas";
 import extrair_paginacao from "../utils/extrair_paginacao";
 import { Estoque, Metodo } from "../types";
-import { METODOS } from "../utils/globals";
 import { validar_estoque, validar_id } from "../utils/validacao";
 
 export default class Estoque_Controller extends Controller {
+  get_id: RequestHandler = async (req, res, next) => {
+    const item_id = Number(req.params.id);
+
+    try {
+      validar_id(item_id);
+
+      const estoque = await Tabela_Item.findFirst({
+        where: {
+          id: item_id,
+        },
+        select: this.selecionar_campos(true),
+      });
+
+      res.status(200).send(estoque);
+    } catch (err) {
+      next(err);
+    }
+  };
   update_by_id: RequestHandler = async (req, res, next) => {
     const { id: usuario_id } = req.user!;
 
@@ -36,7 +53,7 @@ export default class Estoque_Controller extends Controller {
           where: {
             id: item_id,
           },
-          select: this.selecionar_campos(),
+          select: this.selecionar_campos(true),
           data: {
             estoque: {
               update: {
@@ -88,7 +105,7 @@ export default class Estoque_Controller extends Controller {
               },
             },
           },
-          select: this.selecionar_campos(),
+          select: this.selecionar_campos(true),
         });
       }
 
@@ -148,31 +165,39 @@ export default class Estoque_Controller extends Controller {
     }
   };
 
-  protected selecionar_campos() {
+  protected selecionar_campos(
+    selecionar_alteracoes?: boolean,
+    limite_alteracoes = Controller.LIMITE_EXIBICAO_PADRAO,
+    pagina_alteracoes = Controller.PAGINA_EXIBICAO_PADRAO
+  ) {
     const selecionados: Prisma.ItemSelect = {
       nome: true,
       id: true,
       estoque: {
         select: {
           quantidade: true,
-          alteracoes_estoque: {
-            orderBy: {
-              data: "desc",
-            },
-            select: {
-              data: true,
-              quantidade_anterior: true,
-              quantidade_atual: true,
-              usuario: {
-                select: {
-                  id: true,
-                  nome_usuario: true,
-                  email: true,
-                  numero_telefone: true,
+          alteracoes_estoque: selecionar_alteracoes
+            ? {
+                take: limite_alteracoes,
+                skip: (pagina_alteracoes - 1) * limite_alteracoes,
+                orderBy: {
+                  data: "desc",
                 },
-              },
-            },
-          },
+                select: {
+                  data: true,
+                  quantidade_anterior: true,
+                  quantidade_atual: true,
+                  usuario: {
+                    select: {
+                      id: true,
+                      nome_usuario: true,
+                      email: true,
+                      numero_telefone: true,
+                    },
+                  },
+                },
+              }
+            : false,
         },
       },
     };

@@ -11,6 +11,7 @@ router_estoque
 
 router_estoque
   .route("/item/:id/estoque")
+  .get(authentication_middleware("ESTOQUE"), controller.get_id)
   .patch(authentication_middleware("ESTOQUE"), controller.update_by_id)
   .put(authentication_middleware("ESTOQUE"), controller.update_by_id);
 
