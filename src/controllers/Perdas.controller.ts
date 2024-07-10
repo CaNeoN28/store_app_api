@@ -15,7 +15,21 @@ export default class Controller_Perdas extends Controller {
   list: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
+    const { nome_item } = req.query;
     const filtros: Prisma.PerdaWhereInput = {};
+
+    if (nome_item) {
+      filtros.perda_item = {
+        some: {
+          item: {
+            nome: {
+              contains: String(nome_item),
+              mode: "insensitive",
+            },
+          },
+        },
+      };
+    }
 
     const query = definir_query(
       filtros,
