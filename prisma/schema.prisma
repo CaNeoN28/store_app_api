@@ -59,8 +59,9 @@ model Usuario {
   numero_telefone String?
   email           String? @unique
 
-  grupos          Grupo[]
-  alteracoes_item Alteracao_Item[]
+  grupos            Grupo[]
+  alteracoes_item   Alteracao_Item[]
+  Alteracao_Estoque Alteracao_Estoque[]
 }
 
 model Fornecedor {
@@ -104,14 +105,6 @@ model Item {
   vendas     Venda_Item[]
 }
 
-model Estoque {
-  id         Int     @id @default(autoincrement())
-  quantidade Decimal @default(0.0)
-
-  item_id Int  @unique
-  item    Item @relation(fields: [item_id], references: [id])
-}
-
 model Alteracao_Item {
   id                 Int       @id @default(autoincrement())
   data               DateTime  @default(now())
@@ -125,6 +118,26 @@ model Alteracao_Item {
   usuario    Usuario @relation(fields: [usuario_id], references: [id])
   item_id    Int
   item       Item    @relation(fields: [item_id], references: [id])
+}
+
+model Estoque {
+  id         Int     @id @default(autoincrement())
+  quantidade Decimal @default(0.0)
+
+  item_id Int  @unique
+  item    Item @relation(fields: [item_id], references: [id])
+
+  Alteracao_Estoque Alteracao_Estoque[]
+}
+
+model Alteracao_Estoque {
+  quantidade_anterior Decimal
+  quantidade_atual    Decimal
+
+  estoque_id Int     @id
+  estoque    Estoque @relation(fields: [estoque_id], references: [id])
+  usuario_id Int
+  usuario    Usuario @relation(fields: [usuario_id], references: [id])
 }
 
 model Compra {
