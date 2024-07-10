@@ -1,7 +1,12 @@
 import { RequestHandler } from "express";
 import Controller from "./Controller";
 import { Erro, Venda } from "../types";
-import { Tabela_Item, Tabela_Venda, Tabela_Venda_Item } from "../db/tabelas";
+import {
+  Tabela_Estoque,
+  Tabela_Item,
+  Tabela_Venda,
+  Tabela_Venda_Item,
+} from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
@@ -167,6 +172,47 @@ export default class Controller_Vendas extends Controller {
     try {
       validar_venda({ itens, cliente_id });
 
+      const erros_estoque: { [k: string]: any } = {};
+      const estoques: {
+        [item_id: number]: { id: number; quantidade: number };
+      } = {};
+
+      for (const item of itens) {
+        const estoque = await Tabela_Estoque.findFirst({
+          where: {
+            item_id: item.item_id,
+          },
+          select: {
+            id: true,
+            quantidade: true,
+          },
+        }).then((res) => {
+          if (res) {
+            return {
+              id: res.id,
+              quantidade: Number(res.quantidade),
+            };
+          } else {
+            return undefined;
+          }
+        });
+
+        if (!estoque || Number(estoque.quantidade) < item.quantidade) {
+          erros_estoque[item.item_id] =
+            "Não há o suficiente para realizar a venda do item";
+        } else {
+          estoques[item.item_id] = estoque;
+        }
+      }
+
+      if (Object.keys(erros_estoque).length > 0) {
+        throw {
+          codigo: 400,
+          erro: erros_estoque,
+          mensagem: "Não foi possível realizar a compra",
+        } as Erro;
+      }
+
       const valor_total = itens
         .map((i) => i.quantidade * i.valor_combinado)
         .reduce((prev, curr) => prev + curr);
@@ -177,6 +223,7 @@ export default class Controller_Vendas extends Controller {
           venda_item: {
             create: itens.map((i) => {
               const { item_id, quantidade, valor_combinado } = i;
+              estoques[item_id].quantidade -= quantidade;
 
               return {
                 item_id,
@@ -199,6 +246,19 @@ export default class Controller_Vendas extends Controller {
             mensagem: "Não foi possível criar a venda",
           } as Erro;
         });
+
+      for (const k in estoques) {
+        const { id, quantidade } = estoques[k];
+        
+        await Tabela_Estoque.update({
+          where: {
+            id,
+          },
+          data: {
+            quantidade,
+          },
+        });
+      }
 
       res.status(201).send(venda);
     } catch (err) {
