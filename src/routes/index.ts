@@ -8,6 +8,7 @@ import router_unidades from "./unidades.router";
 import router_usuarios from "./usuarios.router";
 import router_vendas from "./venda.router";
 import router_autenticacao from "./autenticacao.router";
+import router_estoque from "./estoque.router";
 
 function config_router() {
   const router = Router();
@@ -16,6 +17,7 @@ function config_router() {
     router_autenticacao,
     router_clientes,
     router_compras,
+    router_estoque,
     router_fornecedor,
     router_grupos,
     router_itens,

@@ -8,7 +8,8 @@ type Tabela =
   | "CLIENTE"
   | "UNIDADE"
   | "COMPRA"
-  | "VENDA";
+  | "VENDA"
+  | "ESTOQUE";
 
 type Tabela_Prisma =
   | "item"
@@ -19,7 +20,8 @@ type Tabela_Prisma =
   | "cliente"
   | "unidade"
   | "compra"
-  | "venda";
+  | "venda"
+  | "estoque";
 
 type Metodo = "GET" | "PUT" | "PATCH" | "DELETE" | "POST";
 

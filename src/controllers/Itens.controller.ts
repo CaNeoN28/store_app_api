@@ -389,11 +389,6 @@ export default class Controller_Itens extends Controller {
           nome: true,
         },
       },
-      estoque: {
-        select: {
-          quantidade: true,
-        },
-      },
       alteracoes: exibir_alteracoes
         ? {
             orderBy: {

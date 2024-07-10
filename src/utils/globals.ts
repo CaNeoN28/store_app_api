@@ -11,6 +11,7 @@ const TABELAS: Tabela[] = [
   "UNIDADE",
   "USUARIO",
   "VENDA",
+  "ESTOQUE"
 ];
 
 export { METODOS, TABELAS };
