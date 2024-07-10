@@ -45,25 +45,28 @@ export default class Controller_Perdas extends Controller {
         }
       }
 
-      if(Object.keys(erros_estoque).length > 0){
+      if (Object.keys(erros_estoque).length > 0) {
         throw {
-            codigo: 400,
-            erro: erros_estoque,
-            mensagem: "Não foi possível criar perda"
-        } as Erro
+          codigo: 400,
+          erro: erros_estoque,
+          mensagem: "Não foi possível criar perda",
+        } as Erro;
       }
 
       const perdas = await Tabela_Perda.create({
         data: {
           perda_item: {
-            create: itens.map((i) => ({
-              item: {
-                connect: {
-                  id: i.id,
+            create: itens.map((i) => {
+              estoques[i.id] -= i.quantidade;
+              return {
+                item: {
+                  connect: {
+                    id: i.id,
+                  },
                 },
-              },
-              quantidade: i.quantidade,
-            })),
+                quantidade: i.quantidade,
+              };
+            }),
           },
         },
         select: this.selecionar_campos(),
@@ -78,6 +81,19 @@ export default class Controller_Perdas extends Controller {
             mensagem: "Não foi possível criar perda",
           } as Erro;
         });
+
+      for (const k in estoques) {
+        const estoque = estoques[k];
+
+        await Tabela_Estoque.update({
+          where: {
+            item_id: Number(k),
+          },
+          data: {
+            quantidade: estoque,
+          },
+        });
+      }
 
       res.status(201).send(perdas);
     } catch (err) {
