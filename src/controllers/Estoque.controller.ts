@@ -54,6 +54,42 @@ export default class Estoque_Controller extends Controller {
           },
         });
       } else if (metodo == "PUT") {
+        validar_estoque({ quantidade: quantidade_nova }, true);
+
+        estoque_novo = await Tabela_Item.update({
+          where: {
+            id: item_id,
+          },
+          data: {
+            estoque: {
+              upsert: {
+                where: {
+                  item_id: item_id,
+                },
+                create: {
+                  quantidade: quantidade_nova,
+                  alteracoes_estoque: {
+                    create: {
+                      usuario_id,
+                      quantidade_atual: quantidade_nova,
+                    },
+                  },
+                },
+                update: {
+                  quantidade: quantidade_nova,
+                  alteracoes_estoque: {
+                    create: {
+                      usuario_id,
+                      quantidade_atual: quantidade_nova,
+                      quantidade_anterior: estoque_antigo?.quantidade,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          select: this.selecionar_campos(),
+        });
       }
 
       res.status(estoque_antigo ? 200 : 201).send(estoque_novo);
@@ -120,8 +156,8 @@ export default class Estoque_Controller extends Controller {
         select: {
           quantidade: true,
           alteracoes_estoque: {
-            orderBy:{
-              data: "desc"
+            orderBy: {
+              data: "desc",
             },
             select: {
               data: true,
