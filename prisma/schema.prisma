@@ -58,8 +58,8 @@ model Usuario {
   numero_telefone String?
   email           String? @unique
 
-  grupos                Grupo[]
-  alteracoes_item       Alteracao_Item[]
+  grupos          Grupo[]
+  alteracoes_item Alteracao_Item[]
 }
 
 model Fornecedor {
@@ -67,7 +67,7 @@ model Fornecedor {
   cnpj String @unique
   nome String
 
-  compras    Compra[]
+  compras Compra[]
 }
 
 model Cliente {
@@ -96,9 +96,19 @@ model Item {
   unidade_id Int
   unidade    Unidade @relation(fields: [unidade_id], references: [id])
 
+  estoque Estoque?
+
   alteracoes Alteracao_Item[]
   compras    Compra_Item[]
   vendas     Venda_Item[]
+}
+
+model Estoque {
+  id         Int     @id @default(autoincrement())
+  quantidade Decimal @default(0.0)
+
+  item_id Int  @unique
+  item    Item @relation(fields: [item_id], references: [id])
 }
 
 model Alteracao_Item {
