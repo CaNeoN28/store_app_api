@@ -1,8 +1,6 @@
 import { Prisma } from "@prisma/client";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 import { Tabela_Item } from "../db/tabelas";
 
 export default class Estoque_Controller extends Controller {
@@ -13,9 +11,20 @@ export default class Estoque_Controller extends Controller {
         orderBy: {
           id: "asc",
         },
+      }).then((res) => {
+        return res.map((item) => {
+          const { nome, estoque, id } = item;
+          const quantidade = estoque ? estoque.quantidade.toFixed(2) : "0.00";
+
+          return {
+            id,
+            nome,
+            quantidade,
+          };
+        });
       });
 
-      res.status(200).send(estoque)
+      res.status(200).send(estoque);
     } catch (err) {
       next(err);
     }
