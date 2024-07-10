@@ -5,7 +5,7 @@ import { Tabela_Estoque, Tabela_Item } from "../db/tabelas";
 import extrair_paginacao from "../utils/extrair_paginacao";
 import { Estoque, Metodo } from "../types";
 import { METODOS } from "../utils/globals";
-import { validar_id } from "../utils/validacao";
+import { validar_estoque, validar_id } from "../utils/validacao";
 
 export default class Estoque_Controller extends Controller {
   update_by_id: RequestHandler = async (req, res, next) => {
@@ -18,6 +18,7 @@ export default class Estoque_Controller extends Controller {
 
     try {
       validar_id(item_id);
+
       const estoque_antigo = await Tabela_Estoque.findFirst({
         where: {
           item_id,
@@ -29,6 +30,8 @@ export default class Estoque_Controller extends Controller {
       let estoque_novo: any = undefined;
 
       if (metodo == "PATCH") {
+        validar_estoque({ quantidade: quantidade_nova });
+
         estoque_novo = await Tabela_Item.update({
           where: {
             id: item_id,
@@ -42,7 +45,8 @@ export default class Estoque_Controller extends Controller {
                   create: {
                     usuario_id: usuario_id,
                     quantidade_anterior: estoque_antigo?.quantidade,
-                    quantidade_atual: quantidade_nova,
+                    quantidade_atual:
+                      quantidade_nova || estoque_antigo?.quantidade || 0,
                   },
                 },
               },
@@ -116,6 +120,9 @@ export default class Estoque_Controller extends Controller {
         select: {
           quantidade: true,
           alteracoes_estoque: {
+            orderBy:{
+              data: "desc"
+            },
             select: {
               data: true,
               quantidade_anterior: true,

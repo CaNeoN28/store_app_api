@@ -6,6 +6,7 @@ import validar_id from "./validar_id";
 import validar_usuario from "./validar_usuario";
 import validar_login from "./validar_login";
 import validar_unidade from "./validar_unidade";
+import validar_estoque from "./validar_estoque";
 
 export {
   validar_cnpj,
@@ -15,5 +16,6 @@ export {
   validar_item,
   validar_login,
   validar_usuario,
-  validar_unidade
+  validar_unidade,
+  validar_estoque
 };
