@@ -275,6 +275,14 @@ export default class Controller_Vendas extends Controller {
       };
     }
 
+    const filtro_data = extrair_intervalo(req);
+
+    if (filtro_data) {
+      filtros.venda = {
+        data: filtro_data,
+      };
+    }
+
     try {
       const venda_itens = await Tabela_Venda_Item.groupBy({
         by: "item_id",
@@ -360,6 +368,7 @@ export default class Controller_Vendas extends Controller {
               },
             },
           },
+          data: filtros.venda?.data
         },
         _min: {
           data: true,
