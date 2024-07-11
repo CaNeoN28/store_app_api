@@ -32,6 +32,7 @@ export default class Controller_Perdas extends Controller {
     const { limite, pagina } = extrair_paginacao(req);
 
     const { nome_item } = req.query;
+    const { data_maxima, data_minima }: Intervalo_Data = req.query;
     const filtros: Prisma.PerdaWhereInput = {};
 
     if (nome_item) {
@@ -45,6 +46,23 @@ export default class Controller_Perdas extends Controller {
           },
         },
       };
+    }
+
+    if (data_maxima || data_minima) {
+      const data_maxima_formatada = new Date(data_maxima || "");
+      const data_minima_formatada = new Date(data_minima || "");
+
+      const filtros_data: { gte?: any; lte?: any } = {};
+
+      if (!isNaN(Number(data_maxima_formatada))) {
+        filtros_data.lte = data_maxima_formatada;
+      }
+
+      if (!isNaN(Number(data_minima_formatada))) {
+        filtros_data.gte = data_minima_formatada;
+      }
+
+      filtros.data = filtros_data;
     }
 
     const query = definir_query(
@@ -175,7 +193,7 @@ export default class Controller_Perdas extends Controller {
               },
             },
           },
-          data: filtros.perda?.data
+          data: filtros.perda?.data,
         },
         _min: {
           data: true,
