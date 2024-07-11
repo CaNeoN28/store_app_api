@@ -81,10 +81,24 @@ export default class Controller_Perdas extends Controller {
   resumo: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
+    const filtros: Prisma.Perda_ItemWhereInput = {};
+
+    const { nome_item } = req.query;
+
+    if (nome_item) {
+      filtros.item = {
+        nome: {
+          contains: String(nome_item),
+          mode: "insensitive",
+        },
+      };
+    }
+
     try {
       const registros = (
         await Tabela_Perda_Item.groupBy({
           by: "item_id",
+          where: filtros,
         })
       ).length;
 
@@ -96,6 +110,7 @@ export default class Controller_Perdas extends Controller {
           item_id: "asc",
         },
         _sum: { quantidade: true },
+        where: filtros,
         skip: (pagina - 1) * limite,
         take: limite,
       });
