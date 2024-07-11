@@ -703,18 +703,19 @@ export default class Controller_Vendas extends Controller {
         where: {
           item_id,
         },
-        _avg: {
-          valor_venda: true,
-        },
         _sum: {
+          valor_venda: true,
           quantidade: true,
         },
       });
 
       const {
-        _avg: { valor_venda: valor_medio },
         _sum: { quantidade: quantidade },
       } = venda_item;
+
+      const valor_medio = (Number(total_vendas) / Number(quantidade)).toFixed(
+        2
+      );
 
       res.status(200).send({
         id: item_id,
