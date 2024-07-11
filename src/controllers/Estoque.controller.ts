@@ -2,9 +2,9 @@ import { Prisma } from "@prisma/client";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
 import { Tabela_Alteracoes_Estoque, Tabela_Estoque, Tabela_Item } from "../db/tabelas";
-import extrair_paginacao from "../utils/extrair_paginacao";
 import { Erro, Estoque, Metodo } from "../types";
 import { validar_estoque, validar_id } from "../utils/validacao";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 export default class Estoque_Controller extends Controller {
   get_id: RequestHandler = async (req, res, next) => {

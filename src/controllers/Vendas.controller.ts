@@ -10,8 +10,8 @@ import {
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import validar_venda from "../utils/validacao/validar_venda";
 import { Prisma } from "@prisma/client";
-import extrair_paginacao from "../utils/extrair_paginacao";
 import { validar_id } from "../utils/validacao";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 interface Intervalo_Data {
   data_minima?: string;

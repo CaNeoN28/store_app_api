@@ -1,5 +1,5 @@
 import { Request } from "express";
-import Controller from "../controllers/Controller";
+import Controller from "../../controllers/Controller";
 
 export default function extrair_paginacao(
   request: Request,

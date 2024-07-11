@@ -13,7 +13,7 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
-import extrair_paginacao from "../utils/extrair_paginacao";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 interface Resumo_Item {
   nome: string;

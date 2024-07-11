@@ -13,9 +13,9 @@ import { Prisma } from "@prisma/client";
 import validar_perda from "../utils/validacao/validar_perda";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import definir_query from "../utils/definir_query";
-import extrair_paginacao from "../utils/extrair_paginacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { validar_id } from "../utils/validacao";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 interface Intervalo_Data {
   data_minima?: string;
