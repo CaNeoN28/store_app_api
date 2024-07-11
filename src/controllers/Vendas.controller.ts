@@ -368,7 +368,7 @@ export default class Controller_Vendas extends Controller {
               },
             },
           },
-          data: filtros.venda?.data
+          data: filtros.venda?.data,
         },
         _min: {
           data: true,
@@ -410,6 +410,7 @@ export default class Controller_Vendas extends Controller {
     const { limite, pagina } = extrair_paginacao(req);
 
     const { nome_item } = req.query;
+
     const filtros: Prisma.Venda_ItemWhereInput = {
       venda: {
         cliente_id,
@@ -422,6 +423,14 @@ export default class Controller_Vendas extends Controller {
           contains: String(nome_item),
           mode: "insensitive",
         },
+      };
+    }
+
+    const filtro_data = extrair_intervalo(req);
+
+    if (filtro_data) {
+      filtros.venda = {
+        data: filtro_data,
       };
     }
 
@@ -511,6 +520,7 @@ export default class Controller_Vendas extends Controller {
               },
             },
           },
+          data: filtro_data,
         },
         _min: {
           data: true,
