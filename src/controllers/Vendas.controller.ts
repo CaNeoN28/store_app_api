@@ -663,6 +663,23 @@ export default class Controller_Vendas extends Controller {
     try {
       validar_id(item_id);
 
+      const item = await Tabela_Item.findFirst({
+        where: {
+          id: item_id,
+        },
+        select: {
+          nome: true,
+        },
+      });
+
+      if (!item) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível recuperar o resumo de vendas do item",
+        } as Erro;
+      }
+
       const venda_item = await Tabela_Venda_Item.aggregate({
         where: {
           item_id,
@@ -672,7 +689,13 @@ export default class Controller_Vendas extends Controller {
         },
       });
 
-      res.status(200).send(venda_item)
+      const quantidade = venda_item._sum.quantidade;
+
+      res.status(200).send({
+        id: item_id,
+        nome: item.nome,
+        quantidade,
+      });
     } catch (err) {
       next(err);
     }
