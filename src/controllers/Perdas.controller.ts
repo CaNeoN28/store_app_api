@@ -16,6 +16,11 @@ import definir_query from "../utils/definir_query";
 import extrair_paginacao from "../utils/extrair_paginacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 
+interface Intervalo_Data {
+  data_minima?: string;
+  data_maxima?: string;
+}
+
 interface Resumo_Item {
   id: number;
   nome: string;
@@ -94,6 +99,27 @@ export default class Controller_Perdas extends Controller {
       };
     }
 
+    const { data_maxima, data_minima }: Intervalo_Data = req.query;
+
+    if (data_maxima || data_minima) {
+      const data_maxima_formatada = new Date(data_maxima || "");
+      const data_minima_formatada = new Date(data_minima || "");
+
+      const filtros_data: { gte?: any; lte?: any } = {};
+
+      if (!isNaN(Number(data_maxima_formatada))) {
+        filtros_data.lte = data_maxima_formatada;
+      }
+
+      if (!isNaN(Number(data_minima_formatada))) {
+        filtros_data.gte = data_minima_formatada;
+      }
+
+      filtros.perda = {
+        data: filtros_data,
+      };
+    }
+
     try {
       const registros = (
         await Tabela_Perda_Item.groupBy({
@@ -149,6 +175,7 @@ export default class Controller_Perdas extends Controller {
               },
             },
           },
+          data: filtros.perda?.data
         },
         _min: {
           data: true,
