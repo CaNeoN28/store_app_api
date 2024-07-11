@@ -164,6 +164,7 @@ export default class Controller_Vendas extends Controller {
     const item_id = Number(req.params.id);
 
     const { limite, pagina } = extrair_paginacao(req);
+    const filtros_data = extrair_intervalo(req);
 
     const filtros_venda: Prisma.VendaWhereInput = {
       venda_item: {
@@ -171,6 +172,10 @@ export default class Controller_Vendas extends Controller {
           item_id,
         },
       },
+    };
+
+    if (filtros_data) {
+      filtros_venda.data = filtros_data;
     }
 
     try {
@@ -190,10 +195,10 @@ export default class Controller_Vendas extends Controller {
       }
 
       const registros = await Tabela_Venda.count({
-        where: filtros_venda
-      })
+        where: filtros_venda,
+      });
 
-      const maximo_paginas = Math.ceil(registros / limite)
+      const maximo_paginas = Math.ceil(registros / limite);
 
       const vendas = await Tabela_Venda.findMany({
         where: filtros_venda,
@@ -222,6 +227,17 @@ export default class Controller_Vendas extends Controller {
         });
       });
 
+      const resumo_vendas = await Tabela_Venda.aggregate({
+        where: filtros_venda,
+        _max: { data: true },
+        _min: { data: true },
+      });
+
+      const {
+        _max: { data: data_mais_recente },
+        _min: { data: data_mais_antiga },
+      } = resumo_vendas;
+
       res.status(200).send({
         id: item_id,
         nome: item.nome,
@@ -230,6 +246,8 @@ export default class Controller_Vendas extends Controller {
           maximo_paginas,
           limite,
           registros,
+          data_mais_antiga,
+          data_mais_recente,
           resultado: vendas,
         },
       });
