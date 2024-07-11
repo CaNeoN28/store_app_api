@@ -201,7 +201,7 @@ export default class Controller_Perdas extends Controller {
     }
   };
   resumo_item: RequestHandler = async (req, res, next) => {
-    const item_id = Number(req.params.item_id);
+    const item_id = Number(req.params.id);
 
     const filtros: Prisma.Perda_ItemWhereInput = {
       item_id,
