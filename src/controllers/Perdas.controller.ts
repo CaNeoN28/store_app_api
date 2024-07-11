@@ -1,6 +1,4 @@
 import { RequestHandler } from "express";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 import Controller from "./Controller";
 import { Erro, Perda } from "../types";
 import {
@@ -15,7 +13,10 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { validar_id } from "../utils/validacao";
-import { extrair_paginacao } from "../utils/extracao_request";
+import {
+  extrair_intervalo,
+  extrair_paginacao,
+} from "../utils/extracao_request";
 
 interface Intervalo_Data {
   data_minima?: string;
@@ -33,7 +34,6 @@ export default class Controller_Perdas extends Controller {
     const { limite, pagina } = extrair_paginacao(req);
 
     const { nome_item } = req.query;
-    const { data_maxima, data_minima }: Intervalo_Data = req.query;
     const filtros: Prisma.PerdaWhereInput = {};
 
     if (nome_item) {
@@ -49,21 +49,10 @@ export default class Controller_Perdas extends Controller {
       };
     }
 
-    if (data_maxima || data_minima) {
-      const data_maxima_formatada = new Date(data_maxima || "");
-      const data_minima_formatada = new Date(data_minima || "");
+    const filtro_data = extrair_intervalo(req);
 
-      const filtros_data: { gte?: any; lte?: any } = {};
-
-      if (!isNaN(Number(data_maxima_formatada))) {
-        filtros_data.lte = data_maxima_formatada;
-      }
-
-      if (!isNaN(Number(data_minima_formatada))) {
-        filtros_data.gte = data_minima_formatada;
-      }
-
-      filtros.data = filtros_data;
+    if (filtro_data) {
+      filtros.data = filtro_data;
     }
 
     const query = definir_query(
