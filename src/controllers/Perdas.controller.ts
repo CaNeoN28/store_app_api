@@ -3,13 +3,24 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import Controller from "./Controller";
 import { Erro, Perda } from "../types";
-import { Tabela_Estoque, Tabela_Perda, Tabela_Perda_Item } from "../db/tabelas";
+import {
+  Tabela_Estoque,
+  Tabela_Item,
+  Tabela_Perda,
+  Tabela_Perda_Item,
+} from "../db/tabelas";
 import { Prisma } from "@prisma/client";
 import validar_perda from "../utils/validacao/validar_perda";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import definir_query from "../utils/definir_query";
 import extrair_paginacao from "../utils/extrair_paginacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
+
+interface Resumo_Item {
+  id: number;
+  nome: string;
+  quantidade_perda: number;
+}
 
 export default class Controller_Perdas extends Controller {
   list: RequestHandler = async (req, res, next) => {
@@ -77,7 +88,32 @@ export default class Controller_Perdas extends Controller {
         _sum: { quantidade: true },
       });
 
-      res.status(200).send(perda_item);
+      const resumo_item: Resumo_Item[] = [];
+
+      for (const perda of perda_item) {
+        const { item_id, _sum } = perda;
+
+        const item = await Tabela_Item.findFirst({
+          where: {
+            id: item_id,
+          },
+          select: {
+            nome: true,
+          },
+        });
+
+        if (item) {
+          const { nome } = item;
+
+          resumo_item.push({
+            id: item_id,
+            nome,
+            quantidade_perda: Number(_sum.quantidade),
+          });
+        }
+      }
+
+      res.status(200).send(resumo_item);
     } catch (err) {
       next(err);
     }
