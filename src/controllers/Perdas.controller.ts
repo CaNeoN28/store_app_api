@@ -227,6 +227,31 @@ export default class Controller_Perdas extends Controller {
   resumo_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.item_id);
 
+    const { data_minima, data_maxima }: Intervalo_Data = req.query;
+
+    const filtros: Prisma.Perda_ItemWhereInput = {
+      item_id,
+    };
+
+    if (data_maxima || data_minima) {
+      const data_maxima_formatada = new Date(data_maxima || "");
+      const data_minima_formatada = new Date(data_minima || "");
+
+      const filtros_data: { gte?: any; lte?: any } = {};
+
+      if (!isNaN(Number(data_maxima_formatada))) {
+        filtros_data.lte = data_maxima_formatada;
+      }
+
+      if (!isNaN(Number(data_minima_formatada))) {
+        filtros_data.gte = data_minima_formatada;
+      }
+
+      filtros.perda = {
+        data: filtros_data,
+      };
+    }
+
     try {
       validar_id(item_id);
 
@@ -238,13 +263,29 @@ export default class Controller_Perdas extends Controller {
       const {
         _sum: { quantidade: perda_total },
       } = await Tabela_Perda_Item.aggregate({
-        where: {
-          item_id,
-        },
+        where: filtros,
         _sum: {
           quantidade: true,
         },
       });
+
+      const resumo_perda = await Tabela_Perda.aggregate({
+        where: {
+          perda_item: {
+            some: {
+              item_id,
+            },
+          },
+          data: filtros.perda?.data,
+        },
+        _max: { data: true },
+        _min: { data: true },
+      });
+
+      const {
+        _max: { data: data_mais_recente },
+        _min: { data: data_mais_antiga },
+      } = resumo_perda;
 
       if (!item) {
         throw {
@@ -258,6 +299,8 @@ export default class Controller_Perdas extends Controller {
         id: item_id,
         nome: item.nome,
         perda_total,
+        data_mais_antiga,
+        data_mais_recente,
       });
     } catch (err) {
       next(err);
