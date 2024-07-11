@@ -97,6 +97,19 @@ export default class Controller_Perdas extends Controller {
     try {
       validar_id(item_id);
 
+      const item = await Tabela_Item.findFirst({
+        where: { id: item_id },
+        select: { nome: true },
+      });
+
+      if (!item) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível recuperar as perdas do item",
+        } as Erro;
+      }
+
       const perdas_item = await Tabela_Perda_Item.aggregate({
         where: { item_id },
         _sum: {
@@ -104,7 +117,11 @@ export default class Controller_Perdas extends Controller {
         },
       });
 
-      res.status(200).send(perdas_item);
+      res.status(200).send({
+        id: item_id,
+        nome: item.nome,
+        perda_total: perdas_item._sum.quantidade,
+      });
     } catch (err) {
       next(err);
     }
