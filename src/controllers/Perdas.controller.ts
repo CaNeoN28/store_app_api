@@ -94,6 +94,7 @@ export default class Controller_Perdas extends Controller {
   list_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
     const { limite, pagina } = extrair_paginacao(req);
+    const filtro_data = extrair_intervalo(req);
 
     const filtros_perdas: Prisma.PerdaWhereInput = {
       perda_item: {
@@ -102,6 +103,10 @@ export default class Controller_Perdas extends Controller {
         },
       },
     };
+
+    if (filtro_data) {
+      filtros_perdas.data = filtro_data;
+    }
 
     try {
       validar_id(item_id);
@@ -120,7 +125,7 @@ export default class Controller_Perdas extends Controller {
       }
 
       const resumo_perdas = await Tabela_Perda.aggregate({
-        where: { perda_item: { some: { item_id } } },
+        where: filtros_perdas,
 
         _max: { data: true },
         _min: { data: true },
