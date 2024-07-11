@@ -140,6 +140,7 @@ export default class Controller_Perdas extends Controller {
         where: filtros_perdas,
         skip: (pagina - 1) * limite,
         take: limite,
+        orderBy: { data: "desc" },
         select: {
           id: true,
           data: true,
