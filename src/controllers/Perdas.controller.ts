@@ -117,10 +117,45 @@ export default class Controller_Perdas extends Controller {
         },
       });
 
+      const resumo_perdas = await Tabela_Perda.aggregate({
+        where: { perda_item: { some: { item_id } } },
+
+        _max: { data: true },
+        _min: { data: true },
+      });
+
+      const {
+        _max: { data: data_mais_recente },
+        _min: { data: data_mais_antiga },
+      } = resumo_perdas;
+
+      const perdas = await Tabela_Perda.findMany({
+        where: {
+          perda_item: {
+            some: {
+              item_id,
+            },
+          },
+        },
+        select: {
+          id: true,
+          data: true,
+          perda_item: {
+            where: { item_id },
+            select: { quantidade: true },
+          },
+        },
+      });
+
       res.status(200).send({
         id: item_id,
         nome: item.nome,
         perda_total: perdas_item._sum.quantidade,
+        perdas: {
+          data_mais_antiga,
+          data_mais_recente,
+          resultado: perdas,
+        },
       });
     } catch (err) {
       next(err);
