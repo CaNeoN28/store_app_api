@@ -18,11 +18,6 @@ import {
   extrair_paginacao,
 } from "../utils/extracao_request";
 
-interface Intervalo_Data {
-  data_minima?: string;
-  data_maxima?: string;
-}
-
 interface Resumo_Item {
   id: number;
   nome: string;
