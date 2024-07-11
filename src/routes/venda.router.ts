@@ -14,10 +14,6 @@ router_vendas
   .get(authentication_middleware("VENDA"), controller.list);
 
 router_vendas
-  .route("/listar-vendas/:cliente_id")
-  .get(authentication_middleware("VENDA"), controller.list_cliente);
-
-router_vendas
   .route("/venda/:id")
   .get(authentication_middleware("VENDA"), controller.get_id);
 
@@ -26,7 +22,11 @@ router_vendas
   .get(authentication_middleware("VENDA"), controller.resumo);
 
 router_vendas
-  .route("/resumo-vendas/:cliente_id")
+  .route("/cliente/:id/listar-vendas")
+  .get(authentication_middleware("VENDA"), controller.list_cliente);
+
+router_vendas
+  .route("/cliente/:id/resumo-vendas")
   .get(authentication_middleware("VENDA"), controller.resumo_cliente);
 
 export default router_vendas;

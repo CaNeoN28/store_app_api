@@ -117,7 +117,7 @@ export default class Controller_Vendas extends Controller {
   list_cliente: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
-    const cliente_id = Number(req.params.cliente_id);
+    const cliente_id = Number(req.params.id);
 
     const filtros: Prisma.VendaWhereInput = {
       cliente_id,
@@ -409,7 +409,7 @@ export default class Controller_Vendas extends Controller {
     }
   };
   resumo_cliente: RequestHandler = async (req, res, next) => {
-    const cliente_id = Number(req.params.cliente_id);
+    const cliente_id = Number(req.params.id);
     const { limite, pagina } = extrair_paginacao(req);
 
     const { nome_item } = req.query;
