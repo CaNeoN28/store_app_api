@@ -187,8 +187,8 @@ export default class Controller_Vendas extends Controller {
             },
           },
         },
-        orderBy:{
-          data: "desc"
+        orderBy: {
+          data: "desc",
         },
         select: {
           data: true,
@@ -197,6 +197,17 @@ export default class Controller_Vendas extends Controller {
             select: { quantidade: true, valor_venda: true },
           },
         },
+      }).then((res) => {
+        return res.map((venda) => {
+          const data = venda.data;
+          const { quantidade, valor_venda } = venda.venda_item[0];
+
+          return {
+            data,
+            quantidade,
+            valor_venda,
+          };
+        });
       });
 
       res.status(200).send({
