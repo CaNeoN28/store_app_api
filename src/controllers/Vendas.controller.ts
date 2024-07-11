@@ -376,7 +376,7 @@ export default class Controller_Vendas extends Controller {
       });
 
       const data_mais_antiga = resumo_vendas._min.data,
-        data_mais_recente = resumo_vendas._min.data;
+        data_mais_recente = resumo_vendas._max.data;
 
       const total =
         resumo_itens.length > 0

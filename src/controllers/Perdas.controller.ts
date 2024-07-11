@@ -104,7 +104,7 @@ export default class Controller_Perdas extends Controller {
 
       const maximo_paginas = Math.ceil(registros / limite);
 
-      const perda_item = await Tabela_Perda_Item.groupBy({
+      const perdas_item = await Tabela_Perda_Item.groupBy({
         by: "item_id",
         orderBy: {
           item_id: "asc",
@@ -117,7 +117,7 @@ export default class Controller_Perdas extends Controller {
 
       const resumo_item: Resumo_Item[] = [];
 
-      for (const perda of perda_item) {
+      for (const perda of perdas_item) {
         const { item_id, _sum } = perda;
 
         const item = await Tabela_Item.findFirst({
@@ -140,12 +140,39 @@ export default class Controller_Perdas extends Controller {
         }
       }
 
+      const resumo_perda = await Tabela_Perda.aggregate({
+        where: {
+          perda_item: {
+            some: {
+              item_id: {
+                in: resumo_item.map((i) => i.id),
+              },
+            },
+          },
+        },
+        _min: {
+          data: true,
+        },
+        _max: {
+          data: true,
+        },
+      });
+
+      const {
+        _max: { data: data_mais_recente },
+        _min: { data: data_mais_antiga },
+      } = resumo_perda;
+
       res.status(200).send({
-        resultado: resumo_item,
-        pagina,
-        maximo_paginas,
-        limite,
-        registros,
+        data_mais_antiga,
+        data_mais_recente,
+        resumo_itens: {
+          resultado: resumo_item,
+          pagina,
+          maximo_paginas,
+          limite,
+          registros,
+        },
       });
     } catch (err) {
       next(err);
