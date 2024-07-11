@@ -107,24 +107,11 @@ export default class Controller_Perdas extends Controller {
       };
     }
 
-    const { data_maxima, data_minima }: Intervalo_Data = req.query;
+    const filtro_data = extrair_intervalo(req);
 
-    if (data_maxima || data_minima) {
-      const data_maxima_formatada = new Date(data_maxima || "");
-      const data_minima_formatada = new Date(data_minima || "");
-
-      const filtros_data: { gte?: any; lte?: any } = {};
-
-      if (!isNaN(Number(data_maxima_formatada))) {
-        filtros_data.lte = data_maxima_formatada;
-      }
-
-      if (!isNaN(Number(data_minima_formatada))) {
-        filtros_data.gte = data_minima_formatada;
-      }
-
+    if (filtro_data) {
       filtros.perda = {
-        data: filtros_data,
+        data: filtro_data,
       };
     }
 
@@ -216,29 +203,16 @@ export default class Controller_Perdas extends Controller {
   resumo_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.item_id);
 
-    const { data_minima, data_maxima }: Intervalo_Data = req.query;
-
     const filtros: Prisma.Perda_ItemWhereInput = {
       item_id,
     };
 
-    if (data_maxima || data_minima) {
-      const data_maxima_formatada = new Date(data_maxima || "");
-      const data_minima_formatada = new Date(data_minima || "");
+    const filtro_data = extrair_intervalo(req)
 
-      const filtros_data: { gte?: any; lte?: any } = {};
-
-      if (!isNaN(Number(data_maxima_formatada))) {
-        filtros_data.lte = data_maxima_formatada;
-      }
-
-      if (!isNaN(Number(data_minima_formatada))) {
-        filtros_data.gte = data_minima_formatada;
-      }
-
+    if(filtro_data){
       filtros.perda = {
-        data: filtros_data,
-      };
+        data: filtro_data
+      }
     }
 
     try {
