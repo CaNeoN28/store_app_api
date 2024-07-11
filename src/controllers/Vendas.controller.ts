@@ -659,6 +659,16 @@ export default class Controller_Vendas extends Controller {
   };
   resumo_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
+    const filtro_data = extrair_intervalo(req);
+    const filtros: Prisma.Venda_ItemWhereInput = {
+      item_id,
+    };
+
+    if (filtro_data) {
+      filtros.venda = {
+        data: filtro_data,
+      };
+    }
 
     try {
       validar_id(item_id);
@@ -681,9 +691,7 @@ export default class Controller_Vendas extends Controller {
       }
 
       const total_vendas = await Tabela_Venda_Item.findMany({
-        where: {
-          item_id,
-        },
+        where: filtros,
         select: {
           quantidade: true,
           valor_venda: true,
@@ -700,14 +708,32 @@ export default class Controller_Vendas extends Controller {
       });
 
       const venda_item = await Tabela_Venda_Item.aggregate({
-        where: {
-          item_id,
-        },
+        where: filtros,
         _sum: {
           valor_venda: true,
           quantidade: true,
         },
       });
+
+      const resumo_vendas = await Tabela_Venda.aggregate({
+        where: {
+          venda_item: {
+            some: { item_id },
+          },
+          data: filtro_data,
+        },
+        _max: {
+          data: true,
+        },
+        _min: {
+          data: true,
+        },
+      });
+
+      const {
+        _max: { data: data_mais_recente },
+        _min: { data: data_mais_antiga },
+      } = resumo_vendas;
 
       const {
         _sum: { quantidade: quantidade },
@@ -723,6 +749,8 @@ export default class Controller_Vendas extends Controller {
         valor_medio,
         quantidade,
         total_vendas,
+        data_mais_recente,
+        data_mais_antiga,
       });
     } catch (err) {
       next(err);
