@@ -160,6 +160,54 @@ export default class Controller_Vendas extends Controller {
       next(err);
     }
   };
+  list_item: RequestHandler = async (req, res, next) => {
+    const item_id = Number(req.params.id);
+
+    try {
+      validar_id(item_id);
+
+      const item = await Tabela_Item.findFirst({
+        where: { id: item_id },
+        select: { nome: true },
+      });
+
+      if (!item) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível recuperar as vendas do item",
+        } as Erro;
+      }
+
+      const vendas = await Tabela_Venda.findMany({
+        where: {
+          venda_item: {
+            some: {
+              item_id,
+            },
+          },
+        },
+        orderBy:{
+          data: "desc"
+        },
+        select: {
+          data: true,
+          venda_item: {
+            where: { item_id },
+            select: { quantidade: true, valor_venda: true },
+          },
+        },
+      });
+
+      res.status(200).send({
+        id: item_id,
+        nome: item.nome,
+        vendas,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
   create: RequestHandler = async (req, res, next) => {
     const { itens, cliente_id }: Venda = req.body;
 

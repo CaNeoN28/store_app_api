@@ -29,4 +29,12 @@ router_vendas
   .route("/cliente/:id/resumo-vendas")
   .get(authentication_middleware("VENDA"), controller.resumo_cliente);
 
+router_vendas
+  .route("/item/:id/listar-vendas")
+  .get(authentication_middleware("VENDA"), controller.list_item);
+
+router_vendas
+  .route("/item/:id/resumo-vendas")
+  .get(authentication_middleware("VENDA"), controller.resumo_cliente);
+
 export default router_vendas;
