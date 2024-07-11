@@ -15,6 +15,7 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import definir_query from "../utils/definir_query";
 import extrair_paginacao from "../utils/extrair_paginacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
+import { validar_id } from "../utils/validacao";
 
 interface Intervalo_Data {
   data_minima?: string;
@@ -219,6 +220,30 @@ export default class Controller_Perdas extends Controller {
           registros,
         },
       });
+    } catch (err) {
+      next(err);
+    }
+  };
+  resumo_item: RequestHandler = async (req, res, next) => {
+    const item_id = Number(req.params.item_id);
+
+    try {
+      validar_id(item_id);
+
+      const item = await Tabela_Item.findFirst({
+        where: { id: item_id },
+        select: { nome: true },
+      });
+
+      if (!item) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível recuperar as perdas do item",
+        } as Erro;
+      }
+
+      res.status(200).send(item);
     } catch (err) {
       next(err);
     }
