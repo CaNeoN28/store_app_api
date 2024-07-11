@@ -163,6 +163,16 @@ export default class Controller_Vendas extends Controller {
   list_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
+    const { limite, pagina } = extrair_paginacao(req);
+
+    const filtros_venda: Prisma.VendaWhereInput = {
+      venda_item: {
+        some: {
+          item_id,
+        },
+      },
+    }
+
     try {
       validar_id(item_id);
 
@@ -179,14 +189,16 @@ export default class Controller_Vendas extends Controller {
         } as Erro;
       }
 
+      const registros = await Tabela_Venda.count({
+        where: filtros_venda
+      })
+
+      const maximo_paginas = Math.ceil(registros / limite)
+
       const vendas = await Tabela_Venda.findMany({
-        where: {
-          venda_item: {
-            some: {
-              item_id,
-            },
-          },
-        },
+        where: filtros_venda,
+        skip: (pagina - 1) * limite,
+        take: limite,
         orderBy: {
           data: "desc",
         },
@@ -213,7 +225,13 @@ export default class Controller_Vendas extends Controller {
       res.status(200).send({
         id: item_id,
         nome: item.nome,
-        vendas,
+        vendas: {
+          pagina,
+          maximo_paginas,
+          limite,
+          registros,
+          resultado: vendas,
+        },
       });
     } catch (err) {
       next(err);
