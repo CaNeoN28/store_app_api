@@ -18,7 +18,11 @@ router_perdas
   .post(authentication_middleware("PERDA"), controller.create);
 
 router_perdas
-  .route("/item/:id/resumo_perdas")
+  .route("/item/:id/resumo-perdas")
   .get(authentication_middleware("PERDA"), controller.resumo_item);
+
+router_perdas
+  .route("/item/:id/listar-perdas")
+  .get(authentication_middleware("PERDA"), controller.list_item);
 
 export default router_perdas;

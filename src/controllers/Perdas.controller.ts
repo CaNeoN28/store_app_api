@@ -91,6 +91,24 @@ export default class Controller_Perdas extends Controller {
       next(err);
     }
   };
+  list_item: RequestHandler = async (req, res, next) => {
+    const item_id = Number(req.params.id);
+
+    try {
+      validar_id(item_id);
+
+      const perdas_item = await Tabela_Perda_Item.aggregate({
+        where: { item_id },
+        _sum: {
+          quantidade: true,
+        },
+      });
+
+      res.status(200).send(perdas_item);
+    } catch (err) {
+      next(err);
+    }
+  };
   resumo: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
@@ -207,12 +225,12 @@ export default class Controller_Perdas extends Controller {
       item_id,
     };
 
-    const filtro_data = extrair_intervalo(req)
+    const filtro_data = extrair_intervalo(req);
 
-    if(filtro_data){
+    if (filtro_data) {
       filtros.perda = {
-        data: filtro_data
-      }
+        data: filtro_data,
+      };
     }
 
     try {
