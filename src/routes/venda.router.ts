@@ -35,6 +35,6 @@ router_vendas
 
 router_vendas
   .route("/item/:id/resumo-vendas")
-  .get(authentication_middleware("VENDA"), controller.resumo_cliente);
+  .get(authentication_middleware("VENDA"), controller.resumo_item );
 
 export default router_vendas;
