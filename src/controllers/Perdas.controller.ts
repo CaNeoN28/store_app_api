@@ -235,6 +235,17 @@ export default class Controller_Perdas extends Controller {
         select: { nome: true },
       });
 
+      const {
+        _sum: { quantidade: perda_total },
+      } = await Tabela_Perda_Item.aggregate({
+        where: {
+          item_id,
+        },
+        _sum: {
+          quantidade: true,
+        },
+      });
+
       if (!item) {
         throw {
           codigo: 404,
@@ -243,7 +254,11 @@ export default class Controller_Perdas extends Controller {
         } as Erro;
       }
 
-      res.status(200).send(item);
+      res.status(200).send({
+        id: item_id,
+        nome: item.nome,
+        perda_total,
+      });
     } catch (err) {
       next(err);
     }
