@@ -104,11 +104,11 @@ export default class Controller_Vendas extends Controller {
         });
 
       res.status(200).send({
-        resultado: itens,
         pagina,
         maximo_paginas,
         limite,
         registros,
+        resultado: itens,
       });
     } catch (err) {
       next(err);
@@ -150,11 +150,11 @@ export default class Controller_Vendas extends Controller {
         });
 
       res.status(200).send({
-        resultado: vendas,
         pagina,
         maximo_paginas,
         limite,
         registros,
+        resultado: vendas,
       });
     } catch (err) {
       next(err);
@@ -397,11 +397,11 @@ export default class Controller_Vendas extends Controller {
         data_mais_recente,
         total,
         resumo_itens: {
-          resultado: resumo_itens,
           pagina,
           maximo_paginas,
           limite,
           registros,
+          resultado: resumo_itens,
         },
       });
     } catch (err) {
@@ -551,11 +551,11 @@ export default class Controller_Vendas extends Controller {
         data_mais_recente,
         total,
         resumo_itens: {
-          resultado: resumo_itens,
           pagina,
           maximo_paginas,
           limite,
           registros,
+          resultado: resumo_itens,
         },
       });
     } catch (err) {
