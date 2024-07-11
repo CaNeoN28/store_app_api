@@ -680,21 +680,48 @@ export default class Controller_Vendas extends Controller {
         } as Erro;
       }
 
+      const total_vendas = await Tabela_Venda_Item.findMany({
+        where: {
+          item_id,
+        },
+        select: {
+          quantidade: true,
+          valor_venda: true,
+        },
+      }).then((res) => {
+        return res
+          .map(({ quantidade, valor_venda }) => {
+            const total = Number(quantidade) * Number(valor_venda);
+
+            return total;
+          })
+          .reduce((prev, curr) => prev + curr)
+          .toFixed(2);
+      });
+
       const venda_item = await Tabela_Venda_Item.aggregate({
         where: {
           item_id,
+        },
+        _avg: {
+          valor_venda: true,
         },
         _sum: {
           quantidade: true,
         },
       });
 
-      const quantidade = venda_item._sum.quantidade;
+      const {
+        _avg: { valor_venda: valor_medio },
+        _sum: { quantidade: quantidade },
+      } = venda_item;
 
       res.status(200).send({
         id: item_id,
         nome: item.nome,
+        valor_medio,
         quantidade,
+        total_vendas,
       });
     } catch (err) {
       next(err);
