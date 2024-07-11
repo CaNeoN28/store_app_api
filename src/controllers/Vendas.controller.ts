@@ -326,12 +326,13 @@ export default class Controller_Vendas extends Controller {
           return res
             .map((venda) => {
               const { item, quantidade, valor_venda } = venda;
+              const total = Number(quantidade) * Number(valor_venda);
 
               return {
                 nome_item: item.nome,
                 quantidade: Number(quantidade),
                 valor_venda: Number(valor_venda),
-                total: Number(quantidade) * Number(valor_venda),
+                total,
               };
             })
             .reduce((prev, curr) => {
@@ -344,8 +345,8 @@ export default class Controller_Vendas extends Controller {
         });
 
         if (vendas_item) {
-          const quantidade = vendas_item.quantidade;
-          const total = vendas_item.total;
+          const quantidade = Number(vendas_item.quantidade.toFixed(2));
+          const total = Number(vendas_item.total.toFixed(2));
           const valor = Number(venda_resumo._avg.valor_venda?.toFixed(2));
 
           resumo_itens.push({
@@ -383,10 +384,12 @@ export default class Controller_Vendas extends Controller {
 
       const total =
         resumo_itens.length > 0
-          ? resumo_itens.reduce((prev, curr) => ({
-              ...prev,
-              total: prev.total + curr.total,
-            })).total
+          ? resumo_itens
+              .reduce((prev, curr) => ({
+                ...prev,
+                total: prev.total + curr.total,
+              }))
+              .total.toFixed(2)
           : 0;
 
       res.status(200).send({
@@ -496,8 +499,8 @@ export default class Controller_Vendas extends Controller {
         });
 
         if (vendas_item) {
-          const quantidade = vendas_item.quantidade;
-          const total = vendas_item.total;
+          const quantidade = Number(vendas_item.quantidade.toFixed(2));
+          const total = Number(vendas_item.total.toFixed(2));
           const valor = Number(venda_resumo._avg.valor_venda?.toFixed(2));
 
           resumo_itens.push({
@@ -535,10 +538,12 @@ export default class Controller_Vendas extends Controller {
 
       const total =
         resumo_itens.length > 0
-          ? resumo_itens.reduce((prev, curr) => ({
-              ...prev,
-              total: prev.total + curr.total,
-            })).total
+          ? resumo_itens
+              .reduce((prev, curr) => ({
+                ...prev,
+                total: prev.total + curr.total,
+              }))
+              .total.toFixed(2)
           : 0;
 
       res.status(200).send({
