@@ -203,6 +203,7 @@ export default class Controller_Vendas extends Controller {
           data: "desc",
         },
         select: {
+          id: true,
           data: true,
           venda_item: {
             where: { item_id },
@@ -211,10 +212,11 @@ export default class Controller_Vendas extends Controller {
         },
       }).then((res) => {
         return res.map((venda) => {
-          const data = venda.data;
+          const {id, data} = venda;
           const { quantidade, valor_venda } = venda.venda_item[0];
 
           return {
+            id,
             data,
             quantidade,
             valor_venda,
