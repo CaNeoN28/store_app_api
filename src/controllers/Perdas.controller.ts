@@ -3,7 +3,7 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import Controller from "./Controller";
 import { Erro, Perda } from "../types";
-import { Tabela_Estoque, Tabela_Perda } from "../db/tabelas";
+import { Tabela_Estoque, Tabela_Perda, Tabela_Perda_Item } from "../db/tabelas";
 import { Prisma } from "@prisma/client";
 import validar_perda from "../utils/validacao/validar_perda";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
@@ -63,6 +63,21 @@ export default class Controller_Perdas extends Controller {
         limite,
         registros,
       });
+    } catch (err) {
+      next(err);
+    }
+  };
+  resumo: RequestHandler = async (req, res, next) => {
+    try {
+      const perda_item = await Tabela_Perda_Item.groupBy({
+        by: "item_id",
+        orderBy: {
+          item_id: "asc",
+        },
+        _sum: { quantidade: true },
+      });
+
+      res.status(200).send(perda_item);
     } catch (err) {
       next(err);
     }

@@ -10,6 +10,10 @@ router_perdas
   .get(authentication_middleware("PERDA"), controller.list);
 
 router_perdas
+  .route("/resumo-perdas")
+  .get(authentication_middleware("PERDA"), controller.resumo);
+
+router_perdas
   .route("/adicionar-perda")
   .post(authentication_middleware("PERDA"), controller.create);
 
