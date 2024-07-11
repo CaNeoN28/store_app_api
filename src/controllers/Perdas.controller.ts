@@ -93,6 +93,15 @@ export default class Controller_Perdas extends Controller {
   };
   list_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
+    const { limite, pagina } = extrair_paginacao(req);
+
+    const filtros_perdas: Prisma.PerdaWhereInput = {
+      perda_item: {
+        some: {
+          item_id,
+        },
+      },
+    };
 
     try {
       validar_id(item_id);
@@ -110,13 +119,6 @@ export default class Controller_Perdas extends Controller {
         } as Erro;
       }
 
-      const perdas_item = await Tabela_Perda_Item.aggregate({
-        where: { item_id },
-        _sum: {
-          quantidade: true,
-        },
-      });
-
       const resumo_perdas = await Tabela_Perda.aggregate({
         where: { perda_item: { some: { item_id } } },
 
@@ -130,13 +132,9 @@ export default class Controller_Perdas extends Controller {
       } = resumo_perdas;
 
       const perdas = await Tabela_Perda.findMany({
-        where: {
-          perda_item: {
-            some: {
-              item_id,
-            },
-          },
-        },
+        where: filtros_perdas,
+        skip: (pagina - 1) * limite,
+        take: limite,
         select: {
           id: true,
           data: true,
@@ -147,13 +145,22 @@ export default class Controller_Perdas extends Controller {
         },
       });
 
+      const registros = await Tabela_Perda.count({
+        where: filtros_perdas,
+      });
+
+      const maximo_paginas = Math.ceil(registros / limite);
+
       res.status(200).send({
         id: item_id,
         nome: item.nome,
-        perda_total: perdas_item._sum.quantidade,
         perdas: {
           data_mais_antiga,
           data_mais_recente,
+          pagina,
+          maximo_paginas,
+          limite,
+          registros,
           resultado: perdas,
         },
       });
