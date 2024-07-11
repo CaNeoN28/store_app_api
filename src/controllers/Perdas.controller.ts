@@ -79,13 +79,25 @@ export default class Controller_Perdas extends Controller {
     }
   };
   resumo: RequestHandler = async (req, res, next) => {
+    const { limite, pagina } = extrair_paginacao(req);
+
     try {
+      const registros = (
+        await Tabela_Perda_Item.groupBy({
+          by: "item_id",
+        })
+      ).length;
+
+      const maximo_paginas = Math.ceil(registros / limite);
+
       const perda_item = await Tabela_Perda_Item.groupBy({
         by: "item_id",
         orderBy: {
           item_id: "asc",
         },
         _sum: { quantidade: true },
+        skip: (pagina - 1) * limite,
+        take: limite,
       });
 
       const resumo_item: Resumo_Item[] = [];
@@ -113,7 +125,13 @@ export default class Controller_Perdas extends Controller {
         }
       }
 
-      res.status(200).send(resumo_item);
+      res.status(200).send({
+        resultado: resumo_item,
+        pagina,
+        maximo_paginas,
+        limite,
+        registros,
+      });
     } catch (err) {
       next(err);
     }
