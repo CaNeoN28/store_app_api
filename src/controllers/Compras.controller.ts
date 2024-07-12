@@ -13,7 +13,10 @@ import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 import { Prisma } from "@prisma/client";
 import definir_query from "../utils/definir_query";
 import ordenar_documentos from "../utils/ordenar_documentos";
-import { extrair_paginacao } from "../utils/extracao_request";
+import {
+  extrair_intervalo,
+  extrair_paginacao,
+} from "../utils/extracao_request";
 
 interface Resumo_Item {
   nome: string;
@@ -50,28 +53,14 @@ export default class Controller_Compras extends Controller {
     }
   };
   list: RequestHandler = async (req, res, next) => {
-    let limite = Number(req.query.limite),
-      pagina = Number(req.query.pagina);
+    const { limite, pagina } = extrair_paginacao(req);
 
-    if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-
-    const {
-      data_minima,
-      data_maxima,
-    }: { data_minima?: string; data_maxima?: string } = req.query;
     const filtros: Prisma.CompraWhereInput = {};
 
-    if (data_minima || data_maxima) {
-      filtros.data = {};
+    const filtros_data = extrair_intervalo(req);
 
-      if (data_minima && !isNaN(Number(new Date(data_minima)))) {
-        filtros.data.gte = new Date(data_minima);
-      }
-
-      if (data_maxima && !isNaN(Number(new Date(data_maxima)))) {
-        filtros.data.lte = new Date(data_maxima);
-      }
+    if (filtros_data) {
+      filtros.data = filtros_data;
     }
 
     try {
@@ -91,11 +80,11 @@ export default class Controller_Compras extends Controller {
       const compras = await Tabela_Compra.findMany(query);
 
       res.status(200).send({
-        resultado: compras,
         pagina,
         maximo_paginas,
         registros,
         limite,
+        resultado: compras,
       });
     } catch (err) {
       next(err);
@@ -248,28 +237,14 @@ export default class Controller_Compras extends Controller {
   list_fornecedor: RequestHandler = async (req, res, next) => {
     const fornecedor_id = Number(req.params.fornecedor_id);
 
-    let limite = Number(req.query.limite),
-      pagina = Number(req.query.pagina);
+    const { limite, pagina } = extrair_paginacao(req);
 
-    if (isNaN(limite)) limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    if (isNaN(pagina)) pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-
-    const {
-      data_minima,
-      data_maxima,
-    }: { data_minima?: string; data_maxima?: string } = req.query;
     const filtros: Prisma.CompraWhereInput = {};
 
-    if (data_minima || data_maxima) {
-      filtros.data = {};
+    const filtros_data = extrair_intervalo(req);
 
-      if (data_minima && !isNaN(Number(new Date(data_minima)))) {
-        filtros.data.gte = new Date(data_minima);
-      }
-
-      if (data_maxima && !isNaN(Number(new Date(data_maxima)))) {
-        filtros.data.lte = new Date(data_maxima);
-      }
+    if (filtros_data) {
+      filtros.data = filtros_data;
     }
 
     try {
@@ -293,11 +268,11 @@ export default class Controller_Compras extends Controller {
       const compras = await Tabela_Compra.findMany(query);
 
       res.status(200).send({
-        resultado: compras,
         pagina,
         maximo_paginas,
         registros,
         limite,
+        resultado: compras,
       });
     } catch (err) {
       next(err);
