@@ -90,6 +90,124 @@ export default class Controller_Compras extends Controller {
       next(err);
     }
   };
+  list_fornecedor: RequestHandler = async (req, res, next) => {
+    const fornecedor_id = Number(req.params.id);
+
+    const { limite, pagina } = extrair_paginacao(req);
+
+    const filtros: Prisma.CompraWhereInput = {};
+
+    const filtros_data = extrair_intervalo(req);
+
+    if (filtros_data) {
+      filtros.data = filtros_data;
+    }
+
+    try {
+      validar_id(fornecedor_id);
+
+      const registros = await Tabela_Compra.count({
+        where: { fornecedor_id, ...filtros },
+      });
+
+      const maximo_paginas =
+        registros > 0 ? Math.floor(registros / limite) + 1 : 0;
+
+      const query = definir_query(
+        { fornecedor_id, ...filtros },
+        ordenar_documentos("-data", Tabela_Compra),
+        this.selecionar_campos(),
+        limite,
+        pagina
+      );
+
+      const compras = await Tabela_Compra.findMany(query);
+
+      res.status(200).send({
+        pagina,
+        maximo_paginas,
+        registros,
+        limite,
+        resultado: compras,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+  create: RequestHandler = async (req, res, next) => {
+    const { fornecedor_id, itens }: Compra = req.body;
+    try {
+      validar_compra({ fornecedor_id, itens });
+
+      const valor_total =
+        itens.length > 0
+          ? itens
+              .map((item) => {
+                const valor = item.quantidade * item.valor_combinado;
+
+                return valor;
+              })
+              .reduce((prev, curr) => {
+                return prev + curr;
+              })
+          : 0;
+
+      const compra = await Tabela_Compra.create({
+        data: {
+          valor_total,
+          fornecedor_id,
+          compra_item: {
+            create: itens.map((item) => ({
+              item_id: item.item_id,
+              quantidade: item.quantidade,
+              valor_combinado: item.valor_combinado,
+            })),
+          },
+        },
+        select: this.selecionar_campos(true, true),
+      })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível cadastrar a compra",
+          } as Erro;
+        });
+
+      for (const item of itens) {
+        const quantidade_atual =
+          Number(
+            (
+              await Tabela_Estoque.findFirst({
+                where: {
+                  item_id: item.item_id,
+                },
+                select: {
+                  quantidade: true,
+                },
+              })
+            )?.quantidade
+          ) || 0;
+
+        await Tabela_Estoque.update({
+          where: {
+            item_id: item.item_id,
+          },
+          data: {
+            quantidade: quantidade_atual + item.quantidade,
+          },
+        });
+      }
+
+      res.status(201).send(compra);
+    } catch (err) {
+      next(err);
+    }
+  };
+   
   resumo: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
@@ -238,50 +356,6 @@ export default class Controller_Compras extends Controller {
           limite,
           registros: numero_itens,
         },
-      });
-    } catch (err) {
-      next(err);
-    }
-  };
-  list_fornecedor: RequestHandler = async (req, res, next) => {
-    const fornecedor_id = Number(req.params.id);
-
-    const { limite, pagina } = extrair_paginacao(req);
-
-    const filtros: Prisma.CompraWhereInput = {};
-
-    const filtros_data = extrair_intervalo(req);
-
-    if (filtros_data) {
-      filtros.data = filtros_data;
-    }
-
-    try {
-      validar_id(fornecedor_id);
-
-      const registros = await Tabela_Compra.count({
-        where: { fornecedor_id, ...filtros },
-      });
-
-      const maximo_paginas =
-        registros > 0 ? Math.floor(registros / limite) + 1 : 0;
-
-      const query = definir_query(
-        { fornecedor_id, ...filtros },
-        ordenar_documentos("-data", Tabela_Compra),
-        this.selecionar_campos(),
-        limite,
-        pagina
-      );
-
-      const compras = await Tabela_Compra.findMany(query);
-
-      res.status(200).send({
-        pagina,
-        maximo_paginas,
-        registros,
-        limite,
-        resultado: compras,
       });
     } catch (err) {
       next(err);
@@ -441,79 +515,6 @@ export default class Controller_Compras extends Controller {
           registros: numero_itens,
         },
       });
-    } catch (err) {
-      next(err);
-    }
-  };
-  create: RequestHandler = async (req, res, next) => {
-    const { fornecedor_id, itens }: Compra = req.body;
-    try {
-      validar_compra({ fornecedor_id, itens });
-
-      const valor_total =
-        itens.length > 0
-          ? itens
-              .map((item) => {
-                const valor = item.quantidade * item.valor_combinado;
-
-                return valor;
-              })
-              .reduce((prev, curr) => {
-                return prev + curr;
-              })
-          : 0;
-
-      const compra = await Tabela_Compra.create({
-        data: {
-          valor_total,
-          fornecedor_id,
-          compra_item: {
-            create: itens.map((item) => ({
-              item_id: item.item_id,
-              quantidade: item.quantidade,
-              valor_combinado: item.valor_combinado,
-            })),
-          },
-        },
-        select: this.selecionar_campos(true, true),
-      })
-        .then((res) => res)
-        .catch((err) => {
-          const { codigo, erro } = verificar_erro_prisma(err);
-
-          throw {
-            codigo,
-            erro,
-            mensagem: "Não foi possível cadastrar a compra",
-          } as Erro;
-        });
-
-      for (const item of itens) {
-        const quantidade_atual =
-          Number(
-            (
-              await Tabela_Estoque.findFirst({
-                where: {
-                  item_id: item.item_id,
-                },
-                select: {
-                  quantidade: true,
-                },
-              })
-            )?.quantidade
-          ) || 0;
-
-        await Tabela_Estoque.update({
-          where: {
-            item_id: item.item_id,
-          },
-          data: {
-            quantidade: quantidade_atual + item.quantidade,
-          },
-        });
-      }
-
-      res.status(201).send(compra);
     } catch (err) {
       next(err);
     }
