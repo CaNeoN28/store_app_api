@@ -7,6 +7,7 @@ import { validar_fornecedor, validar_id } from "../utils/validacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Fornecedor } from "../db/tabelas";
 import definir_query from "../utils/definir_query";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 export default class Controller_Fornecedor extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -35,15 +36,7 @@ export default class Controller_Fornecedor extends Controller {
   };
   list: RequestHandler = async (req, res, next) => {
     const { nome, cnpj, ordenar } = req.query;
-    let limite = Number(req.query.limite);
-    let pagina = Number(req.query.pagina);
-
-    if (isNaN(pagina)) {
-      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-    }
-    if (isNaN(limite)) {
-      limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    }
+    const { limite, pagina } = extrair_paginacao(req);
 
     const filtros: Prisma.FornecedorWhereInput = {};
 
