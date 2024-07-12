@@ -611,17 +611,60 @@ export default class Controller_Compras extends Controller {
   resumo_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
+    const filtros: Prisma.Compra_ItemWhereInput = {
+      item_id,
+    };
+
     try {
       validar_id(item_id);
 
-      const resumo_compras = await Tabela_Compra_Item.aggregate({
-        where: { item_id },
+      const item = await Tabela_Item.findFirst({
+        where: { id: item_id },
+        select: { nome: true },
+      });
+
+      if (!item) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível recuperar o resumo de compras do item",
+        } as Erro;
+      }
+
+      const total_vendas = await Tabela_Compra_Item.findMany({
+        where: filtros,
+        select: {
+          quantidade: true,
+          valor_combinado: true,
+        },
+      }).then((res) => {
+        return res
+          .map(({ quantidade, valor_combinado }) => {
+            const total = Number(quantidade) * Number(valor_combinado);
+
+            return total;
+          })
+          .reduce((prev, curr) => prev + curr)
+          .toFixed(2);
+      });
+
+      const compra_item = await Tabela_Compra_Item.aggregate({
+        where: filtros,
         _sum: {
           quantidade: true,
         },
       });
 
-      res.status(200).send(resumo_compras);
+      const {
+        _sum: { quantidade },
+      } = compra_item;
+
+      res.status(200).send({
+        id: item_id,
+        nome: item.nome,
+        quantidade,
+        total_vendas,
+      });
     } catch (err) {
       next(err);
     }
