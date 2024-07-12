@@ -244,7 +244,7 @@ export default class Controller_Compras extends Controller {
     }
   };
   list_fornecedor: RequestHandler = async (req, res, next) => {
-    const fornecedor_id = Number(req.params.fornecedor_id);
+    const fornecedor_id = Number(req.params.id);
 
     const { limite, pagina } = extrair_paginacao(req);
 
@@ -290,7 +290,7 @@ export default class Controller_Compras extends Controller {
   resumo_fornecedor: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
-    const fornecedor_id = Number(req.params.fornecedor_id);
+    const fornecedor_id = Number(req.params.id);
     const { nome_item } = req.query;
     const filtros_data = extrair_intervalo(req);
 

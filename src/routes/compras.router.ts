@@ -18,15 +18,15 @@ router_compras
   .get(authentication_middleware("COMPRA"), controller.resumo);
 
 router_compras
-  .route("/listar-compras/:fornecedor_id")
+  .route("/visualizar-compra/:id")
+  .get(authentication_middleware("COMPRA"), controller.get_id);
+
+router_compras
+  .route("/fornecedor/:id/listar-compras")
   .get(authentication_middleware("COMPRA"), controller.list_fornecedor);
 
 router_compras
-  .route("/resumo-compras/:fornecedor_id")
+  .route("/fornecedor/:id/resumo-compras")
   .get(authentication_middleware("COMPRA"), controller.resumo_fornecedor);
-
-router_compras
-  .route("/visualizar-compra/:id")
-  .get(authentication_middleware("COMPRA"), controller.get_id);
 
 export default router_compras;
