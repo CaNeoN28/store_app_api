@@ -310,9 +310,7 @@ export default class Controller_Compras extends Controller {
     }
 
     if (filtros_data) {
-      filtros.compra = {
-        data: filtros_data,
-      };
+      filtros.compra!.data = filtros_data
     }
 
     try {
