@@ -139,11 +139,17 @@ export default class Controller_Compras extends Controller {
 
     const { limite, pagina } = extrair_paginacao(req);
 
+    const filtros_data = extrair_intervalo(req);
+
     const filtros_compra: Prisma.CompraWhereInput = {
       compra_item: {
         some: { item_id },
       },
     };
+
+    if (filtros_data) {
+      filtros_compra.data = filtros_data;
+    }
 
     try {
       validar_id(item_id);
@@ -156,7 +162,7 @@ export default class Controller_Compras extends Controller {
       if (!item) {
         throw {
           codigo: 404,
-          erro: "O id informado não correspond a nenhum item",
+          erro: "O id informado não corresponde a nenhum item",
           mensagem: "Não foi possível recuperar as compras do item",
         } as Erro;
       }
@@ -189,9 +195,22 @@ export default class Controller_Compras extends Controller {
 
       const compras = await Tabela_Compra.findMany(query);
 
+      const resumo_compras = await Tabela_Compra.aggregate({
+        where: filtros_compra,
+        _max: { data: true },
+        _min: { data: true },
+      });
+
+      const {
+        _max: { data: data_mais_recente },
+        _min: { data: data_mais_antiga },
+      } = resumo_compras;
+
       res.status(200).send({
         id: item_id,
         nome: item.nome,
+        data_mais_recente,
+        data_mais_antiga,
         compras: {
           pagina,
           maximo_paginas,
