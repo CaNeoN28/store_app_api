@@ -608,7 +608,24 @@ export default class Controller_Compras extends Controller {
       next(err);
     }
   };
-  resumo_item: RequestHandler = async (req, res, next) => {};
+  resumo_item: RequestHandler = async (req, res, next) => {
+    const item_id = Number(req.params.id);
+
+    try {
+      validar_id(item_id);
+
+      const resumo_compras = await Tabela_Compra_Item.aggregate({
+        where: { item_id },
+        _sum: {
+          quantidade: true,
+        },
+      });
+
+      res.status(200).send(resumo_compras);
+    } catch (err) {
+      next(err);
+    }
+  };
 
   protected selecionar_campos(
     mostrar_fornecedor?: boolean,
