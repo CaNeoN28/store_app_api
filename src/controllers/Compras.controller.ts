@@ -146,11 +146,30 @@ export default class Controller_Compras extends Controller {
     try {
       validar_id(item_id);
 
+      const item = await Tabela_Item.findFirst({
+        where: { id: item_id },
+        select: { nome: true },
+      });
+
+      if (!item) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não correspond a nenhum item",
+          mensagem: "Não foi possível recuperar as compras do item",
+        } as Erro;
+      }
+
       const compras = await Tabela_Compra.findMany({
         where: filtros_compra,
       });
 
-      res.status(200).send(compras);
+      res.status(200).send({
+        id: item_id,
+        nome: item.nome,
+        compras: {
+          resultado: compras,
+        },
+      });
     } catch (err) {
       next(err);
     }
