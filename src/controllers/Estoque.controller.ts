@@ -14,8 +14,14 @@ export default class Estoque_Controller extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
-    const { limite: limite_alteracoes, pagina: pagina_alteracoes } =
-      extrair_paginacao(req);
+    let limite_alteracoes = Number(req.query.limite_alteracoes),
+      pagina_alteracoes = Number(req.query.pagina_alteracoes);
+
+    if (isNaN(limite_alteracoes))
+      limite_alteracoes = Controller.LIMITE_EXIBICAO_PADRAO;
+
+    if (isNaN(pagina_alteracoes))
+      pagina_alteracoes = Controller.PAGINA_EXIBICAO_PADRAO;
 
     try {
       validar_id(item_id);
