@@ -10,6 +10,7 @@ import ordenar_documentos from "../utils/ordenar_documentos";
 import { validar_id } from "../utils/validacao";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 export default class Controller_Cliente extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -36,16 +37,7 @@ export default class Controller_Cliente extends Controller {
     }
   };
   list: RequestHandler = async (req, res, next) => {
-    let limite = Number(req.query.limite),
-      pagina = Number(req.query.pagina);
-
-    if (isNaN(limite)) {
-      limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    }
-
-    if (isNaN(pagina)) {
-      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-    }
+    const { limite, pagina } = extrair_paginacao(req);
 
     const { nome, cnpj, ordenar } = req.query;
     const filtros: Prisma.ClienteWhereInput = {};
@@ -88,11 +80,11 @@ export default class Controller_Cliente extends Controller {
         });
 
       res.status(200).send({
-        resultado: clientes,
         pagina,
         maximo_paginas,
         registros,
         limite,
+        resultado: clientes,
       });
     } catch (err) {
       next(err);
