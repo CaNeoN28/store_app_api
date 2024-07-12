@@ -29,4 +29,12 @@ router_compras
   .route("/fornecedor/:id/resumo-compras")
   .get(authentication_middleware("COMPRA"), controller.resumo_fornecedor);
 
+router_compras
+  .route("/item/:id/listar-compras")
+  .get(authentication_middleware("COMPRA"), controller.list_item);
+
+router_compras
+  .route("/item/:id/resumo-compras")
+  .get(authentication_middleware("COMPRA"), controller.resumo_item);
+
 export default router_compras;

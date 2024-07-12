@@ -134,6 +134,27 @@ export default class Controller_Compras extends Controller {
       next(err);
     }
   };
+  list_item: RequestHandler = async (req, res, next) => {
+    const item_id = Number(req.params.id);
+
+    const filtros_compra: Prisma.CompraWhereInput = {
+      compra_item: {
+        some: { item_id },
+      },
+    };
+
+    try {
+      validar_id(item_id);
+
+      const compras = await Tabela_Compra.findMany({
+        where: filtros_compra,
+      });
+
+      res.status(200).send(compras);
+    } catch (err) {
+      next(err);
+    }
+  };
   create: RequestHandler = async (req, res, next) => {
     const { fornecedor_id, itens }: Compra = req.body;
     try {
@@ -207,7 +228,7 @@ export default class Controller_Compras extends Controller {
       next(err);
     }
   };
-   
+
   resumo: RequestHandler = async (req, res, next) => {
     const { limite, pagina } = extrair_paginacao(req);
 
@@ -384,7 +405,7 @@ export default class Controller_Compras extends Controller {
     }
 
     if (filtros_data) {
-      filtros.compra!.data = filtros_data
+      filtros.compra!.data = filtros_data;
     }
 
     try {
@@ -519,6 +540,7 @@ export default class Controller_Compras extends Controller {
       next(err);
     }
   };
+  resumo_item: RequestHandler = async (req, res, next) => {};
 
   protected selecionar_campos(
     mostrar_fornecedor?: boolean,
