@@ -615,6 +615,14 @@ export default class Controller_Compras extends Controller {
       item_id,
     };
 
+    const filtro_data = extrair_intervalo(req);
+
+    if (filtro_data) {
+      filtros.compra = {
+        data: filtro_data,
+      };
+    }
+
     try {
       validar_id(item_id);
 
