@@ -1,7 +1,11 @@
 import { Prisma } from "@prisma/client";
 import Controller from "./Controller";
 import { RequestHandler } from "express";
-import { Tabela_Alteracoes_Estoque, Tabela_Estoque, Tabela_Item } from "../db/tabelas";
+import {
+  Tabela_Alteracoes_Estoque,
+  Tabela_Estoque,
+  Tabela_Item,
+} from "../db/tabelas";
 import { Erro, Estoque, Metodo } from "../types";
 import { validar_estoque, validar_id } from "../utils/validacao";
 import { extrair_paginacao } from "../utils/extracao_request";
@@ -10,22 +14,15 @@ export default class Estoque_Controller extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
-    let limite_alteracoes = Number(req.query.limite_alteracoes),
-      pagina_alteracoes = Number(req.query.pagina_alteracoes);
-
-    if (isNaN(limite_alteracoes))
-      limite_alteracoes = Controller.LIMITE_EXIBICAO_PADRAO;
-
-    if (isNaN(pagina_alteracoes))
-      pagina_alteracoes = Controller.PAGINA_EXIBICAO_PADRAO;
+    const { limite_alteracoes, pagina_alteracoes } = extrair_paginacao(req);
 
     try {
       validar_id(item_id);
 
       const registros = await Tabela_Alteracoes_Estoque.count({
         where: {
-          estoque:{
-            item_id
+          estoque: {
+            item_id,
           },
         },
       });
@@ -59,11 +56,11 @@ export default class Estoque_Controller extends Controller {
         estoque: {
           ...estoque,
           alteracoes_estoque: {
-            resultado: estoque.alteracoes_estoque,
             pagina: pagina_alteracoes,
             maximo_paginas,
             limite: limite_alteracoes,
             registros,
+            resultado: estoque.alteracoes_estoque,
           },
         },
       });
