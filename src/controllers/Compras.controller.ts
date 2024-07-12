@@ -96,16 +96,24 @@ export default class Controller_Compras extends Controller {
     const { nome_item } = req.query;
     const filtros: Prisma.Compra_ItemWhereInput = {};
 
-    try {
-      if (nome_item) {
-        filtros.item = {
-          nome: {
-            contains: String(nome_item),
-            mode: "insensitive",
-          },
-        };
-      }
+    const filtros_data = extrair_intervalo(req);
 
+    if (nome_item) {
+      filtros.item = {
+        nome: {
+          contains: String(nome_item),
+          mode: "insensitive",
+        },
+      };
+    }
+
+    if (filtros_data) {
+      filtros.compra = {
+        data: filtros_data,
+      };
+    }
+
+    try {
       const compra_itens = await Tabela_Compra_Item.groupBy({
         by: "item_id",
         orderBy: {
@@ -198,6 +206,7 @@ export default class Controller_Compras extends Controller {
               },
             },
           },
+          data: filtros_data,
         },
         _min: {
           data: true,
@@ -283,6 +292,7 @@ export default class Controller_Compras extends Controller {
 
     const fornecedor_id = Number(req.params.fornecedor_id);
     const { nome_item } = req.query;
+    const filtros_data = extrair_intervalo(req);
 
     const filtros: Prisma.Compra_ItemWhereInput = {
       compra: {
@@ -296,6 +306,12 @@ export default class Controller_Compras extends Controller {
           contains: String(nome_item),
           mode: "insensitive",
         },
+      };
+    }
+
+    if (filtros_data) {
+      filtros.compra = {
+        data: filtros_data,
       };
     }
 
@@ -394,6 +410,7 @@ export default class Controller_Compras extends Controller {
               },
             },
           },
+          data: filtros_data,
         },
         _min: {
           data: true,
