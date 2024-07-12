@@ -118,6 +118,12 @@ export default class Controller_Vendas extends Controller {
       cliente_id,
     };
 
+    const filtro_data = extrair_intervalo(req);
+
+    if (filtro_data) {
+      filtros.data = filtro_data;
+    }
+
     try {
       validar_id(cliente_id);
 
@@ -212,7 +218,7 @@ export default class Controller_Vendas extends Controller {
         },
       }).then((res) => {
         return res.map((venda) => {
-          const {id, data} = venda;
+          const { id, data } = venda;
           const { quantidade, valor_venda } = venda.venda_item[0];
 
           return {
@@ -524,9 +530,7 @@ export default class Controller_Vendas extends Controller {
     const filtro_data = extrair_intervalo(req);
 
     if (filtro_data) {
-      filtros.venda = {
-        data: filtro_data,
-      };
+      filtros.venda!.data = filtro_data;
     }
 
     try {
