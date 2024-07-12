@@ -65,11 +65,11 @@ export default class Controller_Grupos extends Controller {
       res.status(200).send({
         ...grupo,
         usuarios: {
-          resultado: grupo.usuarios,
           pagina: pagina_usuarios,
           maximo_paginas,
           registros: registros_usuarios,
           limite: limite_usuarios,
+          resultado: grupo.usuarios,
         },
       });
     } catch (err) {

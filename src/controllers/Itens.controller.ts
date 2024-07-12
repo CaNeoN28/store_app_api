@@ -7,6 +7,7 @@ import { validar_id, validar_item } from "../utils/validacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Alteracoes_Item, Tabela_Item } from "../db/tabelas";
 import definir_query from "../utils/definir_query";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 export default class Controller_Itens extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -68,15 +69,8 @@ export default class Controller_Itens extends Controller {
   };
   list: RequestHandler = async (req, res, next) => {
     const { nome, em_desconto, ordenar } = req.query;
-    let limite = Number(req.query.limite),
-      pagina = Number(req.query.pagina);
 
-    if (isNaN(pagina)) {
-      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-    }
-    if (isNaN(limite)) {
-      limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    }
+    const { limite, pagina } = extrair_paginacao(req);
 
     const filtros: Prisma.ItemWhereInput = {};
 
@@ -117,11 +111,11 @@ export default class Controller_Itens extends Controller {
         registros > 0 ? 1 + Math.floor(registros / limite) : 0;
 
       res.status(200).send({
-        resultado: itens,
         pagina,
         maximo_paginas,
         registros,
         limite,
+        resultado: itens,
       });
     } catch (err) {
       next(err);
