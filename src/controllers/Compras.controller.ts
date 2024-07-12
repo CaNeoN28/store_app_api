@@ -181,6 +181,12 @@ export default class Controller_Compras extends Controller {
         pagina
       );
 
+      const registros = await Tabela_Compra.count({
+        where: filtros_compra,
+      });
+
+      const maximo_paginas = Math.ceil(registros / limite);
+
       const compras = await Tabela_Compra.findMany(query);
 
       res.status(200).send({
@@ -188,7 +194,9 @@ export default class Controller_Compras extends Controller {
         nome: item.nome,
         compras: {
           pagina,
+          maximo_paginas,
           limite,
+          registros,
           resultado: compras,
         },
       });
