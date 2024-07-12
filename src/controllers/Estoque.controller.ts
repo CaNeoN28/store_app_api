@@ -14,7 +14,8 @@ export default class Estoque_Controller extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
-    const { limite_alteracoes, pagina_alteracoes } = extrair_paginacao(req);
+    const { limite: limite_alteracoes, pagina: pagina_alteracoes } =
+      extrair_paginacao(req);
 
     try {
       validar_id(item_id);
@@ -197,11 +198,11 @@ export default class Estoque_Controller extends Controller {
       });
 
       res.status(200).send({
-        resultado: estoque,
         pagina,
         maximo_paginas,
         limite,
         registros,
+        resultado: estoque,
       });
     } catch (err) {
       next(err);
