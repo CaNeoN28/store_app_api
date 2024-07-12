@@ -655,15 +655,39 @@ export default class Controller_Compras extends Controller {
         },
       });
 
+      const resumo_compras = await Tabela_Compra.aggregate({
+        where: {
+          compra_item: {
+            some: {
+              item_id,
+            },
+          },
+        },
+        _max: { data: true },
+        _min: { data: true },
+      });
+
+      const {
+        _max: { data: data_mais_recente },
+        _min: { data: data_mais_antiga },
+      } = resumo_compras;
+
       const {
         _sum: { quantidade },
       } = compra_item;
 
+      const valor_medio = (Number(total_vendas) / Number(quantidade)).toFixed(
+        2
+      );
+
       res.status(200).send({
         id: item_id,
         nome: item.nome,
+        valor_medio,
         quantidade,
         total_vendas,
+        data_mais_recente,
+        data_mais_antiga,
       });
     } catch (err) {
       next(err);
