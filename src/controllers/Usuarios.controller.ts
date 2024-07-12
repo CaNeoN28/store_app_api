@@ -8,6 +8,7 @@ import { validar_id, validar_usuario } from "../utils/validacao";
 import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Usuario } from "../db/tabelas";
 import definir_query from "../utils/definir_query";
+import { extrair_paginacao } from "../utils/extracao_request";
 
 export default class Controller_Usuarios extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -47,15 +48,7 @@ export default class Controller_Usuarios extends Controller {
     const { nome_completo, nome_usuario, email, nome_grupo, ordenar } =
       req.query;
 
-    let limite = Number(req.params.limite),
-      pagina = Number(req.params.pagina);
-
-    if (isNaN(limite)) {
-      limite = Controller.LIMITE_EXIBICAO_PADRAO;
-    }
-    if (isNaN(pagina)) {
-      pagina = Controller.PAGINA_EXIBICAO_PADRAO;
-    }
+    const { limite, pagina } = extrair_paginacao(req);
 
     const filtros: Prisma.UsuarioWhereInput = {};
 
@@ -107,11 +100,11 @@ export default class Controller_Usuarios extends Controller {
         registros > 0 ? 1 + Math.floor(registros / limite) : 0;
 
       res.status(200).send({
-        resultado: usuarios,
         pagina,
         maximo_paginas,
         registros,
         limite,
+        resultado: usuarios,
       });
     } catch (err) {
       next(err);
