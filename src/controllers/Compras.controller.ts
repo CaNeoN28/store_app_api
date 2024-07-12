@@ -159,9 +159,27 @@ export default class Controller_Compras extends Controller {
         } as Erro;
       }
 
-      const compras = await Tabela_Compra.findMany({
-        where: filtros_compra,
-      });
+      const query = definir_query(
+        filtros_compra,
+        ordenar_documentos("-data", Tabela_Compra),
+        {
+          id: true,
+          data: true,
+          compra_item: {
+            where: {
+              item_id,
+            },
+            select: {
+              quantidade: true,
+              valor_combinado: true,
+            },
+          },
+        } as Prisma.CompraSelect,
+        10,
+        1
+      );
+
+      const compras = await Tabela_Compra.findMany(query);
 
       res.status(200).send({
         id: item_id,
