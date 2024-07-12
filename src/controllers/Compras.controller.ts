@@ -137,6 +137,8 @@ export default class Controller_Compras extends Controller {
   list_item: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
+    const { limite, pagina } = extrair_paginacao(req);
+
     const filtros_compra: Prisma.CompraWhereInput = {
       compra_item: {
         some: { item_id },
@@ -175,8 +177,8 @@ export default class Controller_Compras extends Controller {
             },
           },
         } as Prisma.CompraSelect,
-        10,
-        1
+        limite,
+        pagina
       );
 
       const compras = await Tabela_Compra.findMany(query);
@@ -185,6 +187,8 @@ export default class Controller_Compras extends Controller {
         id: item_id,
         nome: item.nome,
         compras: {
+          pagina,
+          limite,
           resultado: compras,
         },
       });
