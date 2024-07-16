@@ -366,6 +366,12 @@ export default class Controller_Itens extends Controller {
     }
   };
 
+  upload_image: RequestHandler = async (req, res, next) => {
+    const { file_name } = req;
+
+    res.send(file_name);
+  };
+
   protected selecionar_campos(
     exibir_alteracoes?: boolean,
     limite_alteracoes = 10,

@@ -10,5 +10,6 @@ declare namespace Express {
         }[];
       }[];
     };
+    file_name?: string;
   }
 }

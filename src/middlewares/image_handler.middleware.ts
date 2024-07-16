@@ -47,10 +47,11 @@ export default function image_handler(folder_name?: string) {
 
         const extensao = image.name.split(".").at(-1);
         const nome = uuid() + "." + extensao;
+        const nome_completo = directory + nome
 
-        image.mv(directory + nome);
+        req.file_name = nome_completo;
 
-        res.send(directory + nome);
+        next();
       }
     }
 
