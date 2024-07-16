@@ -23,6 +23,12 @@ export default function image_handler(folder_name?: string) {
           erro: "O limite permitido para imagens é de uma imagem",
           mensagem: "Não foi possível salvar a imagem",
         };
+      } else if (!/^image/.test(image.mimetype)) {
+        erros = {
+          codigo: 400,
+          erro: "Apenas o envio de imagens é permitido",
+          mensagem: "Não foi possível salvar o arquivo",
+        };
       } else {
         let directory = path.resolve("./");
         directory = path.join(directory, "/files/");
