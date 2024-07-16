@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
+import { v4 as uuid } from "uuid";
 import path from "path";
 import fs from "fs";
 
-export default function file_handler(folder_name?: string) {
+export default function image_handler(folder_name?: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
     let erros: { codigo: number; mensagem: string; erro: any } | undefined =
       undefined;
@@ -27,20 +28,23 @@ export default function file_handler(folder_name?: string) {
         directory = path.join(directory, "/files/");
 
         if (!fs.existsSync(directory)) {
+          fs.mkdirSync(directory);
+        }
+
+        if (folder_name) {
+          directory = path.join(directory, `/${folder_name}/`);
+
+          if (!fs.existsSync(directory)) {
             fs.mkdirSync(directory);
-        }
-        
-        if(folder_name){
-            directory = path.join(directory, `/${folder_name}/`)
-
-            if (!fs.existsSync(directory)) {
-                fs.mkdirSync(directory);
-            }
+          }
         }
 
-        image.mv(directory + image.name);
+        const extensao = image.name.split(".").at(-1);
+        const nome = uuid() + "." + extensao;
 
-        res.send(directory);
+        image.mv(directory + nome);
+
+        res.send(directory + nome);
       }
     }
 

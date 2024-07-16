@@ -1,7 +1,7 @@
 import { Router } from "express";
 import Controller_Itens from "../controllers/Itens.controller";
 import authentication_middleware from "../middlewares/authentication.middleware";
-import file_handler from "../middlewares/file_handler.middleware";
+import image_handler from "../middlewares/image_handler.middleware";
 import fileUpload from "express-fileupload";
 
 const router_itens = Router();
@@ -15,8 +15,11 @@ router_itens
 
 router_itens
   .route("/item/:id/imagem")
-  .all(fileUpload())
-  .post(authentication_middleware("ITEM"), file_handler("item"));
+  .all(fileUpload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/"
+  }))
+  .post(authentication_middleware("ITEM"), image_handler("item"));
 
 router_itens
   .route("/item/:id")
