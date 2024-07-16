@@ -2,9 +2,11 @@ import express from "express";
 import config_router from "./routes";
 import error_handler from "./middlewares/error_handler.middleware";
 import cookie_parser from "cookie-parser"
+import file_upload from "express-fileupload"
 
 const app = express();
 
+app.use(file_upload())
 app.use(express.json());
 app.use(cookie_parser())
 app.use(config_router());
