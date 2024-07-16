@@ -366,6 +366,26 @@ export default class Controller_Itens extends Controller {
     }
   };
 
+  upload_image: RequestHandler = async (req, res, next) => {
+    const item_id = Number(req.params.id);
+
+    const { file, file_path } = req;
+
+    try {
+      validar_id(item_id);
+
+      const item = await Tabela_Item.findFirst({
+        where: {
+          id: item_id,
+        },
+      });
+
+      res.status(200).send(item);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   protected selecionar_campos(
     exibir_alteracoes?: boolean,
     limite_alteracoes = 10,

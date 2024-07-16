@@ -21,7 +21,7 @@ router_itens
       tempFileDir: "/tmp/",
     })
   )
-  .post(authentication_middleware("ITEM"), image_handler("item"));
+  .post(authentication_middleware("ITEM"), image_handler("item"), controller.upload_image);
 
 router_itens
   .route("/item/:id")
