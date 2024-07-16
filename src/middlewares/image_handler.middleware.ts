@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import { v4 as uuid } from "uuid";
 import path from "path";
 import fs from "fs";
@@ -47,19 +47,20 @@ export default function image_handler(folder_name?: string) {
 
         const extensao = image.name.split(".").at(-1);
         const nome = uuid() + "." + extensao;
-        const nome_completo = directory + nome
+        const nome_completo = directory + nome;
 
-        req.file_name = nome_completo;
-
-        next();
+        res.status(201).send({
+          mensagem: "Mensagem criada",
+          caminho: nome_completo
+        })
       }
     }
 
     if (erros) {
       const { codigo, erro, mensagem } = erros;
       res.status(codigo).send({
-        erro,
         mensagem,
+        erro,
       });
     }
   };

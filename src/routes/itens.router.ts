@@ -15,11 +15,13 @@ router_itens
 
 router_itens
   .route("/item/:id/imagem")
-  .all(fileUpload({
-    useTempFiles: true,
-    tempFileDir: "/tmp/"
-  }))
-  .post(authentication_middleware("ITEM"), image_handler("item"), controller.upload_image);
+  .all(
+    fileUpload({
+      useTempFiles: true,
+      tempFileDir: "/tmp/",
+    })
+  )
+  .post(authentication_middleware("ITEM"), image_handler("item"));
 
 router_itens
   .route("/item/:id")
