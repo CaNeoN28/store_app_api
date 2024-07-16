@@ -49,10 +49,12 @@ export default function image_handler(folder_name?: string) {
         const nome = uuid() + "." + extensao;
         const nome_completo = directory + nome;
 
+        image.mv(nome_completo);
+
         res.status(201).send({
           mensagem: "Mensagem criada",
-          caminho: nome_completo
-        })
+          caminho: (folder_name ? folder_name + "/" : "") + nome,
+        });
       }
     }
 
