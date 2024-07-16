@@ -386,7 +386,19 @@ export default class Controller_Itens extends Controller {
           nome: true,
           imagem_url: true,
         },
-      });
+      })
+        .then((res) => res)
+        .catch((err) => {
+          const { codigo, erro } = verificar_erro_prisma(err);
+
+          throw {
+            codigo,
+            erro,
+            mensagem: "Não foi possível salvar a imagem",
+          } as Erro;
+        });
+
+      file!.mv(file_path!);
 
       res.status(200).send(item);
     } catch (err) {
