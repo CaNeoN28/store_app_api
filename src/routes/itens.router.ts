@@ -2,6 +2,7 @@ import { Router } from "express";
 import Controller_Itens from "../controllers/Itens.controller";
 import authentication_middleware from "../middlewares/authentication.middleware";
 import file_handler from "../middlewares/file_handler.middleware";
+import fileUpload from "express-fileupload";
 
 const router_itens = Router();
 const controller = new Controller_Itens();
@@ -14,7 +15,8 @@ router_itens
 
 router_itens
   .route("/item/:id/imagem")
-  .post(authentication_middleware("ITEM"), file_handler);
+  .all(fileUpload())
+  .post(authentication_middleware("ITEM"), file_handler("item"));
 
 router_itens
   .route("/item/:id")
