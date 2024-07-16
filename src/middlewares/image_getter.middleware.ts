@@ -21,7 +21,12 @@ export default function image_getter(folder_name?: string) {
       const caminho_completo = path.join(caminho_relativo, caminho_item);
 
       res.sendFile(caminho_completo, (err) => {
-        console.log(err);
+        if (err) {
+          res.status(404).send({
+            erro: "O arquivo não pôde ser encontrado",
+            mensagem: "Não foi possível recuperar a imagem",
+          });
+        }
       });
     } catch (err) {
       next(err);
