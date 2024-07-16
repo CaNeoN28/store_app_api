@@ -374,9 +374,17 @@ export default class Controller_Itens extends Controller {
     try {
       validar_id(item_id);
 
-      const item = await Tabela_Item.findFirst({
+      const item = await Tabela_Item.update({
         where: {
           id: item_id,
+        },
+        data: {
+          imagem_url: file!.name,
+        },
+        select: {
+          id: true,
+          nome: true,
+          imagem_url: true,
         },
       });
 

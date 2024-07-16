@@ -49,6 +49,8 @@ export default function image_handler(folder_name?: string) {
         const nome = uuid() + "." + extensao;
         const nome_completo = directory + nome;
 
+        image.name = nome;
+
         (req.file = image), (req.file_path = nome_completo);
 
         next();

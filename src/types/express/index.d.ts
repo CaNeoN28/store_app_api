@@ -12,6 +12,7 @@ declare namespace Express {
     };
     file_path?: string;
     file?: {
+      name: string;
       mv: (path: string) => {};
     };
   }
