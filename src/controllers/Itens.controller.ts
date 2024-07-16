@@ -8,6 +8,8 @@ import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Alteracoes_Item, Tabela_Item } from "../db/tabelas";
 import definir_query from "../utils/definir_query";
 import { extrair_paginacao } from "../utils/extracao_request";
+import fs from "fs";
+import path from "path";
 
 export default class Controller_Itens extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -374,7 +376,22 @@ export default class Controller_Itens extends Controller {
     try {
       validar_id(item_id);
 
-      const item = await Tabela_Item.update({
+      const item_antigo = await Tabela_Item.findFirst({
+        where: {
+          id: item_id,
+        },
+        select: { imagem_url: true },
+      });
+
+      if (!item_antigo) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível salvar a imagem",
+        } as Erro;
+      }
+
+      const item_novo = await Tabela_Item.update({
         where: {
           id: item_id,
         },
@@ -398,9 +415,21 @@ export default class Controller_Itens extends Controller {
           } as Erro;
         });
 
+      if (item_antigo.imagem_url) {
+        const caminho_relativo = path.resolve("./files/item");
+        const caminho_completo = path.join(
+          caminho_relativo,
+          item_antigo.imagem_url
+        );
+
+        fs.rm(caminho_completo, (err) => {
+          if (err) console.log(err);
+        });
+      }
+
       file!.mv(file_path!);
 
-      res.status(200).send(item);
+      res.status(200).send(item_novo);
     } catch (err) {
       next(err);
     }

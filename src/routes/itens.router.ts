@@ -1,9 +1,7 @@
 import { Router } from "express";
 import Controller_Itens from "../controllers/Itens.controller";
 import authentication_middleware from "../middlewares/authentication.middleware";
-import image_handler from "../middlewares/image_handler.middleware";
 import fileUpload from "express-fileupload";
-import image_getter from "../middlewares/image_getter.middleware";
 import Image_Handler from "../middlewares/Image_handlers";
 
 const router_itens = Router();
