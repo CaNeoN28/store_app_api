@@ -4,6 +4,7 @@ import authentication_middleware from "../middlewares/authentication.middleware"
 import image_handler from "../middlewares/image_handler.middleware";
 import fileUpload from "express-fileupload";
 import image_getter from "../middlewares/image_getter.middleware";
+import Image_Handler from "../middlewares/Image_handlers";
 
 const router_itens = Router();
 const controller = new Controller_Itens();
@@ -31,10 +32,12 @@ router_itens
   )
   .post(
     authentication_middleware("ITEM"),
-    image_handler("item"),
+    Image_Handler.insert_image("item"),
     controller.upload_image
   );
 
-router_itens.route("/imagem-item/:caminho").get(image_getter("item"));
+router_itens
+  .route("/imagem-item/:caminho")
+  .get(Image_Handler.get_image("item"));
 
 export default router_itens;
