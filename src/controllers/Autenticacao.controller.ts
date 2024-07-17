@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import Controller from "./Controller";
-import { Erro, Login } from "../types";
+import { Erro, Login, Usuario } from "../types";
 import { RequestHandler } from "express-serve-static-core";
 import { comparar_senha } from "../utils/senhas";
 import { gerar_token_usuario } from "../utils/jwt";
@@ -59,6 +59,25 @@ export default class Controller_Autenticacao extends Controller {
 
     res.send(user);
   };
+  alterar_perfil: RequestHandler = async (req, res, next) => {
+    const {
+      email,
+      foto_url,
+      nome_completo,
+      nome_usuario,
+      numero_telefone,
+      senha,
+    }: Usuario = req.body;
+
+    const user = req.user!;
+
+    try {
+      res.status(200).send("Alteração de perfil");
+    } catch (err) {
+      next(err);
+    }
+  };
+
   protected selecionar_campos(senha?: boolean) {
     const selecionados: Prisma.UsuarioSelect = {
       id: true,

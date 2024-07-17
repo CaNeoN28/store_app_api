@@ -6,8 +6,14 @@ const router_autenticacao = Router();
 const controller = new Controller_Autenticacao();
 
 router_autenticacao.route("/login").post(controller.realizar_login);
+
 router_autenticacao
   .route("/perfil")
   .get(authentication_middleware(), controller.visualizar_perfil);
+
+router_autenticacao
+  .route("/perfil/edicao")
+  .all(authentication_middleware())
+  .patch(controller.alterar_perfil);
 
 export default router_autenticacao;
