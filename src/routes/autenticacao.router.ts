@@ -27,6 +27,6 @@ router_autenticacao
     })
   )
   .all(authentication_middleware())
-  .post(Image_Handler.insert_image("usuario"), controller.atualizar_imagem);
+  .post(Image_Handler.insert_image("usuarios"), controller.atualizar_imagem);
 
 export default router_autenticacao;

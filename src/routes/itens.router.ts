@@ -30,13 +30,13 @@ router_itens
   )
   .post(
     authentication_middleware("ITEM"),
-    Image_Handler.insert_image("item"),
+    Image_Handler.insert_image("itens"),
     controller.upload_image
   );
 
 router_itens
   .route("/imagem-item/:caminho")
-  .get(Image_Handler.get_image("item"))
-  .delete(authentication_middleware("ITEM"), Image_Handler.remove_image("item"))
+  .get(Image_Handler.get_image("itens"))
+  .delete(authentication_middleware("ITEM"), Image_Handler.remove_image("itens"))
 
 export default router_itens;

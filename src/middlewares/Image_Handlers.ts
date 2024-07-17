@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import { Erro } from "../types";
 
-type Folder = "item" | "usuario";
+type Folder = "itens" | "usuarios";
 
 export default class Image_Handler {
   static get_image(folder_name?: Folder) {
@@ -23,13 +23,14 @@ export default class Image_Handler {
         const caminho_relativo = path.resolve(
           folder_name ? `./files/${folder_name}` : "./files"
         );
+
         const caminho_completo = path.join(caminho_relativo, caminho_item);
 
         res.sendFile(caminho_completo, (err) => {
           if (err) {
             res.status(404).send({
-              erro: "O arquivo não pôde ser encontrado",
               mensagem: "Não foi possível recuperar a imagem",
+              erro: "O arquivo não pôde ser encontrado",
             });
           }
         });
@@ -116,7 +117,7 @@ export default class Image_Handler {
           } as Erro;
         }
 
-        const caminho_relativo = path.resolve("./files");
+        const caminho_relativo = path.resolve(`/files`);
 
         const caminho_completo = path.join(
           caminho_relativo,

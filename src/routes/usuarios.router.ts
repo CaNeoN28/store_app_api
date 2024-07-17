@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Controller_Usuarios from "../controllers/Usuarios.controller";
 import authentication_middleware from "../middlewares/authentication.middleware";
+import Image_Handler from "../middlewares/Image_handlers";
 
 const router_usuarios = Router();
 const controller = new Controller_Usuarios();
@@ -21,6 +22,6 @@ router_usuarios
 
 router_usuarios
   .route("/usuarios/imagens/:caminho")
-  .get(controller.visualizar_imagem);
+  .get(Image_Handler.get_image("usuarios"));
 
 export default router_usuarios;
