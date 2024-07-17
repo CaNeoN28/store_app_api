@@ -340,6 +340,20 @@ export default class Controller_Usuarios extends Controller {
       }
     });
   };
+  inserir_imagem: RequestHandler = async (req, res, next) => {
+    const file = req.file!;
+    const file_path = req.file_path!;
+
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      res.status(201).send(file_path);
+    } catch (err) {
+      next(err);
+    }
+  };
 
   protected selecionar_campos() {
     const selecionados: Prisma.UsuarioSelect = {
