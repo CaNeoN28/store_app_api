@@ -386,11 +386,9 @@ export default class Controller_Usuarios extends Controller {
         caminho_relativo,
         arquivo_antigo
       );
-      const caminho_novo_completo = path.join(caminho_relativo, file.name);
-
       fs.rm(caminho_antigo_completo, () => {});
 
-      file.mv(caminho_novo_completo);
+      file.mv(file_path);
 
       res.status(201).send(foto_url);
     } catch (err) {
