@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client";
+import { Metodo, Prisma } from "@prisma/client";
 import Controller from "./Controller";
 import { Erro, Login, Usuario } from "../types";
 import { RequestHandler } from "express-serve-static-core";
 import { comparar_senha } from "../utils/senhas";
 import { gerar_token_usuario } from "../utils/jwt";
-import { validar_login } from "../utils/validacao";
+import { validar_login, validar_usuario } from "../utils/validacao";
 import { Tabela_Usuario } from "../db/tabelas";
 
 export default class Controller_Autenticacao extends Controller {
@@ -59,6 +59,7 @@ export default class Controller_Autenticacao extends Controller {
 
     res.send(user);
   };
+
   alterar_perfil: RequestHandler = async (req, res, next) => {
     const {
       email,
@@ -69,16 +70,41 @@ export default class Controller_Autenticacao extends Controller {
       senha,
     }: Usuario = req.body;
 
-    const user = req.user!;
+    const usuario = req.user!;
+
+    const metodo = req.method as Metodo;
+
+    const data = {
+      email,
+      foto_url,
+      nome_completo,
+      nome_usuario,
+      numero_telefone,
+      senha,
+    };
 
     try {
-      res.status(200).send("Alteração de perfil");
+      let usuario_novo: any = undefined;
+
+      if (metodo == "PATCH") {
+        validar_usuario(data);
+
+        usuario_novo = await Tabela_Usuario.update({
+          where: {
+            id: usuario.id,
+          },
+          data,
+          select: this.selecionar_campos(),
+        });
+      }
+
+      res.status(200).send(usuario_novo);
     } catch (err) {
       next(err);
     }
   };
 
-  protected selecionar_campos(senha?: boolean) {
+  protected selecionar_campos(senha = false) {
     const selecionados: Prisma.UsuarioSelect = {
       id: true,
       nome_usuario: true,
