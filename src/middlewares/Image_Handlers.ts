@@ -109,16 +109,29 @@ export default class Image_Handler {
 
       try {
         if (!caminho) {
-          throw{
+          throw {
             codigo: 400,
             erro: "É necessário informar o caminho da imagem",
-            mensagem: "Não foi possível remover a imagem"
+            mensagem: "Não foi possível remover a imagem",
           } as Erro;
         }
 
+        const caminho_relativo = path.resolve("./files");
+
+        const caminho_completo = path.join(
+          caminho_relativo,
+          folder_name ? folder_name : "",
+          caminho
+        );
+
+        fs.rm(caminho_completo, (err) => {
+          if (err) {
+          }
+        });
+
         res.status(204).send();
       } catch (err) {
-        next(err)
+        next(err);
       }
     };
   }
