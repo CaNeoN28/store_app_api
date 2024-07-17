@@ -117,7 +117,7 @@ export default class Image_Handler {
           } as Erro;
         }
 
-        const caminho_relativo = path.resolve(`/files`);
+        const caminho_relativo = path.resolve(`./files`);
 
         const caminho_completo = path.join(
           caminho_relativo,
