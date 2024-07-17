@@ -11,6 +11,8 @@ import { extrair_paginacao } from "../utils/extracao_request";
 import fs from "fs";
 import path from "path";
 
+const API_URL = process.env.API_URL || "";
+
 export default class Controller_Itens extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
     let limite_alteracoes = Number(req.query.limite_alteracoes),
@@ -371,7 +373,8 @@ export default class Controller_Itens extends Controller {
   upload_image: RequestHandler = async (req, res, next) => {
     const item_id = Number(req.params.id);
 
-    const { file, file_path } = req;
+    const file = req.file!;
+    const file_path = req.file_path!;
 
     try {
       validar_id(item_id);
@@ -396,7 +399,7 @@ export default class Controller_Itens extends Controller {
           id: item_id,
         },
         data: {
-          imagem_url: file!.name,
+          imagem_url: `${API_URL}/itens/imagens/${file.name}`,
         },
         select: {
           id: true,
@@ -427,7 +430,7 @@ export default class Controller_Itens extends Controller {
         });
       }
 
-      file!.mv(file_path!);
+      file!.mv(file_path);
 
       res.status(200).send(item_novo);
     } catch (err) {
