@@ -6,6 +6,7 @@ import { comparar_senha } from "../utils/senhas";
 import { gerar_token_usuario } from "../utils/jwt";
 import { validar_login, validar_usuario } from "../utils/validacao";
 import { Tabela_Usuario } from "../db/tabelas";
+import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 
 export default class Controller_Autenticacao extends Controller {
   realizar_login: RequestHandler = async (req, res, next) => {
@@ -95,7 +96,17 @@ export default class Controller_Autenticacao extends Controller {
           },
           data,
           select: this.selecionar_campos(),
-        });
+        })
+          .then((res) => res)
+          .catch((err) => {
+            const { codigo, erro } = verificar_erro_prisma(err);
+
+            throw {
+              codigo,
+              erro,
+              mensagem: "Não foi possível alterar o perfil",
+            } as Erro;
+          });
       }
 
       res.status(200).send(usuario_novo);
