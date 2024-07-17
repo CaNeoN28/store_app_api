@@ -35,7 +35,7 @@ router_itens
   );
 
 router_itens
-  .route("/imagem-item/:caminho")
+  .route("/itens/imagens/:caminho")
   .get(Image_Handler.get_image("itens"))
   .delete(authentication_middleware("ITEM"), Image_Handler.remove_image("itens"))
 
