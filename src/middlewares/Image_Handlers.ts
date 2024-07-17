@@ -126,10 +126,17 @@ export default class Image_Handler {
 
         fs.rm(caminho_completo, (err) => {
           if (err) {
+            const erros = {
+              codigo: 404,
+              erro: "O arquivo não pode ser encontrado",
+              mensagem: "Não foi possível remover a imagem",
+            } as Erro;
+
+            next(erros);
+          } else {
+            res.status(204).send();
           }
         });
-
-        res.status(204).send();
       } catch (err) {
         next(err);
       }
