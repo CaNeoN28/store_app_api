@@ -157,6 +157,16 @@ export default class Controller_Autenticacao extends Controller {
         select: { foto_url: true },
       });
 
+      const { foto_url } = usuario!;
+
+      if (!foto_url) {
+        throw {
+          codigo: 404,
+          erro: "O seu usuário não possui uma imagem",
+          mensagem: "Não foi possível remover a imagem",
+        } as Erro;
+      }
+
       res.send(usuario);
     } catch (err) {
       next(err);
