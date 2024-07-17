@@ -395,6 +395,32 @@ export default class Controller_Usuarios extends Controller {
       next(err);
     }
   };
+  remover_imagem: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      const usuario_antigo = await Tabela_Usuario.findFirst({
+        where: { id },
+        select: {
+          foto_url: true,
+        },
+      });
+
+      if (!usuario_antigo) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum usuário",
+          mensagem: "Não foi possível remover a imagem"
+        } as Erro;
+      }
+
+      res.send(usuario_antigo);
+    } catch (err) {
+      next(err);
+    }
+  };
 
   protected selecionar_campos() {
     const selecionados: Prisma.UsuarioSelect = {

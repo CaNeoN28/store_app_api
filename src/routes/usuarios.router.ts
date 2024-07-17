@@ -29,10 +29,14 @@ router_usuarios
 router_usuarios
   .route("/usuario/:id/imagem")
   .all(authentication_middleware("USUARIO"))
-  .all(fileUpload({
-    useTempFiles: true,
-    tempFileDir: "/tmp/"
-  }))
-  .post(Image_Handler.insert_image("usuarios"), controller.inserir_imagem);
+  .post(
+    fileUpload({
+      useTempFiles: true,
+      tempFileDir: "/tmp/",
+    }),
+    Image_Handler.insert_image("usuarios"),
+    controller.inserir_imagem
+  )
+  .delete(controller.remover_imagem);
 
 export default router_usuarios;
