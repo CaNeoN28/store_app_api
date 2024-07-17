@@ -457,7 +457,35 @@ export default class Controller_Itens extends Controller {
         } as Erro;
       }
 
-      res.send(item_antigo.imagem_url);
+      const { imagem_url } = item_antigo;
+
+      if (!imagem_url) {
+        throw {
+          codigo: 404,
+          erro: "O item informado não possui uma imagem",
+          mensagem: "Não foi possível remover a imagem",
+        } as Erro;
+      }
+
+      const nome_imagem = imagem_url.split("/").at(-1)!;
+      const caminho_relativo = path.resolve("./files/itens");
+      const caminho_completo = path.join(caminho_relativo, nome_imagem);
+
+      fs.rm(caminho_completo, async (err) => {
+        if (!err) {
+          await Tabela_Item.update({
+            where: { id },
+            data: { imagem_url: { set: null } },
+          });
+
+          res.status(204).send();
+        } else {
+          res.status(404).send({
+            mensagem: "Não foi possível remover a imagem",
+            erro: "O item informado não possui uma imagem",
+          });
+        }
+      });
     } catch (err) {
       next(err);
     }
