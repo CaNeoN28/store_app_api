@@ -29,4 +29,9 @@ router_autenticacao
   .all(authentication_middleware())
   .post(Image_Handler.insert_image("usuarios"), controller.atualizar_imagem);
 
+router_autenticacao
+  .route("/perfil/remover-imagem")
+  .all(authentication_middleware())
+  .delete(controller.remover_imagem);
+
 export default router_autenticacao;

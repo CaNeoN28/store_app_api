@@ -123,7 +123,6 @@ export default class Controller_Autenticacao extends Controller {
       next(err);
     }
   };
-
   atualizar_imagem: RequestHandler = async (req, res, next) => {
     const { id } = req.user!;
     const file = req.file!;
@@ -145,6 +144,20 @@ export default class Controller_Autenticacao extends Controller {
       file.mv(file_path);
 
       res.status(201).send(foto_url);
+    } catch (err) {
+      next(err);
+    }
+  };
+  remover_imagem: RequestHandler = async (req, res, next) => {
+    const user = req.user!;
+
+    try {
+      const usuario = await Tabela_Usuario.findFirst({
+        where: { id: user.id },
+        select: { foto_url: true },
+      });
+
+      res.send(usuario);
     } catch (err) {
       next(err);
     }
