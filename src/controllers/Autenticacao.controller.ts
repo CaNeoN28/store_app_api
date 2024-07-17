@@ -8,6 +8,8 @@ import { validar_login, validar_usuario } from "../utils/validacao";
 import { Tabela_Usuario } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
 
+const API_URL = process.env.API_URL || "";
+
 export default class Controller_Autenticacao extends Controller {
   realizar_login: RequestHandler = async (req, res, next) => {
     const { nome_usuario, senha }: Login = req.body;
@@ -123,13 +125,26 @@ export default class Controller_Autenticacao extends Controller {
   };
 
   atualizar_imagem: RequestHandler = async (req, res, next) => {
+    const { id } = req.user!;
     const file = req.file!;
     const file_path = req.file_path!;
 
     try {
-      res.send({
-        file_path,
+      const { foto_url } = await Tabela_Usuario.update({
+        where: {
+          id,
+        },
+        data: {
+          foto_url: `${API_URL}/usuarios/imagens/${file.name}`,
+        },
+        select: {
+          foto_url: true,
+        },
       });
+
+      file.mv(file_path);
+
+      res.status(201).send(foto_url);
     } catch (err) {
       next(err);
     }
