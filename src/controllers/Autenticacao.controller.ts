@@ -56,9 +56,16 @@ export default class Controller_Autenticacao extends Controller {
   }
 
   visualizar_perfil: RequestHandler = async (req, res, next) => {
-    const user = req.user!;
+    const { id } = req.user!;
 
-    res.send(user);
+    const usuario = await Tabela_Usuario.findFirst({
+      where: {
+        id,
+      },
+      select: this.selecionar_campos(),
+    });
+
+    res.send(usuario);
   };
 
   alterar_perfil: RequestHandler = async (req, res, next) => {
@@ -110,6 +117,19 @@ export default class Controller_Autenticacao extends Controller {
       }
 
       res.status(200).send(usuario_novo);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  atualizar_imagem: RequestHandler = async (req, res, next) => {
+    const file = req.file!;
+    const file_path = req.file_path!;
+
+    try {
+      res.send({
+        file_path,
+      });
     } catch (err) {
       next(err);
     }

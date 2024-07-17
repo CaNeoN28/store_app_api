@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import { Erro } from "../types";
 
-type Folder = "item";
+type Folder = "item" | "usuario";
 
 export default class Image_Handler {
   static get_image(folder_name?: Folder) {
