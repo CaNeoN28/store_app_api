@@ -332,8 +332,11 @@ export default class Controller_Usuarios extends Controller {
     const cmainho_completo = path.join(caminho_relativo, caminho);
 
     res.sendFile(cmainho_completo, (err) => {
-      if(err){
-        
+      if (err) {
+        res.status(404).send({
+          mensagem: "Não foi possível visualizar a imagem",
+          erro: "O arquivo não pode ser encontrado",
+        });
       }
     });
   };
