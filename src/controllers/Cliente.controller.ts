@@ -176,7 +176,6 @@ export default class Controller_Cliente extends Controller {
         })
           .then((res) => res)
           .catch((err) => {
-            console.log(err);
             const { codigo, erro } = verificar_erro_prisma(err);
 
             throw {

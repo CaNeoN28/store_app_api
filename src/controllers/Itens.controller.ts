@@ -426,11 +426,11 @@ export default class Controller_Itens extends Controller {
         );
 
         fs.rm(caminho_completo, (err) => {
-          if (err) console.log(err);
+          if (err) {};
         });
       }
 
-      file!.mv(file_path);
+      file.mv(file_path);
 
       res.status(200).send(item_novo);
     } catch (err) {
