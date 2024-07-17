@@ -426,13 +426,38 @@ export default class Controller_Itens extends Controller {
         );
 
         fs.rm(caminho_completo, (err) => {
-          if (err) {};
+          if (err) {
+          }
         });
       }
 
       file.mv(file_path);
 
       res.status(200).send(item_novo);
+    } catch (err) {
+      next(err);
+    }
+  };
+  remove_image: RequestHandler = async (req, res, next) => {
+    const id = Number(req.params.id);
+
+    try {
+      validar_id(id);
+
+      const item_antigo = await Tabela_Item.findFirst({
+        where: { id },
+        select: { imagem_url: true },
+      });
+
+      if (!item_antigo) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum item",
+          mensagem: "Não foi possível remover a imagem",
+        } as Erro;
+      }
+
+      res.send(item_antigo.imagem_url);
     } catch (err) {
       next(err);
     }

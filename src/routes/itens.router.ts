@@ -22,21 +22,18 @@ router_itens
 
 router_itens
   .route("/item/:id/imagem")
+  .all(authentication_middleware("ITEM"))
   .all(
     fileUpload({
       useTempFiles: true,
       tempFileDir: "/tmp/",
     })
   )
-  .post(
-    authentication_middleware("ITEM"),
-    Image_Handler.insert_image("itens"),
-    controller.upload_image
-  );
+  .post(Image_Handler.insert_image("itens"), controller.upload_image)
+  .delete(controller.remove_image);
 
 router_itens
   .route("/itens/imagens/:caminho")
-  .get(Image_Handler.get_image("itens"))
-  .delete(authentication_middleware("ITEM"), Image_Handler.remove_image("itens"))
+  .get(Image_Handler.get_image("itens"));
 
 export default router_itens;
