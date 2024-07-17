@@ -7,6 +7,8 @@ import { gerar_token_usuario } from "../utils/jwt";
 import { validar_login, validar_usuario } from "../utils/validacao";
 import { Tabela_Usuario } from "../db/tabelas";
 import verificar_erro_prisma from "../utils/verificar_erro_prisma";
+import fs from "fs";
+import path from "path";
 
 const API_URL = process.env.API_URL || "";
 
@@ -167,7 +169,24 @@ export default class Controller_Autenticacao extends Controller {
         } as Erro;
       }
 
-      res.send(usuario);
+      const nome_imagem = foto_url.split("/").at(-1)!;
+      const caminho_relativo = path.resolve("./files/usuarios");
+      const caminho_completo = path.join(caminho_relativo, nome_imagem);
+
+      fs.rm(caminho_completo, async (err) => {
+        if (err) {
+          res.status(404).send({
+            mensagem: "Não foi possível remover a imagem",
+            erro: "O seu usuário não possui uma imagem",
+          });
+        } else {
+          await Tabela_Usuario.update({
+            where: { id: user.id },
+            data: { foto_url: { set: null } },
+          });
+          res.status(204).send();
+        }
+      });
     } catch (err) {
       next(err);
     }
