@@ -412,11 +412,45 @@ export default class Controller_Usuarios extends Controller {
         throw {
           codigo: 404,
           erro: "O id informado não corresponde a nenhum usuário",
-          mensagem: "Não foi possível remover a imagem"
+          mensagem: "Não foi possível remover a imagem",
         } as Erro;
       }
 
-      res.send(usuario_antigo);
+      if (!usuario_antigo.foto_url) {
+        throw {
+          codigo: 404,
+          erro: "Não há imagem para este usuário",
+          mensagem: "Não foi possível remover a imagem",
+        } as Erro;
+      }
+
+      const nome_imagem = usuario_antigo.foto_url.split("/").at(-1)!;
+      const caminho_relativo = path.resolve("./files/usuarios");
+      const caminho_completo = path.join(caminho_relativo, nome_imagem);
+
+      console.log(caminho_completo);
+
+      fs.rm(caminho_completo, async (err) => {
+        if (err) {
+          res.status(404).send({
+            mensagem: "Não foi possível remover a imagem",
+            erro: "Não há imagem para este usuário",
+          });
+        } else {
+          await Tabela_Usuario.update({
+            where: {
+              id,
+            },
+            data: {
+              foto_url: {
+                set: null,
+              },
+            },
+          });
+
+          res.status(204).send();
+        }
+      });
     } catch (err) {
       next(err);
     }
