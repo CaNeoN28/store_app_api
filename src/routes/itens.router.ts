@@ -36,6 +36,7 @@ router_itens
 
 router_itens
   .route("/imagem-item/:caminho")
-  .get(Image_Handler.get_image("item"));
+  .get(Image_Handler.get_image("item"))
+  .delete(authentication_middleware("ITEM"), Image_Handler.remove_image("item"))
 
 export default router_itens;

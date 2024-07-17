@@ -4,8 +4,10 @@ import path from "path";
 import fs from "fs";
 import { Erro } from "../types";
 
+type Folder = "item";
+
 export default class Image_Handler {
-  static get_image(folder_name?: string) {
+  static get_image(folder_name?: Folder) {
     return async (req: Request, res: Response, next: NextFunction) => {
       const caminho_item = req.params.caminho;
 
@@ -37,7 +39,7 @@ export default class Image_Handler {
     };
   }
 
-  static insert_image(folder_name?: string) {
+  static insert_image(folder_name?: Folder) {
     return async (req: Request, res: Response, next: NextFunction) => {
       let erros: { codigo: number; mensagem: string; erro: any } | undefined =
         undefined;
@@ -97,6 +99,26 @@ export default class Image_Handler {
           mensagem,
           erro,
         });
+      }
+    };
+  }
+
+  static remove_image(folder_name?: Folder) {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const { caminho } = req.params;
+
+      try {
+        if (!caminho) {
+          throw{
+            codigo: 400,
+            erro: "É necessário informar o caminho da imagem",
+            mensagem: "Não foi possível remover a imagem"
+          } as Erro;
+        }
+
+        res.status(204).send();
+      } catch (err) {
+        next(err)
       }
     };
   }
