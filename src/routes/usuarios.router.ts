@@ -19,4 +19,8 @@ router_usuarios
   .put(authentication_middleware("USUARIO"), controller.update_by_id)
   .delete(authentication_middleware("USUARIO"), controller.remove_by_id);
 
+router_usuarios
+  .route("/usuarios/imagens/:caminho")
+  .get(controller.visualizar_imagem);
+
 export default router_usuarios;

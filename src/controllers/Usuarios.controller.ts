@@ -9,6 +9,8 @@ import ordenar_documentos from "../utils/ordenar_documentos";
 import { Tabela_Usuario } from "../db/tabelas";
 import definir_query from "../utils/definir_query";
 import { extrair_paginacao } from "../utils/extracao_request";
+import fs from "fs";
+import path from "path";
 
 export default class Controller_Usuarios extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
@@ -321,6 +323,19 @@ export default class Controller_Usuarios extends Controller {
     } catch (err) {
       next(err);
     }
+  };
+
+  visualizar_imagem: RequestHandler = async (req, res, next) => {
+    const caminho = req.params.caminho;
+
+    const caminho_relativo = path.resolve("./files/usuario");
+    const cmainho_completo = path.join(caminho_relativo, caminho);
+
+    res.sendFile(cmainho_completo, (err) => {
+      if(err){
+        
+      }
+    });
   };
 
   protected selecionar_campos() {
