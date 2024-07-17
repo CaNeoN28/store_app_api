@@ -31,7 +31,7 @@ router_usuarios
   .all(authentication_middleware("USUARIO"))
   .all(fileUpload({
     useTempFiles: true,
-    tempFileDir: "tmp"
+    tempFileDir: "/tmp/"
   }))
   .post(Image_Handler.insert_image("usuarios"), controller.inserir_imagem);
 

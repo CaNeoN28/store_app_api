@@ -12,6 +12,8 @@ import { extrair_paginacao } from "../utils/extracao_request";
 import fs from "fs";
 import path from "path";
 
+const API_URL = process.env.API_URL || "";
+
 export default class Controller_Usuarios extends Controller {
   get_id: RequestHandler = async (req, res, next) => {
     const id = Number(req.params.id);
@@ -349,7 +351,48 @@ export default class Controller_Usuarios extends Controller {
     try {
       validar_id(id);
 
-      res.status(201).send(file_path);
+      const usuario_antigo = await Tabela_Usuario.findFirst({
+        where: {
+          id,
+        },
+        select: {
+          foto_url: true,
+        },
+      });
+
+      if (!usuario_antigo) {
+        throw {
+          codigo: 404,
+          erro: "O id informado não corresponde a nenhum usuário",
+          mensagem: "Não foi possível inserir imagem",
+        } as Erro;
+      }
+
+      const { foto_url } = await Tabela_Usuario.update({
+        where: {
+          id,
+        },
+        data: {
+          foto_url: `${API_URL}/usuarios/imagens/${file.name}`,
+        },
+        select: {
+          foto_url: true,
+        },
+      });
+
+      const arquivo_antigo = usuario_antigo.foto_url?.split("/").at(-1)!;
+      const caminho_relativo = path.resolve("./files/usuarios");
+      const caminho_antigo_completo = path.join(
+        caminho_relativo,
+        arquivo_antigo
+      );
+      const caminho_novo_completo = path.join(caminho_relativo, file.name);
+
+      fs.rm(caminho_antigo_completo, () => {});
+
+      file.mv(caminho_novo_completo);
+
+      res.status(201).send(foto_url);
     } catch (err) {
       next(err);
     }
