@@ -8,10 +8,12 @@ import { Cliente_Schema } from "./Cliente";
 import { Item_Schema } from "./Item";
 import { Alteracao_Item_Schema } from "./Alteracoes_Item";
 import { Estoque_Schema } from "./Estoque";
+import { Alteracao_Estoque_Schema } from "./Alteracao_Estoque";
 
 const schemas: { [k: string]: Schema } = {
   Acesso: Acesso_Schema,
   Alteracao_Item: Alteracao_Item_Schema,
+  Alteracao_Estoque: Alteracao_Estoque_Schema,
   Cliente: Cliente_Schema,
   Estoque: Estoque_Schema,
   Fornecedor: Fornecedor_Schema,
