@@ -1,6 +1,6 @@
 import { Schema } from "swagger-jsdoc";
 
-const Alteracoes_Item_Schema: Schema = {
+const Alteracao_Item_Schema: Schema = {
   type: "object",
   properties: {
     id: {
@@ -44,4 +44,4 @@ const Alteracoes_Item_Schema: Schema = {
   },
 };
 
-export { Alteracoes_Item_Schema };
+export { Alteracao_Item_Schema };
