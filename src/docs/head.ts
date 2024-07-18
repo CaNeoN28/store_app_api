@@ -1,9 +1,5 @@
 import { Application } from "express";
-import swaggerJSDoc, {
-  OAS3Definition,
-  Options,
-  SwaggerDefinition,
-} from "swagger-jsdoc";
+import swaggerJSDoc, { OAS3Definition, Options } from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import paths from "./paths";
 import components from "./components";
