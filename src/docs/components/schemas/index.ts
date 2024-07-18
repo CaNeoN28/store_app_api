@@ -6,9 +6,11 @@ import { Usuario_Schema } from "./Usuario";
 import { Fornecedor_Schema } from "./Fornecedor";
 import { Cliente_Schema } from "./Cliente";
 import { Item_Schema } from "./Item";
+import { Alteracoes_Item_Schema } from "./Alteracoes_Item";
 
 const schemas: { [k: string]: Schema } = {
   Acesso: Acesso_Schema,
+  Alteracoes_Item: Alteracoes_Item_Schema,
   Cliente: Cliente_Schema,
   Fornecedor: Fornecedor_Schema,
   Grupo: Grupo_Schema,

@@ -55,9 +55,10 @@ const Item_Schema: Schema = {
     },
     alteracoes: {
       type: "array",
-      obs: `Lista com as alterações realizados no item.`,
+      obs: `Lista com as alterações realizadas no item.
+            São criadas automaticamente na alteração dos dados  `,
       items: {
-        $ref: "#/compnents/schemas/Alteracao_Item",
+        $ref: "#/components/schemas/Alteracao_Item",
       },
     },
   },
