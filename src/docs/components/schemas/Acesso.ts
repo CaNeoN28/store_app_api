@@ -7,6 +7,7 @@ const Acesso_Schema: Schema = {
   properties: {
     tabela: {
       type: "string",
+      required: true,
       obs: "Corresponde a tabelas do banco de dados, e limitam o acesso de usuários a elas",
       enum: [
         "ITEM",
@@ -23,6 +24,7 @@ const Acesso_Schema: Schema = {
     },
     metodo: {
       type: "string",
+      required: true,
       obs: "Métodos utilizados nas rotas da API, limitando o acesso dos usuários",
       enum: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     },
