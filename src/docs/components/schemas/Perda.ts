@@ -12,7 +12,10 @@ const Perda_Schema: Schema = {
       obs: `Data no qual a perda foi realizada.`,
     },
     perda_item: {
-      $ref: "#/components/schema/Perda_Item",
+      type: "array",
+      items: {
+        $ref: "#/components/schema/Perda_Item",
+      },
     },
   },
 };
