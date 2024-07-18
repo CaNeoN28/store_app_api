@@ -12,6 +12,7 @@ import { Alteracao_Estoque_Schema } from "./Alteracao_Estoque";
 import { Compra_Schema } from "./Compra";
 import { Compra_Item_Schema } from "./Compra_Item";
 import { Venda_Schema } from "./Venda";
+import { Venda_Item_Schema } from "./Venda_Item";
 
 const schemas: { [k: string]: Schema } = {
   Acesso: Acesso_Schema,
@@ -26,6 +27,7 @@ const schemas: { [k: string]: Schema } = {
   Item: Item_Schema,
   Unidade: Unidade_Schema,
   Usuario: Usuario_Schema,
+  Venda_Item: Venda_Item_Schema,
   Venda: Venda_Schema,
 };
 
